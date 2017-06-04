@@ -1,5 +1,7 @@
 # fastify-websocket
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/fastify/fastify-websocket.svg)](https://greenkeeper.io/)
+
 WebSocket support for [Fastify](https://github.com/fastify/fastify).
 Built upon [websocket-stream](http://npm.im/websocket-stream).
 
