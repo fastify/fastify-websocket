@@ -1,0 +1,34 @@
+{
+  "name": "fastify-websocket",
+  "version": "0.0.1",
+  "description": "basic websocket support for fastify",
+  "main": "index.js",
+  "scripts": {
+    "test": "standard | snazzy && tap test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fastify/fastify-websocket.git"
+  },
+  "keywords": [
+    "fastify",
+    "websocket"
+  ],
+  "author": "Matteo Collina <hello@matteocollina.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fastify/fastify-websocket/issues"
+  },
+  "homepage": "https://github.com/fastify/fastify-websocket#readme",
+  "devDependencies": {
+    "fastify": "^0.21.0",
+    "pre-commit": "^1.2.2",
+    "snazzy": "^7.0.0",
+    "standard": "^10.0.2",
+    "tap": "^10.3.3"
+  },
+  "dependencies": {
+    "fastify-plugin": "^0.1.0",
+    "websocket-stream": "^5.0.0"
+  }
+}
