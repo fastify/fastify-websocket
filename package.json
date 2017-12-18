@@ -28,7 +28,7 @@
     "tap": "^10.3.3"
   },
   "dependencies": {
-    "fastify-plugin": "^0.1.0",
+    "fastify-plugin": "^0.2.0",
     "websocket-stream": "^5.0.0"
   }
 }
