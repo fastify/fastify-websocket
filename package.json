@@ -21,14 +21,14 @@
   },
   "homepage": "https://github.com/fastify/fastify-websocket#readme",
   "devDependencies": {
-    "fastify": "^0.21.0",
+    "fastify": "^0.39.0",
     "pre-commit": "^1.2.2",
     "snazzy": "^7.0.0",
-    "standard": "^10.0.2",
-    "tap": "^10.3.3"
+    "standard": "^10.0.3",
+    "tap": "^11.0.1"
   },
   "dependencies": {
     "fastify-plugin": "^0.2.1",
-    "websocket-stream": "^5.0.0"
+    "websocket-stream": "^5.1.1"
   }
 }
