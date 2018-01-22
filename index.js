@@ -17,4 +17,7 @@ module.exports = fp(function (fastify, opts, next) {
   fastify.decorate('websocketServer', wss)
 
   next()
+}, {
+  fastify: '>=0.39.0',
+  name: 'fastify-websocket'
 })
