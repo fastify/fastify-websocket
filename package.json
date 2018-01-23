@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/fastify/fastify-websocket#readme",
   "devDependencies": {
-    "fastify": "^0.39.0",
+    "fastify": "^0.40.0",
     "pre-commit": "^1.2.2",
     "snazzy": "^7.0.0",
     "standard": "^10.0.3",
