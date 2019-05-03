@@ -48,7 +48,7 @@ fastify.listen(3000, (err) => {
 })
 ```
 
-## options :
+## Options :
 `fastify-websocket` accept the same options as [`websocket-stream`](https://github.com/maxogden/websocket-stream#options) and as [`ws`](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback) :
 
 - `objectMode` - Send each chunk on its own, and do not try to pack them in a single websocket frame.
