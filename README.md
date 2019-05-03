@@ -32,7 +32,6 @@ const options = {
 }
 
 fastify.register(require('fastify-websocket'), {
-  autoClose: true, // set to true by default: close the websocket server when fastify is closed
   handle,
   options
 })
@@ -49,14 +48,7 @@ fastify.listen(3000, (err) => {
 })
 ```
 
-## Configuration
-
-### autoClose:
-`true` by default, this option enable or disable a hook triggered when fastify is closed to shutdown the websocket server.
-
-_**NB:** If you don't want to shut down your external websocket server when fastify is closed you **must set the `autoClose` parameter to `false`**._
-
-### options :
+## options :
 `fastify-websocket` accept the same options as [`websocket-stream`](https://github.com/maxogden/websocket-stream#options) and as [`ws`](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback) :
 
 - `objectMode` - Send each chunk on its own, and do not try to pack them in a single websocket frame.
@@ -74,7 +66,7 @@ _**NB:** If you don't want to shut down your external websocket server when fast
 
 For more informations you can check [`ws` options documentation](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback) and [`websocket-stream` options documentation](https://github.com/maxogden/websocket-stream#options).
 
-_**NB:** By default if you do not provide a `server` option `fastify-websocket` will bind your websocket server instance to the scoped `fastify` instance. If you don't want to shut down your external websocket server when fastify is closed you **must set the `autoClose` parameter to `false`**._
+_**NB:** By default if you do not provide a `server` option `fastify-websocket` will bind your websocket server instance to the scoped `fastify` instance._
 
 ## TODO
 

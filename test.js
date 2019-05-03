@@ -102,7 +102,7 @@ test('Should be able to pass a custom server option to websocket-stream', (t) =>
     server: externalServer
   }
 
-  fastify.register(fastifyWebsocket, { autoClose: false, handle, options })
+  fastify.register(fastifyWebsocket, { handle, options })
 
   // this is all that's needed to create an echo server
   function handle (connection) {

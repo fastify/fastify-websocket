@@ -4,7 +4,6 @@ const fp = require('fastify-plugin')
 const websocket = require('websocket-stream')
 
 function fastifyWebsocket (fastify, opts, next) {
-  const autoClose = opts.autoClose || true
   const handle = opts.handle
   const options = Object.assign({ server: fastify.server }, opts.options)
 
@@ -16,9 +15,7 @@ function fastifyWebsocket (fastify, opts, next) {
 
   fastify.decorate('websocketServer', wss)
 
-  if (autoClose) {
-    fastify.addHook('onClose', close)
-  }
+  fastify.addHook('onClose', close)
 
   next()
 }
