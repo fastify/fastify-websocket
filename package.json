@@ -30,5 +30,10 @@
   "dependencies": {
     "fastify-plugin": "^1.5.0",
     "websocket-stream": "^5.5.0"
+  },
+  "greenkeeper": {
+    "ignore": [
+      "tap"
+    ]
   }
 }
