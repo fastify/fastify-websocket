@@ -12,7 +12,7 @@ npm install fastify-websocket --save
 
 ## Usage
 
-All you need to do is to add it to you project with `register` and you are done !
+All you need to do is to add it to your project with `register` and you are done!
 
 ### Example
 
