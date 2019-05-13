@@ -24,7 +24,7 @@ const fastify = require('fastify')()
 const options = {
   verifyClient: function (info, next) {
     if (info.req.headers['x-fastify-header'] !== 'fastify is awesome !') {
-      next(false) // the connection is not allowed
+      return next(false) // the connection is not allowed
     }
 
     next(true) // the connection is allowed
