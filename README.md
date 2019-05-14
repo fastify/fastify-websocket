@@ -21,7 +21,7 @@ All you need to do is to add it to your project with `register` and you are done
 
 const fastify = require('fastify')()
 
-const options = {
+const wssOtions = {
   verifyClient: function (info, next) {
     if (info.req.headers['x-fastify-header'] !== 'fastify is awesome !') {
       return next(false) // the connection is not allowed
@@ -33,7 +33,7 @@ const options = {
 
 fastify.register(require('fastify-websocket'), {
   handle,
-  options
+  options: wssOptions
 })
 
 function handle (conn) {
