@@ -22,6 +22,7 @@ All you need to do is to add it to your project with `register` and you are done
 const fastify = require('fastify')()
 
 const wssOtions = {
+  maxPayload: 1048576, // we set the maximum allowed messages size to 1 MiB (1024 bytes * 1024 bytes)
   path: '/fastify', // accept only connections matching this path e.g.: ws://localhost:3000/fastify
   verifyClient: function (info, next) {
     if (info.req.headers['x-fastify-header'] !== 'fastify is awesome !') {
