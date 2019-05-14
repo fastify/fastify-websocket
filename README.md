@@ -22,6 +22,7 @@ All you need to do is to add it to your project with `register` and you are done
 const fastify = require('fastify')()
 
 const wssOtions = {
+  path: '/fastify', // accept only connections matching this path e.g.: ws://localhost:3000/fastify
   verifyClient: function (info, next) {
     if (info.req.headers['x-fastify-header'] !== 'fastify is awesome !') {
       return next(false) // the connection is not allowed
