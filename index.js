@@ -3,21 +3,28 @@
 const fp = require('fastify-plugin')
 const websocket = require('websocket-stream')
 
-module.exports = fp(function (fastify, opts, next) {
-  var handle = opts.handle
+function fastifyWebsocket (fastify, opts, next) {
+  const handle = opts.handle
+  const options = Object.assign({ server: fastify.server }, opts.options)
 
   if (typeof handle !== 'function') {
     return next(new Error('invalid handle function'))
   }
 
-  var wss = websocket.createServer({
-    server: fastify.server
-  }, handle)
+  const wss = websocket.createServer(options, handle)
 
   fastify.decorate('websocketServer', wss)
 
+  fastify.addHook('onClose', close)
+
   next()
-}, {
+}
+
+function close (fastify, done) {
+  fastify.websocketServer.close(done)
+}
+
+module.exports = fp(fastifyWebsocket, {
   fastify: '>=0.39.0',
   name: 'fastify-websocket'
 })
