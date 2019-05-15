@@ -238,7 +238,7 @@ test(`Should send message and close`, t => {
   })
 })
 
-test(`Should return 404 on http request`, async t => {
+test(`Should return 404 on http request`, t => {
   const fastify = Fastify()
 
   t.tearDown(() => fastify.close())
@@ -258,13 +258,14 @@ test(`Should return 404 on http request`, async t => {
     t.tearDown(connection.destroy.bind(connection))
   })
 
-  const response = await fastify.inject({
+  fastify.inject({
     method: 'GET',
     url: '/'
+  }).then((response) => {
+    t.equal(response.payload, '')
+    t.equal(response.statusCode, 404)
+    t.end()
   })
-  t.equal(response.payload, '')
-  t.equal(response.statusCode, 404)
-  t.end()
 })
 
 test('Should be able to pass custom options to websocket-stream', (t) => {
