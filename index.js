@@ -29,7 +29,7 @@ function fastifyWebsocket (fastify, opts, next) {
   fastify.addHook('onRoute', routeOptions => {
     if (routeOptions.websocket || routeOptions.wsHandler) {
       if (routeOptions.method !== 'GET') {
-        throw Error('web socket handler could be declared only in GET method')
+        return next(new Error('websocket handler could be declared only in GET method'))
       }
 
       let wsHandler = routeOptions.wsHandler
@@ -43,10 +43,16 @@ function fastifyWebsocket (fastify, opts, next) {
       }
 
       if (typeof wsHandler !== 'function') {
-        throw new Error('invalid wsHandler function')
+        return next(new Error('invalid wsHandler function'))
       }
 
-      router.on('GET', routeOptions.path, (req, _) => wsHandler(req[kWs], req))
+      router.on('GET', routeOptions.path, (req, _) => {
+        const result = wsHandler(req[kWs], req)
+
+        if (result && typeof result.catch === 'function') {
+          result.catch((err) => req[kWs].destroy(err))
+        }
+      })
 
       routeOptions.handler = handler
     }
