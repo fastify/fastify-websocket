@@ -23,14 +23,14 @@
   "devDependencies": {
     "fastify": "^2.3.0",
     "pre-commit": "^1.2.2",
-    "request": "~2.88.0",
+    "request": "^2.88.0",
     "snazzy": "^8.0.0",
     "standard": "^12.0.1",
     "tap": "^12.7.0"
   },
   "dependencies": {
     "fastify-plugin": "^1.5.0",
-    "find-my-way": "~2.0.1",
+    "find-my-way": "^2.0.1",
     "websocket-stream": "^5.5.0"
   },
   "greenkeeper": {
