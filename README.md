@@ -20,37 +20,37 @@ There are two possibile ways of using this plugin: **global handler** or **per r
 All you need to do is to add it to your project with `register` and pass handle function. You are done!
 
 ```js
-"use strict";
+"use strict"
 
-const fastify = require("fastify")();
+const fastify = require("fastify")()
 
 const wssOtions = {
   maxPayload: 1048576, // we set the maximum allowed messages size to 1 MiB (1024 bytes * 1024 bytes)
   path: "/fastify", // we accept only connections matching this path e.g.: ws://localhost:3000/fastify
   verifyClient: function(info, next) {
     if (info.req.headers["x-fastify-header"] !== "fastify is awesome !") {
-      return next(false); // the connection is not allowed
+      return next(false) // the connection is not allowed
     }
 
-    next(true); // the connection is allowed
+    next(true) // the connection is allowed
   }
-};
+}
 
 fastify.register(require("fastify-websocket"), {
   handle,
   options: wssOptions
-});
+})
 
 function handle(conn) {
-  conn.pipe(conn); // creates an echo server
+  conn.pipe(conn) // creates an echo server
 }
 
 fastify.listen(3000, err => {
   if (err) {
-    fastify.log.error(err);
-    process.exit(1);
+    fastify.log.error(err)
+    process.exit(1)
   }
-});
+})
 ```
 
 ### Per route handler
@@ -58,24 +58,24 @@ fastify.listen(3000, err => {
 After registring this plugin, you can choose on which routes the WS server will respond. This could be achieved adding `websocket: true` property to `routeOptions` on a fastify's `.get` route. In thi case two arguments will be passed to the handler: socket connection and original `http.IncomingMessage` (instead of the usual fastify's request and reply objects).
 
 ```js
-"use strict";
-const fastify = Fastify();
+"use strict"
+const fastify = Fastify()
 
-fastify.register(require("fastify-websocket"));
+fastify.register(require("fastify-websocket"))
 
 fastify.get("/", { websocket: true }, (connection, req) => {
   connection.socket.on("message", message => {
     // message === "hi from client"
-    connection.socket.send("hi from server");
-  });
-});
+    connection.socket.send("hi from server")
+  })
+})
 
 fastify.listen(3000, err => {
   if (err) {
-    fastify.log.error(err);
-    process.exit(1);
+    fastify.log.error(err)
+    process.exit(1)
   }
-});
+})
 ```
 
 In this case there is no any global handler, so it will respond with 404 on every unregistered route, closing the incoming upgrade connection request.
@@ -83,74 +83,74 @@ In this case there is no any global handler, so it will respond with 404 on ever
 However you can still pass a default global handler, that will be used as default handler.
 
 ```js
-"use strict";
-const fastify = Fastify();
+"use strict"
+const fastify = Fastify()
 
 function handle(conn) {
-  conn.pipe(conn); // creates an echo server
+  conn.pipe(conn) // creates an echo server
 }
 
 fastify.register(require("fastify-websocket"), {
   handle,
   options: wssOptions
-});
+})
 
 fastify.get("/", { websocket: true }, (connection, req) => {
   connection.socket.on("message", message => {
     // message === "hi from client"
-    connection.socket.send("hi from server");
-  });
-});
+    connection.socket.send("hi from server")
+  })
+})
 
 fastify.listen(3000, err => {
   if (err) {
-    fastify.log.error(err);
-    process.exit(1);
+    fastify.log.error(err)
+    process.exit(1)
   }
-});
+})
 ```
 
 If you need to handle on the same route, both HTTP requests and incoming socket connections, you can still do it using the [full declaration syntax](https://www.fastify.io/docs/latest/Routes/#full-declaration), adding a `wsHandler` property.
 
 ```js
-"use strict";
-const fastify = Fastify();
+"use strict"
+const fastify = Fastify()
 
 function handle(conn) {
-  conn.pipe(conn); // creates an echo server
+  conn.pipe(conn) // creates an echo server
 }
 
 fastify.register(require("fastify-websocket"), {
   handle,
   options: wssOptions
-});
+})
 
 fastify.route({
   method: "GET",
   url: "/hello",
   handler: (req, reply) => {
     // this will handle http requests
-    reply.send({ hello: "world" });
+    reply.send({ hello: "world" })
   },
   wsHandler: (conn, req) => {
     // this will handle websockets connections
-    conn.setEncoding("utf8");
-    conn.write("hello client");
-    t.tearDown(conn.destroy.bind(conn));
+    conn.setEncoding("utf8")
+    conn.write("hello client")
+    t.tearDown(conn.destroy.bind(conn))
 
     conn.once("data", chunk => {
-      t.equal(chunk, "hello server");
-      conn.end();
-    });
+      t.equal(chunk, "hello server")
+      conn.end()
+    })
   }
-});
+})
 
 fastify.listen(3000, err => {
   if (err) {
-    fastify.log.error(err);
-    process.exit(1);
+    fastify.log.error(err)
+    process.exit(1)
   }
-});
+})
 ```
 
 ## Options :

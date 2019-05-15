@@ -4,7 +4,7 @@
   "description": "basic websocket support for fastify",
   "main": "index.js",
   "scripts": {
-    "test": "standard | snazzy && tap test.js"
+    "test": "standard | snazzy && tap \"test/*.js\""
   },
   "repository": {
     "type": "git",
