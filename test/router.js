@@ -1,8 +1,10 @@
+'use strict'
+
 const test = require('tap').test
 const Fastify = require('fastify')
 const fastifyWebsocket = require('../')
 const websocket = require('websocket-stream')
-const request = require('request')
+const got = require('got')
 
 test('Should expose a websocket on prefixed route', t => {
   t.plan(3)
@@ -46,7 +48,7 @@ test('Should expose a websocket on prefixed route', t => {
 })
 
 test('Should expose websocket and http route', t => {
-  t.plan(6)
+  t.plan(5)
   const fastify = Fastify()
 
   t.tearDown(() => fastify.close())
@@ -89,10 +91,9 @@ test('Should expose websocket and http route', t => {
       t.equal(chunk, 'hello client')
       client.end()
     })
-    request('http:' + url, function (error, response, body) {
-      t.error(error)
+    got('http:' + url).then(function (response) {
       t.equal(response.statusCode, 200)
-      t.equal(body, '{"hello":"world"}')
+      t.equal(response.body, '{"hello":"world"}')
     })
   })
 })
@@ -125,6 +126,53 @@ test(`Should close on unregistered path`, t => {
     client.socket.on('close', () => {
       t.pass()
     })
+  })
+})
+
+test(`Should throw on wrong HTTP method`, t => {
+  t.plan(2)
+  const fastify = Fastify()
+
+  t.tearDown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket)
+
+  fastify.post('/echo', { websocket: true }, (connection, req) => {
+    connection.socket.on('message', message => {
+      try {
+        connection.socket.send(message)
+      } catch (err) {
+        connection.socket.send(err.message)
+      }
+    })
+    t.tearDown(connection.destroy.bind(connection))
+  })
+  fastify.listen(0, (err) => {
+    t.ok(err)
+    t.equal(err.message, 'websocket handler can only be declared in GET method')
+  })
+})
+
+test('Should throw on invalid wsHandler', t => {
+  t.plan(2)
+  const fastify = Fastify()
+
+  t.tearDown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket)
+  fastify.route({
+    method: 'GET',
+    url: '/echo',
+    handler: (req, reply) => {
+      reply.send({ hello: 'world' })
+    },
+    wsHandler: 'hello'
+  },
+  { prefix: '/baz' })
+
+  fastify.listen(0, err => {
+    t.ok(err)
+    t.equal(err.message, 'invalid wsHandler function')
   })
 })
 
