@@ -13,7 +13,7 @@ npm install fastify-websocket --save
 
 ## Usage
 
-There are two possibwle ways of using this plugin: with a **global handler** or with a **per route handler**.
+There are two possible ways of using this plugin: with a **global handler** or with a **per route handler**.
 
 ### Global handler
 
