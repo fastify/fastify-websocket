@@ -175,10 +175,6 @@ For more informations you can check [`ws` options documentation](https://github.
 
 _**NB:** By default if you do not provide a `server` option `fastify-websocket` will bind your websocket server instance to the scoped `fastify` instance._
 
-## TODO
-
-- [ ] Support Hooks?
-
 ## Acknowledgements
 
 This project is kindly sponsored by [nearForm](http://nearform.com).
