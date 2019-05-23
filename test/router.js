@@ -4,7 +4,7 @@ const test = require('tap').test
 const Fastify = require('fastify')
 const fastifyWebsocket = require('../')
 const websocket = require('websocket-stream')
-const got = require('got')
+const get = require('http').get
 
 test('Should expose a websocket on prefixed route', t => {
   t.plan(3)
@@ -48,7 +48,7 @@ test('Should expose a websocket on prefixed route', t => {
 })
 
 test('Should expose websocket and http route', t => {
-  t.plan(5)
+  t.plan(4)
   const fastify = Fastify()
 
   t.tearDown(() => fastify.close())
@@ -91,9 +91,18 @@ test('Should expose websocket and http route', t => {
       t.equal(chunk, 'hello client')
       client.end()
     })
-    got('http:' + url).then(function (response) {
-      t.equal(response.statusCode, 200)
-      t.equal(response.body, '{"hello":"world"}')
+    get('http:' + url, function (response) {
+      let data = ''
+
+      // A chunk of data has been recieved.
+      response.on('data', (chunk) => {
+        data += chunk
+      })
+
+      // The whole response has been received. Print out the result.
+      response.on('end', () => {
+        t.equal(data, '{"hello":"world"}')
+      })
     })
   })
 })
