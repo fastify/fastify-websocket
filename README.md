@@ -24,24 +24,22 @@ All you need to do is to add it to your project with `register` and pass handle 
 
 const fastify = require('fastify')()
 
-const wssOtions = {
-  maxPayload: 1048576, // we set the maximum allowed messages size to 1 MiB (1024 bytes * 1024 bytes)
-  path: '/fastify', // we accept only connections matching this path e.g.: ws://localhost:3000/fastify
-  verifyClient: function (info, next) {
-    if (info.req.headers['x-fastify-header'] !== 'fastify is awesome !') {
-      return next(false) // the connection is not allowed
-    }
-
-    next(true) // the connection is allowed
-  }
-}
-
 fastify.register(require('fastify-websocket'), {
   handle,
-  options: { maxPayload: 1048576 }
+  options: {
+    maxPayload: 1048576, // we set the maximum allowed messages size to 1 MiB (1024 bytes * 1024 bytes)
+    path: '/fastify', // we accept only connections matching this path e.g.: ws://localhost:3000/fastify
+    verifyClient: function (info, next) {
+      if (info.req.headers['x-fastify-header'] !== 'fastify is awesome !') {
+        return next(false) // the connection is not allowed
+      }
+
+      next(true) // the connection is allowed
+    }
+  }
 })
 
-function handle(conn) {
+function handle (conn) {
   conn.pipe(conn) // creates an echo server
 }
 
@@ -88,7 +86,7 @@ However you can still pass a default global handler, that will be used as defaul
 
 const fastify = require('fastify')()
 
-function handle(conn) {
+function handle (conn) {
   conn.pipe(conn) // creates an echo server
 }
 
@@ -119,7 +117,7 @@ If you need to handle both HTTP requests and incoming socket connections on the 
 
 const fastify = require('fastify')()
 
-function handle(conn) {
+function handle (conn) {
   conn.pipe(conn) // creates an echo server
 }
 
