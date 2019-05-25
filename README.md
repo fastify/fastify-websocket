@@ -86,7 +86,7 @@ However you can still pass a default global handler, that will be used as defaul
 ```js
 'use strict'
 
-const fastify = Fastify()
+const fastify = require('fastify')()
 
 function handle(conn) {
   conn.pipe(conn) // creates an echo server
