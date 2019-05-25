@@ -117,7 +117,7 @@ If you need to handle both HTTP requests and incoming socket connections on the 
 ```js
 'use strict'
 
-const fastify = Fastify()
+const fastify = require('fastify')()
 
 function handle(conn) {
   conn.pipe(conn) // creates an echo server
