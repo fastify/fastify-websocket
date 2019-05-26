@@ -33,7 +33,6 @@ fastify.register(require('fastify-websocket'), {
       if (info.req.headers['x-fastify-header'] !== 'fastify is awesome !') {
         return next(false) // the connection is not allowed
       }
-
       next(true) // the connection is allowed
     }
   }
