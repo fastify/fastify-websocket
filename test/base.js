@@ -3,7 +3,7 @@
 const http = require('http')
 const test = require('tap').test
 const Fastify = require('fastify')
-const fastifyWebsocket = require('.')
+const fastifyWebsocket = require('../')
 const websocket = require('websocket-stream')
 
 test('Should expose a websocket', (t) => {
