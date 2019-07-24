@@ -286,3 +286,32 @@ test(`Should return 404 on http request`, t => {
     t.end()
   })
 })
+
+test('Should pass route params to handlers', t => {
+  const fastify = Fastify()
+
+  t.tearDown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket)
+  fastify.get('/ws/:id', { websocket: true }, (conn, req, params) => {
+    conn.write(params.id)
+    conn.end()
+  })
+
+  fastify.listen(0, err => {
+    t.error(err)
+    const client = websocket(
+      'ws://localhost:' + (fastify.server.address()).port + '/ws/foo'
+    )
+    t.tearDown(client.destroy.bind(client))
+
+    client.setEncoding('utf8')
+    // client.write('hello server')
+
+    client.once('data', chunk => {
+      t.equal(chunk, 'foo')
+      client.end()
+      t.end()
+    })
+  })
+})

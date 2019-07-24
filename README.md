@@ -78,6 +78,14 @@ fastify.listen(3000, err => {
 
 In this case there won't be any global handler, so it will respond with a 404 error on every unregistered route, closing the incoming upgrade connection requests.
 
+The route handler receives route params as a third argument:
+
+```js
+fastify.get('/ws/:id', { websocket: true }, (connection, req, params) => {
+  connection.write(`hi on stream ${params.id}`)
+})
+```
+
 However you can still pass a default global handler, that will be used as default handler.
 
 ```js
