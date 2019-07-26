@@ -293,25 +293,41 @@ test('Should pass route params to handlers', t => {
   t.tearDown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
+  fastify.get('/ws', { websocket: true }, (conn, req, params) => {
+    t.equal(Object.keys(params).length, 0, 'params are empty')
+    conn.write('empty')
+    conn.end()
+  })
   fastify.get('/ws/:id', { websocket: true }, (conn, req, params) => {
+    t.equal(params.id, 'foo', 'params are correct')
     conn.write(params.id)
     conn.end()
   })
 
   fastify.listen(0, err => {
+    let pending = 2
     t.error(err)
     const client = websocket(
       'ws://localhost:' + (fastify.server.address()).port + '/ws/foo'
     )
+    const client2 = websocket(
+      'ws://localhost:' + (fastify.server.address()).port + '/ws'
+    )
     t.tearDown(client.destroy.bind(client))
+    t.tearDown(client2.destroy.bind(client))
 
     client.setEncoding('utf8')
-    // client.write('hello server')
+    client2.setEncoding('utf8')
 
     client.once('data', chunk => {
       t.equal(chunk, 'foo')
       client.end()
-      t.end()
+      if (--pending === 0) t.end()
+    })
+    client2.once('data', chunk => {
+      t.equal(chunk, 'empty')
+      client2.end()
+      if (--pending === 0) t.end()
     })
   })
 })
