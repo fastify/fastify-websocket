@@ -46,8 +46,8 @@ function fastifyWebsocket (fastify, opts, next) {
         throw new Error('invalid wsHandler function')
       }
 
-      router.on('GET', routeOptions.path, (req, _) => {
-        const result = wsHandler(req[kWs], req)
+      router.on('GET', routeOptions.path, (req, _, params) => {
+        const result = wsHandler(req[kWs], req, params)
 
         if (result && typeof result.catch === 'function') {
           result.catch((err) => req[kWs].destroy(err))
