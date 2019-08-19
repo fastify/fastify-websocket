@@ -24,7 +24,7 @@
     "fastify": "^2.4.1",
     "pre-commit": "^1.2.2",
     "snazzy": "^8.0.0",
-    "standard": "^13.0.1",
+    "standard": "^14.0.0",
     "tap": "^12.7.0"
   },
   "dependencies": {
