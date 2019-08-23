@@ -116,11 +116,11 @@ test(`Should close on unregistered path`, t => {
   fastify.register(fastifyWebsocket)
 
   fastify.get('/echo', { websocket: true }, (connection, req) => {
-    connection.on('message', message => {
+    connection.socket.on('message', message => {
       try {
-        connection.send(message)
+        connection.socket.send(message)
       } catch (err) {
-        connection.send(err.message)
+        connection.socket.send(err.message)
       }
     })
 
@@ -133,7 +133,7 @@ test(`Should close on unregistered path`, t => {
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
     t.tearDown(client.destroy.bind(client))
 
-    client.on('close', () => {
+    client.socket.on('close', () => {
       t.pass()
     })
   })
@@ -148,11 +148,11 @@ test(`Should throw on wrong HTTP method`, t => {
   fastify.register(fastifyWebsocket)
 
   fastify.post('/echo', { websocket: true }, (connection, req) => {
-    connection.on('message', message => {
+    connection.socket.on('message', message => {
       try {
-        connection.send(message)
+        connection.socket.send(message)
       } catch (err) {
-        connection.send(err.message)
+        connection.socket.send(err.message)
       }
     })
     t.tearDown(connection.destroy.bind(connection))
@@ -195,11 +195,11 @@ test(`Should open on registered path`, t => {
   fastify.register(fastifyWebsocket)
 
   fastify.get('/echo', { websocket: true }, (connection, req) => {
-    connection.on('message', message => {
+    connection.socket.on('message', message => {
       try {
-        connection.send(message)
+        connection.socket.send(message)
       } catch (err) {
-        connection.send(err.message)
+        connection.socket.send(err.message)
       }
     })
 
@@ -212,7 +212,7 @@ test(`Should open on registered path`, t => {
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
     t.tearDown(client.destroy.bind(client))
 
-    client.on('open', () => {
+    client.socket.on('open', () => {
       t.pass()
       client.end()
     })
@@ -228,12 +228,12 @@ test(`Should send message and close`, t => {
   fastify.register(fastifyWebsocket)
 
   fastify.get('/', { websocket: true }, (connection, req) => {
-    connection.on('message', message => {
+    connection.socket.on('message', message => {
       t.equal(message, 'hi from client')
-      connection.send('hi from server')
+      connection.socket.send('hi from server')
     })
 
-    connection.on('close', () => {
+    connection.socket.on('close', () => {
       t.pass()
     })
 
@@ -245,16 +245,16 @@ test(`Should send message and close`, t => {
     const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/')
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
     t.tearDown(client.destroy.bind(client))
-    client.on('message', message => {
+    client.socket.on('message', message => {
       t.equal(message, 'hi from server')
     })
 
-    client.on('open', () => {
-      client.send('hi from client')
+    client.socket.on('open', () => {
+      client.socket.send('hi from client')
       client.end()
     })
 
-    client.on('close', () => {
+    client.socket.on('close', () => {
       t.pass()
     })
   })
@@ -268,12 +268,12 @@ test(`Should return 404 on http request`, t => {
   fastify.register(fastifyWebsocket)
 
   fastify.get('/', { websocket: true }, (connection, req) => {
-    connection.on('message', message => {
+    connection.socket.on('message', message => {
       t.equal(message, 'hi from client')
-      connection.send('hi from server')
+      connection.socket.send('hi from server')
     })
 
-    connection.on('close', () => {
+    connection.socket.on('close', () => {
       t.pass()
     })
 
