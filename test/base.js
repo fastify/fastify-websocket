@@ -15,13 +15,13 @@ test('Should expose a websocket', (t) => {
   fastify.register(fastifyWebsocket, { handle })
 
   function handle (connection) {
-    connection.socket.setEncoding('utf8')
-    connection.socket.write('hello client')
-    t.tearDown(() => connection.socket.destroy())
+    connection.setEncoding('utf8')
+    connection.write('hello client')
+    t.tearDown(() => connection.destroy())
 
-    connection.socket.once('data', (chunk) => {
+    connection.once('data', (chunk) => {
       t.equal(chunk, 'hello server')
-      connection.socket.end()
+      connection.end()
     })
   }
 
