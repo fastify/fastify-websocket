@@ -64,6 +64,7 @@ function fastifyWebsocket (fastify, opts, next) {
   function handleRouting (connection, request) {
     const response = new ServerResponse(request)
     request[kWs] = connection
+    request[kWs].socket = WebSocket.createWebSocketStream(connection, { encoding: 'utf8' }) // TODO
     router.lookup(request, response)
   }
 
