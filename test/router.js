@@ -16,13 +16,13 @@ test('Should expose a websocket on prefixed route', t => {
   fastify.register(
     function (instance, opts, next) {
       instance.get('/echo', { websocket: true }, (conn, req) => {
-        conn.socket.setEncoding('utf8')
-        conn.socket.write('hello client')
-        t.tearDown(conn.socket.destroy.bind(conn.socket))
+        conn.setEncoding('utf8')
+        conn.write('hello client')
+        t.tearDown(conn.destroy.bind(conn))
 
-        conn.socket.once('data', chunk => {
+        conn.once('data', chunk => {
           t.equal(chunk, 'hello server')
-          conn.socket.end()
+          conn.end()
         })
       })
       next()
@@ -62,13 +62,13 @@ test('Should expose websocket and http route', t => {
           reply.send({ hello: 'world' })
         },
         wsHandler: (conn, req) => {
-          conn.socket.setEncoding('utf8')
-          conn.socket.write('hello client')
-          t.tearDown(conn.socket.destroy.bind(conn.socket))
+          conn.setEncoding('utf8')
+          conn.write('hello client')
+          t.tearDown(conn.destroy.bind(conn))
 
-          conn.socket.once('data', chunk => {
+          conn.once('data', chunk => {
             t.equal(chunk, 'hello server')
-            conn.socket.end()
+            conn.end()
           })
         }
       })
@@ -116,11 +116,11 @@ test(`Should close on unregistered path`, t => {
   fastify.register(fastifyWebsocket)
 
   fastify.get('/echo', { websocket: true }, (connection, req) => {
-    connection.socket.on('message', message => {
+    connection.on('message', message => {
       try {
-        connection.socket.send(message)
+        connection.send(message)
       } catch (err) {
-        connection.socket.send(err.message)
+        connection.send(err.message)
       }
     })
 
@@ -148,11 +148,11 @@ test(`Should throw on wrong HTTP method`, t => {
   fastify.register(fastifyWebsocket)
 
   fastify.post('/echo', { websocket: true }, (connection, req) => {
-    connection.socket.on('message', message => {
+    connection.on('message', message => {
       try {
-        connection.socket.send(message)
+        connection.send(message)
       } catch (err) {
-        connection.socket.send(err.message)
+        connection.send(err.message)
       }
     })
     t.tearDown(connection.destroy.bind(connection))
@@ -195,15 +195,15 @@ test(`Should open on registered path`, t => {
   fastify.register(fastifyWebsocket)
 
   fastify.get('/echo', { websocket: true }, (connection, req) => {
-    connection.socket.on('message', message => {
+    connection.on('message', message => {
       try {
-        connection.socket.send(message)
+        connection.send(message)
       } catch (err) {
-        connection.socket.send(err.message)
+        connection.send(err.message)
       }
     })
 
-    t.tearDown(connection.socket.destroy.bind(connection.socket))
+    t.tearDown(connection.destroy.bind(connection))
   })
 
   fastify.listen(0, err => {
@@ -228,16 +228,16 @@ test(`Should send message and close`, t => {
   fastify.register(fastifyWebsocket)
 
   fastify.get('/', { websocket: true }, (connection, req) => {
-    connection.socket.on('message', message => {
+    connection.on('message', message => {
       t.equal(message, 'hi from client')
-      connection.socket.send('hi from server')
+      connection.send('hi from server')
     })
 
-    connection.socket.on('close', () => {
+    connection.on('close', () => {
       t.pass()
     })
 
-    t.tearDown(connection.socket.destroy.bind(connection.socket))
+    t.tearDown(connection.destroy.bind(connection))
   })
 
   fastify.listen(0, err => {
@@ -268,12 +268,12 @@ test(`Should return 404 on http request`, t => {
   fastify.register(fastifyWebsocket)
 
   fastify.get('/', { websocket: true }, (connection, req) => {
-    connection.socket.on('message', message => {
+    connection.on('message', message => {
       t.equal(message, 'hi from client')
-      connection.socket.send('hi from server')
+      connection.send('hi from server')
     })
 
-    connection.socket.on('close', () => {
+    connection.on('close', () => {
       t.pass()
     })
 
@@ -298,13 +298,13 @@ test('Should pass route params to handlers', t => {
   fastify.register(fastifyWebsocket)
   fastify.get('/ws', { websocket: true }, (conn, req, params) => {
     t.equal(Object.keys(params).length, 0, 'params are empty')
-    conn.socket.write('empty')
-    conn.socket.end()
+    conn.write('empty')
+    conn.end()
   })
   fastify.get('/ws/:id', { websocket: true }, (conn, req, params) => {
     t.equal(params.id, 'foo', 'params are correct')
-    conn.socket.write(params.id)
-    conn.socket.end()
+    conn.write(params.id)
+    conn.end()
   })
 
   fastify.listen(0, err => {
