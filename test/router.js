@@ -107,7 +107,7 @@ test('Should expose websocket and http route', t => {
   })
 })
 
-test(`Should close on unregistered path`, t => {
+test('Should close on unregistered path', t => {
   t.plan(2)
   const fastify = Fastify()
 
@@ -138,7 +138,7 @@ test(`Should close on unregistered path`, t => {
   })
 })
 
-test(`Should throw on wrong HTTP method`, t => {
+test('Should throw on wrong HTTP method', t => {
   t.plan(2)
   const fastify = Fastify()
 
@@ -185,7 +185,7 @@ test('Should throw on invalid wsHandler', t => {
   })
 })
 
-test(`Should open on registered path`, t => {
+test('Should open on registered path', t => {
   t.plan(2)
   const fastify = Fastify()
 
@@ -217,7 +217,7 @@ test(`Should open on registered path`, t => {
   })
 })
 
-test(`Should send message and close`, t => {
+test('Should send message and close', t => {
   t.plan(5)
   const fastify = Fastify()
 
@@ -257,7 +257,7 @@ test(`Should send message and close`, t => {
   })
 })
 
-test(`Should return 404 on http request`, t => {
+test('Should return 404 on http request', t => {
   const fastify = Fastify()
 
   t.tearDown(() => fastify.close())
