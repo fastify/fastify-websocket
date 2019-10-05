@@ -52,7 +52,7 @@ fastify.listen(3000, err => {
 
 ### Per route handler
 
-After registring this plugin, you can choose on which routes the WS server will respond. This could be achieved adding `websocket: true` property to `routeOptions` on a fastify's `.get` route. In this case two arguments will be passed to the handler: socket connection and the original `http.IncomingMessage` (instead of the usual fastify's request and reply objects).
+After registering this plugin, you can choose on which routes the WS server will respond. This could be achieved by adding `websocket: true` property to `routeOptions` on a fastify's `.get` route. In this case two arguments will be passed to the handler: socket connection and the original `http.IncomingMessage` (instead of the usual fastify's request and reply objects).
 
 ```js
 'use strict'
