@@ -63,7 +63,10 @@ function fastifyWebsocket (fastify, opts, next) {
 
   function handleRouting (connection, request) {
     const response = new ServerResponse(request)
-    request[kWs] = WebSocket.createWebSocketStream(connection)
+    request[kWs] = {
+      stream: WebSocket.createWebSocketStream(connection),
+      socket: connection
+    }
     router.lookup(request, response)
   }
 

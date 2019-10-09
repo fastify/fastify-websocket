@@ -2,7 +2,7 @@
 
 const test = require('tap').test
 const Fastify = require('fastify')
-const fastifyWebsocket = require('../')
+const fastifyWebsocket = require('..')
 const WebSocket = require('ws')
 const get = require('http').get
 
@@ -16,13 +16,13 @@ test('Should expose a websocket on prefixed route', t => {
   fastify.register(
     function (instance, opts, next) {
       instance.get('/echo', { websocket: true }, (conn, req) => {
-        conn.setEncoding('utf8')
-        conn.write('hello client')
-        t.tearDown(conn.destroy.bind(conn))
+        conn.stream.setEncoding('utf8')
+        conn.stream.write('hello client')
+        t.tearDown(conn.stream.destroy.bind(conn.stream))
 
-        conn.once('data', chunk => {
+        conn.stream.once('data', chunk => {
           t.equal(chunk, 'hello server')
-          conn.end()
+          conn.stream.end()
         })
       })
       next()
@@ -62,13 +62,13 @@ test('Should expose websocket and http route', t => {
           reply.send({ hello: 'world' })
         },
         wsHandler: (conn, req) => {
-          conn.setEncoding('utf8')
-          conn.write('hello client')
-          t.tearDown(conn.destroy.bind(conn))
+          conn.stream.setEncoding('utf8')
+          conn.stream.write('hello client')
+          t.tearDown(conn.stream.destroy.bind(conn.stream))
 
-          conn.once('data', chunk => {
+          conn.stream.once('data', chunk => {
             t.equal(chunk, 'hello server')
-            conn.end()
+            conn.stream.end()
           })
         }
       })
@@ -132,8 +132,7 @@ test(`Should close on unregistered path`, t => {
     const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port)
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
     t.tearDown(client.destroy.bind(client))
-
-    client.socket.on('close', () => {
+    ws.on('close', () => {
       t.pass()
     })
   })
@@ -203,19 +202,19 @@ test(`Should open on registered path`, t => {
       }
     })
 
-    t.tearDown(connection.destroy.bind(connection))
+    t.tearDown(connection.stream.destroy.bind(connection.stream))
   })
 
   fastify.listen(0, err => {
     t.error(err)
     const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/echo/')
-    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-    t.tearDown(client.destroy.bind(client))
-
-    client.socket.on('open', () => {
+    ws.on('open', () => {
       t.pass()
       client.end()
     })
+
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+    t.tearDown(client.destroy.bind(client))
   })
 })
 
@@ -237,7 +236,7 @@ test(`Should send message and close`, t => {
       t.pass()
     })
 
-    t.tearDown(connection.destroy.bind(connection))
+    t.tearDown(connection.stream.destroy.bind(connection.stream))
   })
 
   fastify.listen(0, err => {
@@ -245,16 +244,17 @@ test(`Should send message and close`, t => {
     const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/')
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
     t.tearDown(client.destroy.bind(client))
-    client.socket.on('message', message => {
+
+    ws.on('message', message => {
       t.equal(message, 'hi from server')
     })
 
-    client.socket.on('open', () => {
-      client.socket.send('hi from client')
+    ws.on('open', () => {
+      ws.send('hi from client')
       client.end()
     })
 
-    client.socket.on('close', () => {
+    ws.on('close', () => {
       t.pass()
     })
   })
@@ -298,13 +298,13 @@ test('Should pass route params to handlers', t => {
   fastify.register(fastifyWebsocket)
   fastify.get('/ws', { websocket: true }, (conn, req, params) => {
     t.equal(Object.keys(params).length, 0, 'params are empty')
-    conn.write('empty')
-    conn.end()
+    conn.stream.write('empty')
+    conn.stream.end()
   })
   fastify.get('/ws/:id', { websocket: true }, (conn, req, params) => {
     t.equal(params.id, 'foo', 'params are correct')
-    conn.write(params.id)
-    conn.end()
+    conn.stream.write(params.id)
+    conn.stream.end()
   })
 
   fastify.listen(0, err => {

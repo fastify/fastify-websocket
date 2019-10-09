@@ -3,7 +3,7 @@
 const http = require('http')
 const test = require('tap').test
 const Fastify = require('fastify')
-const fastifyWebsocket = require('../')
+const fastifyWebsocket = require('..')
 const WebSocket = require('ws')
 
 test('Should expose a websocket', (t) => {
@@ -15,13 +15,13 @@ test('Should expose a websocket', (t) => {
   fastify.register(fastifyWebsocket, { handle })
 
   function handle (connection) {
-    connection.setEncoding('utf8')
-    connection.write('hello client')
-    t.tearDown(() => connection.destroy())
+    connection.stream.setEncoding('utf8')
+    connection.stream.write('hello client')
+    t.tearDown(() => connection.stream.destroy())
 
-    connection.once('data', (chunk) => {
+    connection.stream.once('data', (chunk) => {
       t.equal(chunk, 'hello server')
-      connection.end()
+      connection.stream.end()
     })
   }
 
@@ -42,7 +42,7 @@ test('Should expose a websocket', (t) => {
   })
 })
 
-test('Should be able to pass custom options to websocket-stream', { todo: true }, (t) => {
+test('Should be able to pass custom options to websocket-stream', (t) => {
   t.plan(3)
 
   const fastify = Fastify()
@@ -60,8 +60,8 @@ test('Should be able to pass custom options to websocket-stream', { todo: true }
 
   // this is all that's needed to create an echo server
   function handle (connection) {
-    connection.pipe(connection)
-    t.tearDown(() => connection.destroy())
+    connection.stream.pipe(connection.stream)
+    t.tearDown(() => connection.stream.destroy())
   }
 
   fastify.listen(0, (err) => {
@@ -82,7 +82,7 @@ test('Should be able to pass custom options to websocket-stream', { todo: true }
   })
 })
 
-test('Should be able to pass a custom server option to websocket-stream', { todo: true }, (t) => {
+test('Should be able to pass a custom server option to websocket-stream', (t) => {
   t.plan(2)
 
   // We create an external server
@@ -108,8 +108,8 @@ test('Should be able to pass a custom server option to websocket-stream', { todo
 
   // this is all that's needed to create an echo server
   function handle (connection) {
-    connection.pipe(connection)
-    t.tearDown(() => connection.destroy())
+    connection.stream.pipe(connection.stream)
+    t.tearDown(() => connection.stream.destroy())
   }
 
   fastify.listen(0, (err) => {

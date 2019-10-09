@@ -4,7 +4,9 @@
   "description": "basic websocket support for fastify",
   "main": "index.js",
   "scripts": {
-    "test": "standard | snazzy && tap \"test/*.js\""
+    "lint": "standard | snazzy",
+    "unit": "tap \"test/*.js\"",
+    "test": "npm run lint && npm run unit"
   },
   "repository": {
     "type": "git",
