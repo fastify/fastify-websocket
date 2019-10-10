@@ -3,7 +3,7 @@
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](http://standardjs.com/) [![Build Status](https://travis-ci.org/fastify/fastify-websocket.svg?branch=master)](https://travis-ci.org/fastify/fastify-websocket) [![Greenkeeper badge](https://badges.greenkeeper.io/fastify/fastify-websocket.svg)](https://greenkeeper.io/)
 
 WebSocket support for [Fastify](https://github.com/fastify/fastify).
-Built upon [websocket-stream](http://npm.im/websocket-stream).
+Built upon [ws](https://www.npmjs.com/package/ws).
 
 ## Install
 
@@ -161,7 +161,7 @@ fastify.listen(3000, err => {
 
 ## Options :
 
-`fastify-websocket` accept the same options as [`websocket-stream`](https://github.com/maxogden/websocket-stream#options) and as [`ws`](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback) :
+`fastify-websocket` accept the same options as [`ws`](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback) :
 
 - `objectMode` - Send each chunk on its own, and do not try to pack them in a single websocket frame.
 - `host` - The hostname where to bind the server.
@@ -176,7 +176,7 @@ fastify.listen(3000, err => {
 - `perMessageDeflate` - Enable/disable permessage-deflate.
 - `maxPayload` - The maximum allowed message size in bytes.
 
-For more informations you can check [`ws` options documentation](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback) and [`websocket-stream` options documentation](https://github.com/maxogden/websocket-stream#options).
+For more informations you can check [`ws` options documentation](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback).
 
 _**NB:** By default if you do not provide a `server` option `fastify-websocket` will bind your websocket server instance to the scoped `fastify` instance._
 
