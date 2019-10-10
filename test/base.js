@@ -15,13 +15,13 @@ test('Should expose a websocket', (t) => {
   fastify.register(fastifyWebsocket, { handle })
 
   function handle (connection) {
-    connection.stream.setEncoding('utf8')
-    connection.stream.write('hello client')
-    t.tearDown(() => connection.stream.destroy())
+    connection.setEncoding('utf8')
+    connection.write('hello client')
+    t.tearDown(() => connection.destroy())
 
-    connection.stream.once('data', (chunk) => {
+    connection.once('data', (chunk) => {
       t.equal(chunk, 'hello server')
-      connection.stream.end()
+      connection.end()
     })
   }
 
@@ -60,8 +60,8 @@ test('Should be able to pass custom options to websocket-stream', (t) => {
 
   // this is all that's needed to create an echo server
   function handle (connection) {
-    connection.stream.pipe(connection.stream)
-    t.tearDown(() => connection.stream.destroy())
+    connection.pipe(connection)
+    t.tearDown(() => connection.destroy())
   }
 
   fastify.listen(0, (err) => {
@@ -108,8 +108,8 @@ test('Should be able to pass a custom server option to websocket-stream', (t) =>
 
   // this is all that's needed to create an echo server
   function handle (connection) {
-    connection.stream.pipe(connection.stream)
-    t.tearDown(() => connection.stream.destroy())
+    connection.pipe(connection)
+    t.tearDown(() => connection.destroy())
   }
 
   fastify.listen(0, (err) => {

@@ -16,13 +16,13 @@ test('Should expose a websocket on prefixed route', t => {
   fastify.register(
     function (instance, opts, next) {
       instance.get('/echo', { websocket: true }, (conn, req) => {
-        conn.stream.setEncoding('utf8')
-        conn.stream.write('hello client')
-        t.tearDown(conn.stream.destroy.bind(conn.stream))
+        conn.setEncoding('utf8')
+        conn.write('hello client')
+        t.tearDown(conn.destroy.bind(conn))
 
-        conn.stream.once('data', chunk => {
+        conn.once('data', chunk => {
           t.equal(chunk, 'hello server')
-          conn.stream.end()
+          conn.end()
         })
       })
       next()
@@ -62,13 +62,13 @@ test('Should expose websocket and http route', t => {
           reply.send({ hello: 'world' })
         },
         wsHandler: (conn, req) => {
-          conn.stream.setEncoding('utf8')
-          conn.stream.write('hello client')
-          t.tearDown(conn.stream.destroy.bind(conn.stream))
+          conn.setEncoding('utf8')
+          conn.write('hello client')
+          t.tearDown(conn.destroy.bind(conn))
 
-          conn.stream.once('data', chunk => {
+          conn.once('data', chunk => {
             t.equal(chunk, 'hello server')
-            conn.stream.end()
+            conn.end()
           })
         }
       })
@@ -202,7 +202,7 @@ test(`Should open on registered path`, t => {
       }
     })
 
-    t.tearDown(connection.stream.destroy.bind(connection.stream))
+    t.tearDown(connection.destroy.bind(connection))
   })
 
   fastify.listen(0, err => {
@@ -236,7 +236,7 @@ test(`Should send message and close`, t => {
       t.pass()
     })
 
-    t.tearDown(connection.stream.destroy.bind(connection.stream))
+    t.tearDown(connection.destroy.bind(connection))
   })
 
   fastify.listen(0, err => {
@@ -298,13 +298,13 @@ test('Should pass route params to handlers', t => {
   fastify.register(fastifyWebsocket)
   fastify.get('/ws', { websocket: true }, (conn, req, params) => {
     t.equal(Object.keys(params).length, 0, 'params are empty')
-    conn.stream.write('empty')
-    conn.stream.end()
+    conn.write('empty')
+    conn.end()
   })
   fastify.get('/ws/:id', { websocket: true }, (conn, req, params) => {
     t.equal(params.id, 'foo', 'params are correct')
-    conn.stream.write(params.id)
-    conn.stream.end()
+    conn.write(params.id)
+    conn.end()
   })
 
   fastify.listen(0, err => {
