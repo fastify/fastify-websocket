@@ -11,6 +11,10 @@ Built upon [ws](https://www.npmjs.com/package/ws).
 npm install fastify-websocket --save
 ```
 
+## Requirements
+
+* `>=nodejs-8.0.0`
+
 ## Usage
 
 There are two possible ways of using this plugin: with a **global handler** or with a **per route handler**.
