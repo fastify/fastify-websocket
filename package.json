@@ -4,7 +4,9 @@
   "description": "basic websocket support for fastify",
   "main": "index.js",
   "scripts": {
-    "test": "standard | snazzy && tap \"test/*.js\""
+    "lint": "standard | snazzy",
+    "unit": "tap \"test/*.js\"",
+    "test": "npm run lint && npm run unit"
   },
   "repository": {
     "type": "git",
@@ -30,7 +32,7 @@
   "dependencies": {
     "fastify-plugin": "^1.5.0",
     "find-my-way": "^2.0.1",
-    "websocket-stream": "^5.5.0"
+    "ws": "^7.1.2"
   },
   "greenkeeper": {
     "ignore": [
