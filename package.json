@@ -10,7 +10,9 @@
   "scripts": {
     "lint": "standard | snazzy",
     "unit": "tap \"test/*.js\"",
-    "test": "npm run lint && npm run unit"
+    "test:js": "npm run lint && npm run unit",
+    "test:ts": "tsd",
+    "test": "npm run test:js && npm run test:ts"
   },
   "repository": {
     "type": "git",
