@@ -2,7 +2,7 @@
 
 const { ServerResponse } = require('http')
 const fp = require('fastify-plugin')
-const websocket = require('websocket-stream')
+const WebSocket = require('ws')
 const findMyWay = require('find-my-way')
 
 const kWs = Symbol('ws')
@@ -22,7 +22,8 @@ function fastifyWebsocket (fastify, opts, next) {
     defaultRoute: handle
   })
 
-  const wss = websocket.createServer(options, handleRouting)
+  const wss = new WebSocket.Server(options)
+  wss.on('connection', handleRouting)
 
   fastify.decorate('websocketServer', wss)
 
@@ -62,7 +63,8 @@ function fastifyWebsocket (fastify, opts, next) {
 
   function handleRouting (connection, request) {
     const response = new ServerResponse(request)
-    request[kWs] = connection
+    request[kWs] = WebSocket.createWebSocketStream(connection)
+    request[kWs].socket = connection
     router.lookup(request, response)
   }
 

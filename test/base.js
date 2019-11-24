@@ -3,8 +3,8 @@
 const http = require('http')
 const test = require('tap').test
 const Fastify = require('fastify')
-const fastifyWebsocket = require('../')
-const websocket = require('websocket-stream')
+const fastifyWebsocket = require('..')
+const WebSocket = require('ws')
 
 test('Should expose a websocket', (t) => {
   t.plan(3)
@@ -28,7 +28,8 @@ test('Should expose a websocket', (t) => {
   fastify.listen(0, (err) => {
     t.error(err)
 
-    const client = websocket('ws://localhost:' + fastify.server.address().port)
+    const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
     t.tearDown(() => client.destroy())
 
     client.setEncoding('utf8')
@@ -67,7 +68,8 @@ test('Should be able to pass custom options to websocket-stream', (t) => {
     t.error(err)
 
     const clientOptions = { headers: { 'x-custom-header': 'fastify is awesome !' } }
-    const client = websocket('ws://localhost:' + fastify.server.address().port, clientOptions)
+    const ws = new WebSocket('ws://localhost:' + fastify.server.address().port, clientOptions)
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
     t.tearDown(() => client.destroy())
 
     client.setEncoding('utf8')
@@ -113,7 +115,8 @@ test('Should be able to pass a custom server option to websocket-stream', (t) =>
   fastify.listen(0, (err) => {
     t.error(err)
 
-    const client = websocket('ws://localhost:' + externalServerPort)
+    const ws = new WebSocket('ws://localhost:' + externalServerPort)
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
     t.tearDown(() => client.destroy())
 
     client.setEncoding('utf8')

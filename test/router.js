@@ -2,8 +2,8 @@
 
 const test = require('tap').test
 const Fastify = require('fastify')
-const fastifyWebsocket = require('../')
-const websocket = require('websocket-stream')
+const fastifyWebsocket = require('..')
+const WebSocket = require('ws')
 const get = require('http').get
 
 test('Should expose a websocket on prefixed route', t => {
@@ -32,9 +32,8 @@ test('Should expose a websocket on prefixed route', t => {
 
   fastify.listen(0, err => {
     t.error(err)
-    const client = websocket(
-      'ws://localhost:' + (fastify.server.address()).port + '/baz/echo'
-    )
+    const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/baz/echo')
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
     t.tearDown(client.destroy.bind(client))
 
     client.setEncoding('utf8')
@@ -81,7 +80,8 @@ test('Should expose websocket and http route', t => {
   fastify.listen(0, err => {
     t.error(err)
     const url = '//localhost:' + (fastify.server.address()).port + '/baz/echo'
-    const client = websocket('ws:' + url)
+    const ws = new WebSocket('ws:' + url)
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
     t.tearDown(client.destroy.bind(client))
 
     client.setEncoding('utf8')
@@ -129,10 +129,10 @@ test('Should close on unregistered path', t => {
 
   fastify.listen(0, err => {
     t.error(err)
-    const client = websocket('ws://localhost:' + (fastify.server.address()).port)
+    const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port)
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
     t.tearDown(client.destroy.bind(client))
-
-    client.socket.on('close', () => {
+    ws.on('close', () => {
       t.pass()
     })
   })
@@ -207,13 +207,14 @@ test('Should open on registered path', t => {
 
   fastify.listen(0, err => {
     t.error(err)
-    const client = websocket('ws://localhost:' + (fastify.server.address()).port + '/echo/')
-    t.tearDown(client.destroy.bind(client))
-
-    client.socket.on('open', () => {
+    const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/echo/')
+    ws.on('open', () => {
       t.pass()
       client.end()
     })
+
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+    t.tearDown(client.destroy.bind(client))
   })
 })
 
@@ -240,18 +241,20 @@ test('Should send message and close', t => {
 
   fastify.listen(0, err => {
     t.error(err)
-    const client = websocket('ws://localhost:' + (fastify.server.address()).port + '/')
+    const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/')
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
     t.tearDown(client.destroy.bind(client))
-    client.socket.on('message', message => {
+
+    ws.on('message', message => {
       t.equal(message, 'hi from server')
     })
 
-    client.socket.on('open', () => {
-      client.socket.send('hi from client')
+    ws.on('open', () => {
+      ws.send('hi from client')
       client.end()
     })
 
-    client.socket.on('close', () => {
+    ws.on('close', () => {
       t.pass()
     })
   })
@@ -307,12 +310,14 @@ test('Should pass route params to handlers', t => {
   fastify.listen(0, err => {
     let pending = 2
     t.error(err)
-    const client = websocket(
+    const ws = new WebSocket(
       'ws://localhost:' + (fastify.server.address()).port + '/ws/foo'
     )
-    const client2 = websocket(
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+    const ws2 = new WebSocket(
       'ws://localhost:' + (fastify.server.address()).port + '/ws'
     )
+    const client2 = WebSocket.createWebSocketStream(ws2, { encoding: 'utf8' })
     t.tearDown(client.destroy.bind(client))
     t.tearDown(client2.destroy.bind(client))
 
