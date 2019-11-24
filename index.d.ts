@@ -6,6 +6,17 @@ import * as WebSocket from 'ws';
 import { Duplex } from 'stream';
 
 declare module 'fastify' {
+  interface RouteShorthandOptions<
+    HttpServer,
+    HttpRequest,
+    HttpResponse,
+    Query,
+    Params,
+    Headers,
+    Body
+  > {
+    websocket?: boolean;
+  }
   interface FastifyInstance<
     HttpServer = Server,
     HttpRequest = IncomingMessage,
