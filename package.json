@@ -3,10 +3,16 @@
   "version": "1.0.0",
   "description": "basic websocket support for fastify",
   "main": "index.js",
+  "types": "index.d.ts",
+  "tsd": {
+    "directory": "./test/types"
+  },
   "scripts": {
     "lint": "standard | snazzy",
     "unit": "tap \"test/*.js\"",
-    "test": "npm run lint && npm run unit"
+    "test:js": "npm run lint && npm run unit",
+    "test:ts": "tsd",
+    "test": "npm run test:js && npm run test:ts"
   },
   "repository": {
     "type": "git",
@@ -23,11 +29,13 @@
   },
   "homepage": "https://github.com/fastify/fastify-websocket#readme",
   "devDependencies": {
+    "@types/ws": "^6.0.3",
     "fastify": "^2.4.1",
     "pre-commit": "^1.2.2",
     "snazzy": "^8.0.0",
     "standard": "^14.0.2",
-    "tap": "^12.7.0"
+    "tap": "^12.7.0",
+    "tsd": "^0.11.0"
   },
   "dependencies": {
     "fastify-plugin": "^1.5.0",
