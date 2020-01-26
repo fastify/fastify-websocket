@@ -144,3 +144,46 @@ test('Should throw on an invalid handle parameter', (t) => {
     t.equal(err.message, 'invalid handle function')
   })
 })
+
+test('Should gracefully close with a connected client', (t) => {
+  t.plan(6)
+
+  const fastify = Fastify()
+
+  fastify.register(fastifyWebsocket, { handle })
+
+  function handle (connection) {
+    connection.setEncoding('utf8')
+    connection.write('hello client')
+
+    connection.once('data', (chunk) => {
+      t.equal(chunk, 'hello server')
+    })
+
+    connection.on('end', () => {
+      t.pass('end emitted on server side')
+    })
+    // this connection stays alive untile we close the server
+  }
+
+  fastify.listen(0, (err) => {
+    t.error(err)
+
+    const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+
+    client.setEncoding('utf8')
+    client.write('hello server')
+
+    client.on('end', () => {
+      t.pass('end emitted on client side')
+    })
+
+    client.once('data', (chunk) => {
+      t.equal(chunk, 'hello client')
+      fastify.close(function (err) {
+        t.error(err)
+      })
+    })
+  })
+})
