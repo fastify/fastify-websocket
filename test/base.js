@@ -144,3 +144,34 @@ test('Should throw on an invalid handle parameter', (t) => {
     t.equal(err.message, 'invalid handle function')
   })
 })
+
+test('Should be able to have the option to retrieve the socket instead of the connection', (t) => {
+  t.plan(2)
+
+  const fastify = Fastify()
+  t.tearDown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket, { handle, stream: false })
+
+  // this is all that's needed to create an echo server
+  function handle (ws) {
+    ws.send('world')
+    t.tearDown(() => ws.close())
+  }
+
+  fastify.listen(0, (err) => {
+    t.error(err)
+
+    const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+    t.tearDown(() => client.destroy())
+
+    client.setEncoding('utf8')
+    client.write('hello')
+
+    client.once('data', (chunk) => {
+      t.equal(chunk, 'world')
+      client.end()
+    })
+  })
+})

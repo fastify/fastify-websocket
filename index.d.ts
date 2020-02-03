@@ -82,8 +82,9 @@ declare namespace websocketPlugin {
   }
 
   export interface PluginOptions {
-    handle: (connection: SocketStream) => void;
+    handle: (connection: SocketStream | WebSocket) => void;
     options: WebSocket.ServerOptions;
+    stream?: boolean;
   }
 }
 

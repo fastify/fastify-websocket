@@ -11,9 +11,11 @@ function fastifyWebsocket (fastify, opts, next) {
   if (opts.handle && typeof opts.handle !== 'function') {
     return next(new Error('invalid handle function'))
   }
+  const isStream = typeof opts.stream === 'undefined'
+    ? true : !!opts.stream
   const handle = opts.handle
     ? (req, res) => opts.handle(req[kWs], req)
-    : (req, res) => { req[kWs].socket.close() }
+    : (req, res) => { isStream ? req[kWs].socket.close() : req[kWs].close() }
 
   const options = Object.assign({ server: fastify.server }, opts.options)
 
@@ -63,8 +65,12 @@ function fastifyWebsocket (fastify, opts, next) {
 
   function handleRouting (connection, request) {
     const response = new ServerResponse(request)
-    request[kWs] = WebSocket.createWebSocketStream(connection)
-    request[kWs].socket = connection
+    if (isStream) {
+      request[kWs] = WebSocket.createWebSocketStream(connection)
+      request[kWs].socket = connection
+    } else {
+      request[kWs] = connection
+    }
     router.lookup(request, response)
   }
 
