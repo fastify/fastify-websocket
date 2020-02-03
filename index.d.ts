@@ -71,7 +71,7 @@ declare module 'fastify' {
   > = (
     this: FastifyInstance<Server, HttpRequest, HttpResponse>,
     connection: websocketPlugin.SocketStream,
-    request: FastifyRequest<HttpRequest, Query, Params, Headers, Body>,
+    request: HttpRequest,
     params?: { [key: string]: any }
   ) => void | Promise<any>;
 }
