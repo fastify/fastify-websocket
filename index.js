@@ -11,8 +11,7 @@ function fastifyWebsocket (fastify, opts, next) {
   if (opts.handle && typeof opts.handle !== 'function') {
     return next(new Error('invalid handle function'))
   }
-  const isStream = typeof opts.stream === 'undefined'
-    ? true : !!opts.stream
+  const isStream = typeof opts.stream === 'boolean' ? opts.stream : true
   const handle = opts.handle
     ? (req, res) => opts.handle(req[kWs], req)
     : (req, res) => { isStream ? req[kWs].socket.close() : req[kWs].close() }

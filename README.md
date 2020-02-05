@@ -54,6 +54,21 @@ fastify.listen(3000, err => {
 })
 ```
 
+You also have the option not wrap the websocket in a Node Stream. In that case the handler will accept a plain websocket as a parameter.
+
+```js
+const fastify = require('fastify')()
+
+function handle (ws) { // this is a plain Websocket instead of a Connection Stream
+  ws.send('hello from the client') // we use Websocket methods here
+}
+
+fastify.register(require('fastify-websocket'), {
+  handle,
+  stream: false // flag to pass the Websocket parameter in the provided handler function
+})
+``` 
+
 ### Per route handler
 
 After registering this plugin, you can choose on which routes the WS server will respond. This could be achieved by adding `websocket: true` property to `routeOptions` on a fastify's `.get` route. In this case two arguments will be passed to the handler: socket connection and the original `http.IncomingMessage` (instead of the usual fastify's request and reply objects).
