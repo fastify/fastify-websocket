@@ -40,6 +40,8 @@ declare module 'fastify' {
       >,
       handler?: WebsocketHandler<HttpRequest, HttpResponse>
     ): FastifyInstance<HttpServer, HttpRequest, HttpResponse>;
+    
+    websocketServer: WebSocket.Server;
   }
 
   interface RouteOptions<
