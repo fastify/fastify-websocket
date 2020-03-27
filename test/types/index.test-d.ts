@@ -5,9 +5,6 @@ import { WebsocketHandler, FastifyRequest, FastifyInstance } from 'fastify';
 import { expectType } from 'tsd';
 import { Server } from 'ws';
 
-const app: FastifyInstance = fastify();
-app.register(wsPlugin);
-
 const handler: WebsocketHandler = (
   connection: SocketStream,
   req: FastifyRequest,
@@ -17,5 +14,11 @@ const handler: WebsocketHandler = (
   expectType<Server>(app.websocketServer);
   expectType<{ [key: string]: any } | undefined>(params);
 };
+
+const app: FastifyInstance = fastify();
+app.register(wsPlugin);
+app.register(wsPlugin, {});
+app.register(wsPlugin, { handler });
+app.register(wsPlugin, { options: { perMessageDeflate: true } });
 
 app.get('/', { websocket: true }, handler);
