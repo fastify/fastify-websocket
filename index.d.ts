@@ -1,5 +1,4 @@
 /// <reference types="node" />
-import * as fastify from 'fastify';
 import { IncomingMessage, ServerResponse, Server } from 'http';
 import { Plugin } from 'fastify';
 import * as WebSocket from 'ws';
@@ -40,7 +39,7 @@ declare module 'fastify' {
       >,
       handler?: WebsocketHandler<HttpRequest, HttpResponse>
     ): FastifyInstance<HttpServer, HttpRequest, HttpResponse>;
-    
+
     websocketServer: WebSocket.Server;
   }
 
