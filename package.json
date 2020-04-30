@@ -30,7 +30,7 @@
   "homepage": "https://github.com/fastify/fastify-websocket#readme",
   "devDependencies": {
     "@types/ws": "^6.0.3",
-    "fastify": "^2.13.0",
+    "fastify": "^3.0.0-rc.1",
     "pre-commit": "^1.2.2",
     "snazzy": "^8.0.0",
     "standard": "^14.3.3",
@@ -38,7 +38,7 @@
     "tsd": "^0.11.0"
   },
   "dependencies": {
-    "fastify-plugin": "^1.6.1",
+    "fastify-plugin": "^2.0.0",
     "find-my-way": "^2.2.2",
     "ws": "^7.2.3"
   },
