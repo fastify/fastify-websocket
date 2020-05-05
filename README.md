@@ -1,6 +1,8 @@
 # fastify-websocket
 
-[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](http://standardjs.com/) [![Build Status](https://travis-ci.org/fastify/fastify-websocket.svg?branch=master)](https://travis-ci.org/fastify/fastify-websocket) [![Greenkeeper badge](https://badges.greenkeeper.io/fastify/fastify-websocket.svg)](https://greenkeeper.io/)
+[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](http://standardjs.com/)
+![CI
+workflow](https://github.com/fastify/fastify-websocket/workflows/CI%20workflow/badge.svg)
 
 WebSocket support for [Fastify](https://github.com/fastify/fastify).
 Built upon [ws](https://www.npmjs.com/package/ws).
@@ -10,10 +12,6 @@ Built upon [ws](https://www.npmjs.com/package/ws).
 ```
 npm install fastify-websocket --save
 ```
-
-## Requirements
-
-* `>=nodejs-8.0.0`
 
 ## Usage
 

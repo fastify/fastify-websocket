@@ -76,6 +76,6 @@ function close (fastify, done) {
 }
 
 module.exports = fp(fastifyWebsocket, {
-  fastify: '>=2.4.1',
+  fastify: '3.x',
   name: 'fastify-websocket'
 })
