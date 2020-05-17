@@ -13,7 +13,9 @@ function fastifyWebsocket (fastify, opts, next) {
   }
   const handle = opts.handle
     ? (req, res) => opts.handle(req[kWs], req)
-    : (req, res) => { req[kWs].socket.close() }
+    : (req, res) => {
+      req[kWs].socket.close()
+    }
 
   const options = Object.assign({ server: fastify.server }, opts.options)
 
@@ -33,29 +35,31 @@ function fastifyWebsocket (fastify, opts, next) {
         throw new Error('websocket handler can only be declared in GET method')
       }
 
-      let wsHandler = routeOptions.wsHandler
-      let handler = routeOptions.handler
+      if (routeOptions.path !== routeOptions.prefix) {
+        let wsHandler = routeOptions.wsHandler
+        let handler = routeOptions.handler
 
-      if (routeOptions.websocket) {
-        wsHandler = routeOptions.handler
-        handler = function (request, reply) {
-          reply.code(404).send()
+        if (routeOptions.websocket) {
+          wsHandler = routeOptions.handler
+          handler = function (request, reply) {
+            reply.code(404).send()
+          }
         }
-      }
 
-      if (typeof wsHandler !== 'function') {
-        throw new Error('invalid wsHandler function')
-      }
-
-      router.on('GET', routeOptions.path, (req, _, params) => {
-        const result = wsHandler(req[kWs], req, params)
-
-        if (result && typeof result.catch === 'function') {
-          result.catch((err) => req[kWs].destroy(err))
+        if (typeof wsHandler !== 'function') {
+          throw new Error('invalid wsHandler function')
         }
-      })
 
-      routeOptions.handler = handler
+        router.on('GET', routeOptions.path, (req, _, params) => {
+          const result = wsHandler(req[kWs], req, params)
+
+          if (result && typeof result.catch === 'function') {
+            result.catch(err => req[kWs].destroy(err))
+          }
+        })
+
+        routeOptions.handler = handler
+      }
     }
   })
 
