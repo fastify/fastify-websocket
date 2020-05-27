@@ -35,31 +35,32 @@ function fastifyWebsocket (fastify, opts, next) {
         throw new Error('websocket handler can only be declared in GET method')
       }
 
-      if (routeOptions.path !== routeOptions.prefix) {
-        let wsHandler = routeOptions.wsHandler
-        let handler = routeOptions.handler
-
-        if (routeOptions.websocket) {
-          wsHandler = routeOptions.handler
-          handler = function (request, reply) {
-            reply.code(404).send()
-          }
-        }
-
-        if (typeof wsHandler !== 'function') {
-          throw new Error('invalid wsHandler function')
-        }
-
-        router.on('GET', routeOptions.path, (req, _, params) => {
-          const result = wsHandler(req[kWs], req, params)
-
-          if (result && typeof result.catch === 'function') {
-            result.catch(err => req[kWs].destroy(err))
-          }
-        })
-
-        routeOptions.handler = handler
+      if (routeOptions.path === routeOptions.prefix) {
+        return
       }
+      let wsHandler = routeOptions.wsHandler
+      let handler = routeOptions.handler
+
+      if (routeOptions.websocket) {
+        wsHandler = routeOptions.handler
+        handler = function (request, reply) {
+          reply.code(404).send()
+        }
+      }
+
+      if (typeof wsHandler !== 'function') {
+        throw new Error('invalid wsHandler function')
+      }
+
+      router.on('GET', routeOptions.path, (req, _, params) => {
+        const result = wsHandler(req[kWs], req, params)
+
+        if (result && typeof result.catch === 'function') {
+          result.catch(err => req[kWs].destroy(err))
+        }
+      })
+
+      routeOptions.handler = handler
     }
   })
 
