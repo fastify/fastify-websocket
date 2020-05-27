@@ -336,3 +336,38 @@ test('Should pass route params to handlers', t => {
     })
   })
 })
+
+test('Should not thow error when register empgy get with prefix', t => {
+  const fastify = Fastify()
+
+  t.tearDown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket)
+
+  fastify.register(
+    function (instance, opts, next) {
+      instance.get('/', { websocket: true }, (connection, req) => {
+        connection.socket.on('message', message => {
+          t.equal(message, 'hi from client')
+          connection.socket.send('hi from server')
+        })
+      })
+      next()
+    },
+    { prefix: '/baz' }
+  )
+
+  fastify.listen(0, err => {
+    if (err) t.error(err)
+
+    const ws = new WebSocket(
+      'ws://localhost:' + fastify.server.address().port + '/baz/'
+    )
+
+    ws.on('open', () => {
+      t.pass('Done')
+      ws.close()
+      t.end()
+    })
+  })
+})
