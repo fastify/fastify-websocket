@@ -31,7 +31,7 @@ declare module 'fastify' {
   export type WebsocketHandler = (
     this: FastifyInstance<Server, IncomingMessage, ServerResponse>,
     connection: SocketStream,
-    request: FastifyRequest,
+    request: IncomingMessage,
     params?: { [key: string]: any }
   ) => void | Promise<any>;
 }
