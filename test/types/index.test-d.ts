@@ -6,18 +6,18 @@ import { Server } from 'ws';
 
 const handler: WebsocketHandler = (
   connection: SocketStream,
-  req: FastifyRequest,
+  req: IncomingMessage,
   params
 ) => {
   expectType<SocketStream>(connection);
   expectType<Server>(app.websocketServer);
-  expectType<FastifyRequest<HttpServer, IncomingMessage, RequestGenericInterface>>(req)
+  expectType<IncomingMessage>(req)
   expectType<{ [key: string]: any } | undefined>(params);
 };
 
 const handle = (connection: SocketStream): void => {
   expectType<SocketStream>(connection)
-} 
+}
 
 const app: FastifyInstance = fastify();
 app.register(wsPlugin);
