@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { IncomingMessage, ServerResponse, Server } from 'http';
-import { FastifyPlugin, FastifyRequest, RawServerBase, RawServerDefault, RawRequestDefaultExpression, RawReplyDefaultExpression, RequestGenericInterface, ContextConfigDefault } from 'fastify';
+import { FastifyPlugin, FastifyRequest, RawServerBase, RawServerDefault, RawRequestDefaultExpression, RawReplyDefaultExpression, RequestGenericInterface, ContextConfigDefault, FastifyInstance } from 'fastify';
 import * as WebSocket from 'ws';
 import { Duplex } from 'stream';
 
@@ -41,7 +41,7 @@ export interface SocketStream extends Duplex {
 }
 
 export interface WebsocketPluginOptions {
-  handle?: (connection: SocketStream) => void;
+  handle?: (this: FastifyInstance, connection: SocketStream) => void;
   options?: WebSocket.ServerOptions;
 }
 

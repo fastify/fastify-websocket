@@ -12,7 +12,7 @@ function fastifyWebsocket (fastify, opts, next) {
     return next(new Error('invalid handle function'))
   }
   const handle = opts.handle
-    ? (req, res) => opts.handle(req[kWs], req)
+    ? (req, res) => opts.handle.call(fastify, req[kWs], req)
     : (req, res) => {
       req[kWs].socket.close()
     }
@@ -53,7 +53,7 @@ function fastifyWebsocket (fastify, opts, next) {
       }
 
       router.on('GET', routeOptions.path, (req, _, params) => {
-        const result = wsHandler(req[kWs], req, params)
+        const result = wsHandler.call(fastify, req[kWs], req, params)
 
         if (result && typeof result.catch === 'function') {
           result.catch(err => req[kWs].destroy(err))
