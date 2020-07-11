@@ -119,6 +119,33 @@ fastify.listen(3000, err => {
 })
 ```
 
+_**NB:** Websocket handlers don't follow the usual `fastify` request lifecycle, they are handled by an independent router. You can still access the fastify server's decorations via `this` in both global and per route handlers_
+
+```js
+'use strict'
+
+const fastify = require('fastify')()
+
+fastify.register(require('fastify-websocket'))
+
+fastify.get('/', { websocket: true }, function wsHandler (connection, req) {
+  // bound to fastify server
+  this.myDecoration.someFunc()
+
+  connection.socket.on('message', message => {
+    // message === 'hi from client'
+    connection.socket.send('hi from server')
+  })
+})
+
+fastify.listen(3000, err => {
+  if (err) {
+    fastify.log.error(err)
+    process.exit(1)
+  }
+})
+```
+
 If you need to handle both HTTP requests and incoming socket connections on the same route, you can still do it using the [full declaration syntax](https://www.fastify.io/docs/latest/Routes/#full-declaration), adding a `wsHandler` property.
 
 ```js

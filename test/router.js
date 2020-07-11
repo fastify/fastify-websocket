@@ -371,3 +371,65 @@ test('Should not thow error when register empgy get with prefix', t => {
     })
   })
 })
+
+test('Should expose fastify instance to websocket global handler', t => {
+  const fastify = Fastify()
+
+  t.tearDown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket, {
+    handle: function wsHandler (conn, req) {
+      t.equal(this, fastify, 'this is bound to fastify server')
+      conn.write('empty')
+      conn.end()
+    },
+    options: { path: '/ws' }
+  })
+
+  fastify.listen(0, err => {
+    t.error(err)
+    const ws = new WebSocket(
+      'ws://localhost:' + (fastify.server.address()).port + '/ws'
+    )
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+    t.tearDown(client.destroy.bind(client))
+
+    client.setEncoding('utf8')
+
+    client.once('data', chunk => {
+      t.equal(chunk, 'empty')
+      client.end()
+      t.end()
+    })
+  })
+})
+
+test('Should expose fastify instance to websocket per-route handler', t => {
+  const fastify = Fastify()
+
+  t.tearDown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket)
+  fastify.get('/ws', { websocket: true }, function wsHandler (conn, req) {
+    t.equal(this, fastify, 'this is bound to fastify server')
+    conn.write('empty')
+    conn.end()
+  })
+
+  fastify.listen(0, err => {
+    t.error(err)
+    const ws = new WebSocket(
+      'ws://localhost:' + (fastify.server.address()).port + '/ws'
+    )
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+    t.tearDown(client.destroy.bind(client))
+
+    client.setEncoding('utf8')
+
+    client.once('data', chunk => {
+      t.equal(chunk, 'empty')
+      client.end()
+      t.end()
+    })
+  })
+})
