@@ -433,3 +433,30 @@ test('Should expose fastify instance to websocket per-route handler', t => {
     })
   })
 })
+
+test('should call `destroy` when exception is thrown inside async handler', t => {
+  t.plan(2)
+  const fastify = Fastify()
+
+  t.tearDown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket)
+  fastify.get('/ws', { websocket: true }, async function wsHandler (conn, req) {
+    conn.on('error', err => {
+      t.equal(err.message, 'something wrong')
+      t.end()
+    })
+    throw new Error('something wrong')
+  })
+
+  fastify.listen(0, err => {
+    t.error(err)
+    const ws = new WebSocket(
+      'ws://localhost:' + (fastify.server.address()).port + '/ws'
+    )
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+
+    client.on('error', (_) => { })
+    t.tearDown(client.destroy.bind(client))
+  })
+})
