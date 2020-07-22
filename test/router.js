@@ -460,3 +460,31 @@ test('should call `destroy` when exception is thrown inside async handler', t =>
     t.tearDown(client.destroy.bind(client))
   })
 })
+
+test('register a non websocket route', t => {
+  t.plan(2)
+  const fastify = Fastify()
+
+  t.tearDown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket)
+  fastify.get('/ws', function handler (req, reply) {
+    reply.send({ hello: 'world' })
+  })
+
+  fastify.listen(0, err => {
+    t.error(err)
+    get('http://localhost:' + (fastify.server.address()).port + '/ws', function (response) {
+      let data = ''
+
+      response.on('data', (chunk) => {
+        data += chunk
+      })
+
+      response.on('end', () => {
+        t.equal(data, '{"hello":"world"}')
+        t.end()
+      })
+    })
+  })
+})
