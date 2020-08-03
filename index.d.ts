@@ -30,21 +30,23 @@ declare module 'fastify' {
 
   export type WebsocketHandler = (
     this: FastifyInstance<Server, IncomingMessage, ServerResponse>,
-    connection: SocketStream,
+    connection: websocketPlugin.SocketStream,
     request: IncomingMessage,
     params?: { [key: string]: any }
   ) => void | Promise<any>;
 }
 
-export interface SocketStream extends Duplex {
-  socket: WebSocket;
+declare const websocketPlugin: FastifyPlugin<websocketPlugin.WebsocketPluginOptions>;
+
+declare module websocketPlugin {
+  interface SocketStream extends Duplex {
+    socket: WebSocket;
+  }
+
+  interface WebsocketPluginOptions {
+    handle?: (this: FastifyInstance, connection: SocketStream) => void;
+    options?: WebSocket.ServerOptions;
+  }
 }
 
-export interface WebsocketPluginOptions {
-  handle?: (this: FastifyInstance, connection: SocketStream) => void;
-  options?: WebSocket.ServerOptions;
-}
-
-declare const websocketPlugin: FastifyPlugin<WebsocketPluginOptions>;
-
-export default websocketPlugin;
+export = websocketPlugin;
