@@ -28,6 +28,10 @@ declare module 'fastify' {
     ): FastifyInstance<RawServer, RawRequest, RawReply>;
   }
 
+  interface RouteOptions {
+     wsHandler?: WebsocketHandler
+  }
+
   export type WebsocketHandler = (
     this: FastifyInstance<Server, IncomingMessage, ServerResponse>,
     connection: websocketPlugin.SocketStream,
