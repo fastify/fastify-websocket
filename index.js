@@ -12,7 +12,11 @@ function fastifyWebsocket (fastify, opts, next) {
     return next(new Error('invalid handle function'))
   }
   const handle = opts.handle
-    ? (req, res) => opts.handle.call(fastify, req[kWs], req)
+    ? (req, res) => {
+      req[kWs].resume()
+
+      return opts.handle.call(fastify, req[kWs], req)
+    }
     : (req, res) => {
       req[kWs].socket.close()
     }
