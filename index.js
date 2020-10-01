@@ -8,18 +8,15 @@ const findMyWay = require('find-my-way')
 const kWs = Symbol('ws')
 
 function fastifyWebsocket (fastify, opts, next) {
-  if (opts.handle && typeof opts.handle !== 'function') {
-    return next(new Error('invalid handle function'))
-  }
-  const handle = opts.handle
-    ? (req, res) => {
-      req[kWs].resume()
+  let handle = noHandle
 
-      return opts.handle.call(fastify, req[kWs], req)
+  if (opts.handle) {
+    if (typeof opts.handle !== 'function') {
+      return next(new Error('invalid handle function'))
     }
-    : (req, res) => {
-      req[kWs].socket.close()
-    }
+
+    handle = wsHandle.bind(null, opts.handle)
+  }
 
   const options = Object.assign({ server: fastify.server }, opts.options)
 
@@ -80,6 +77,16 @@ function fastifyWebsocket (fastify, opts, next) {
       client.close()
     }
     oldClose.call(this, cb)
+  }
+
+  function wsHandle (handle, req, res) {
+    req[kWs].resume()
+
+    return handle.call(fastify, req[kWs], res)
+  }
+
+  function noHandle (req, res) {
+    req[kWs].socket.close()
   }
 
   function handleRouting (connection, request) {
