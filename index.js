@@ -80,7 +80,11 @@ function fastifyWebsocket (fastify, opts, next) {
   }
 
   function wsHandle (handle, req, res) {
-    req[kWs].resume()
+    req[kWs].socket.on('newListener', event => {
+      if (event === 'message') {
+        req[kWs].resume()
+      }
+    })
 
     return handle.call(fastify, req[kWs], res)
   }
