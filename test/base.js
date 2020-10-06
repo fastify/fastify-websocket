@@ -187,3 +187,74 @@ test('Should gracefully close with a connected client', (t) => {
     })
   })
 })
+
+/*
+  This test sends one message every 10 ms.
+  After 50 messages have been sent, we check how many unhandled messages the server has.
+  After 100 messages we check this number has not increased but rather decreased
+  the number of unhandled messages below a threshold, which means it is still able
+  to process message.
+*/
+test('Should keep accepting connection', t => {
+  t.plan(3)
+
+  const fastify = Fastify()
+  let sent = 0
+  let unhandled = 0
+  let threshold = 0
+
+  fastify.register(fastifyWebsocket, { handle })
+
+  function handle ({ socket }) {
+    socket.on('message', message => {
+      unhandled--
+    })
+
+    socket.on('error', err => {
+      t.error(err)
+    })
+
+    /*
+      This is a safety check - If the socket is stuck, fastify.close will not run.
+      Therefore after 100 messages we forcibly close the socket.
+    */
+    const safetyInterval = setInterval(() => {
+      if (sent < 100) {
+        return
+      }
+
+      clearInterval(safetyInterval)
+      socket.terminate()
+    }, 100)
+  }
+
+  fastify.listen(0, err => {
+    t.error(err)
+
+    // Setup a client that sends a lot of messages to the server
+    const client = new WebSocket('ws://localhost:' + fastify.server.address().port)
+
+    client.on('open', event => {
+      const message = Buffer.alloc(1024, Date.now())
+
+      const interval = setInterval(() => {
+        client.send(message.toString(), 10)
+        sent++
+        unhandled++
+
+        if (sent === 50) {
+          threshold = unhandled
+        } else if (sent === 100) {
+          clearInterval(interval)
+
+          fastify.close(err => {
+            t.error(err)
+            t.true(unhandled < threshold)
+          })
+        }
+      }, 10)
+    })
+
+    client.on('error', console.error)
+  })
+})
