@@ -1,9 +1,13 @@
 /// <reference types="node" />
 import { IncomingMessage, ServerResponse, Server } from 'http';
-import { FastifyPlugin, FastifyRequest, RawServerBase, RawServerDefault, RawRequestDefaultExpression, RawReplyDefaultExpression, RequestGenericInterface, ContextConfigDefault, FastifyInstance } from 'fastify';
+import { FastifyPluginCallback, RawServerBase, RawServerDefault, RawRequestDefaultExpression, RawReplyDefaultExpression, RequestGenericInterface, ContextConfigDefault, FastifyInstance } from 'fastify';
+import * as fastify from 'fastify';
 import * as WebSocket from 'ws';
 import { Duplex } from 'stream';
 
+interface WebsocketRouteOptions {
+  wsHandler?: WebsocketHandler
+}
 declare module 'fastify' {
   interface RouteShorthandOptions<
     RawServer extends RawServerBase = RawServerDefault
@@ -28,25 +32,27 @@ declare module 'fastify' {
     ): FastifyInstance<RawServer, RawRequest, RawReply>;
   }
 
-  export type WebsocketHandler = (
-    this: FastifyInstance<Server, IncomingMessage, ServerResponse>,
-    connection: websocketPlugin.SocketStream,
-    request: IncomingMessage,
-    params?: { [key: string]: any }
-  ) => void | Promise<any>;
+  interface RouteOptions extends WebsocketRouteOptions {}
 }
 
-declare const websocketPlugin: FastifyPlugin<websocketPlugin.WebsocketPluginOptions>;
+declare const websocketPlugin: FastifyPluginCallback<WebsocketPluginOptions>;
 
-declare module websocketPlugin {
-  interface SocketStream extends Duplex {
-    socket: WebSocket;
-  }
+export type WebsocketHandler = (
+  this: FastifyInstance<Server, IncomingMessage, ServerResponse>,
+  connection: SocketStream,
+  request: IncomingMessage,
+  params?: { [key: string]: any }
+) => void | Promise<any>;
 
-  interface WebsocketPluginOptions {
-    handle?: (this: FastifyInstance, connection: SocketStream) => void;
-    options?: WebSocket.ServerOptions;
-  }
+export interface SocketStream extends Duplex {
+  socket: WebSocket;
 }
 
-export = websocketPlugin;
+export interface WebsocketPluginOptions {
+  handle?: (this: FastifyInstance, connection: SocketStream) => void;
+  options?: WebSocket.ServerOptions;
+}
+
+export interface RouteOptions extends fastify.RouteOptions, WebsocketRouteOptions {}
+
+export default websocketPlugin;
