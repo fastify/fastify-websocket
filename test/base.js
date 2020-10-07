@@ -258,3 +258,56 @@ test('Should keep accepting connection', t => {
     client.on('error', console.error)
   })
 })
+
+test('Should keep processing message when many medium sized messages are sent', t => {
+  t.plan(3)
+
+  const fastify = Fastify()
+  const total = 200
+  let handled = 0
+
+  fastify.register(fastifyWebsocket, { handle })
+
+  function handle ({ socket }) {
+    socket.on('message', message => {
+      socket.send('handled')
+    })
+
+    socket.on('error', err => {
+      t.error(err)
+    })
+  }
+
+  fastify.listen(0, err => {
+    t.error(err)
+
+    // Setup a client that sends a lot of messages to the server
+    const client = new WebSocket('ws://localhost:' + fastify.server.address().port)
+
+    let i = 0
+    function send () {
+      client.send(Buffer.alloc(160, `${i}`).toString('utf-8'), () => {
+        i++
+
+        if (i < total) {
+          send()
+        } else {
+          setTimeout(() => {
+            fastify.close(err => {
+              t.error(err)
+              t.equal(handled, total)
+            })
+          }, 1000)
+        }
+      })
+    }
+
+    client.on('open', send)
+
+    client.on('message', () => {
+      handled++
+    })
+
+    client.on('error', console.error)
+  })
+})
