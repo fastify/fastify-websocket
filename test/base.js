@@ -285,7 +285,7 @@ test('Should keep processing message when many medium sized messages are sent', 
     safetyInterval = setInterval(() => {
       if (sent < total) {
         return
-  }
+      }
 
       t.fail('Forcibly closed.')
 
@@ -311,12 +311,12 @@ test('Should keep processing message when many medium sized messages are sent', 
       handled++
 
       if (handled === total) {
-            fastify.close(err => {
+        fastify.close(err => {
           clearInterval(safetyInterval)
-              t.error(err)
-              t.equal(handled, total)
-            })
-    }
+          t.error(err)
+          t.equal(handled, total)
+        })
+      }
     })
 
     client.on('error', console.error)
