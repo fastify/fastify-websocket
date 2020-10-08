@@ -80,12 +80,6 @@ function fastifyWebsocket (fastify, opts, next) {
   }
 
   function wsHandle (handle, req, res) {
-    req[kWs].socket.on('newListener', event => {
-      if (event === 'message') {
-        req[kWs].resume()
-      }
-    })
-
     return handle.call(fastify, req[kWs], res)
   }
 
@@ -97,6 +91,13 @@ function fastifyWebsocket (fastify, opts, next) {
     const response = new ServerResponse(request)
     request[kWs] = WebSocket.createWebSocketStream(connection)
     request[kWs].socket = connection
+
+    request[kWs].socket.on('newListener', event => {
+      if (event === 'message') {
+        request[kWs].resume()
+      }
+    })
+
     router.lookup(request, response)
   }
 
