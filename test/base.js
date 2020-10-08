@@ -264,11 +264,13 @@ test('Should keep processing message when many medium sized messages are sent', 
 
   const fastify = Fastify()
   const total = 200
+  let safetyInterval
+  let sent = 0
   let handled = 0
 
-  fastify.register(fastifyWebsocket, { handle })
+  fastify.register(fastifyWebsocket)
 
-  function handle ({ socket }) {
+  fastify.get('/', { websocket: true }, ({ socket }, req) => {
     socket.on('message', message => {
       socket.send('handled')
     })
@@ -276,7 +278,21 @@ test('Should keep processing message when many medium sized messages are sent', 
     socket.on('error', err => {
       t.error(err)
     })
+
+    /*
+      This is a safety check - If the socket is stuck, fastify.close will not run.
+    */
+    safetyInterval = setInterval(() => {
+      if (sent < total) {
+        return
   }
+
+      t.fail('Forcibly closed.')
+
+      clearInterval(safetyInterval)
+      socket.terminate()
+    }, 100)
+  })
 
   fastify.listen(0, err => {
     t.error(err)
@@ -284,28 +300,23 @@ test('Should keep processing message when many medium sized messages are sent', 
     // Setup a client that sends a lot of messages to the server
     const client = new WebSocket('ws://localhost:' + fastify.server.address().port)
 
-    let i = 0
-    function send () {
-      client.send(Buffer.alloc(160, `${i}`).toString('utf-8'), () => {
-        i++
+    client.on('open', () => {
+      for (let i = 0; i < total; i++) {
+        client.send(Buffer.alloc(160, `${i}`).toString('utf-8'))
+        sent++
+      }
+    })
 
-        if (i < total) {
-          send()
-        } else {
-          setTimeout(() => {
+    client.on('message', message => {
+      handled++
+
+      if (handled === total) {
             fastify.close(err => {
+          clearInterval(safetyInterval)
               t.error(err)
               t.equal(handled, total)
             })
-          }, 1000)
-        }
-      })
     }
-
-    client.on('open', send)
-
-    client.on('message', () => {
-      handled++
     })
 
     client.on('error', console.error)
