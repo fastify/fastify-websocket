@@ -38,7 +38,7 @@
     "tsd": "^0.13.1"
   },
   "dependencies": {
-    "fastify-plugin": "^2.3.4",
+    "fastify-plugin": "^3.0.0",
     "find-my-way": "^3.0.4",
     "ws": "^7.3.1"
   }
