@@ -18,7 +18,10 @@ function fastifyWebsocket (fastify, opts, next) {
     handle = wsHandle.bind(null, opts.handle)
   }
 
-  const options = Object.assign({ server: fastify.server }, opts.options)
+  const options = Object.assign({}, opts.options)
+  if (!options.server && !options.noServer) {
+    options.server = fastify.server
+  }
 
   const router = findMyWay({
     ignoreTrailingSlash: true,
