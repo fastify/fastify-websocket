@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "fastify-plugin": "^3.0.0",
-    "find-my-way": "^3.0.4",
+    "find-my-way": "^3.0.5",
     "ws": "^7.3.1"
   }
 }
