@@ -319,7 +319,7 @@ test('Should pass route params to handlers', t => {
     )
     const client2 = WebSocket.createWebSocketStream(ws2, { encoding: 'utf8' })
     t.tearDown(client.destroy.bind(client))
-    t.tearDown(client2.destroy.bind(client))
+    t.tearDown(client2.destroy.bind(client2))
 
     client.setEncoding('utf8')
     client2.setEncoding('utf8')
