@@ -3,7 +3,6 @@
 const { ServerResponse } = require('http')
 const fp = require('fastify-plugin')
 const WebSocket = require('ws')
-const findMyWay = require('find-my-way')
 
 const kWs = Symbol('ws')
 
@@ -22,11 +21,6 @@ function fastifyWebsocket (fastify, opts, next) {
   if (!options.server && !options.noServer) {
     options.server = fastify.server
   }
-
-  const router = findMyWay({
-    ignoreTrailingSlash: true,
-    defaultRoute: handle
-  })
 
   const wss = new WebSocket.Server(options)
   wss.on('connection', handleRouting)
@@ -56,15 +50,17 @@ function fastifyWebsocket (fastify, opts, next) {
         throw new Error('invalid wsHandler function')
       }
 
-      router.on('GET', routeOptions.path, (req, _, params) => {
-        const result = wsHandler.call(fastify, req[kWs], req, params)
-
-        if (result && typeof result.catch === 'function') {
-          result.catch(err => req[kWs].destroy(err))
+      routeOptions.handler = (req, reply) => {
+        if (req.raw[kWs]) {
+          reply.hijack()
+          const result = wsHandler.call(fastify, req.raw[kWs], req, req.params)
+          if (result && typeof result.catch === 'function') {
+            result.catch(err => req.raw[kWs].destroy(err))
+          }
+        } else {
+          return handler.call(fastify, req, reply, req.params)
         }
-      })
-
-      routeOptions.handler = handler
+      }
     }
   })
 
@@ -101,7 +97,7 @@ function fastifyWebsocket (fastify, opts, next) {
       }
     })
 
-    router.lookup(request, response)
+    fastify.routing(request, response)
   }
 
   next()
