@@ -50,15 +50,15 @@ function fastifyWebsocket (fastify, opts, next) {
         throw new Error('invalid wsHandler function')
       }
 
-      routeOptions.handler = (req, reply) => {
-        if (req.raw[kWs]) {
+      routeOptions.handler = (request, reply) => {
+        if (request.raw[kWs]) {
           reply.hijack()
-          const result = wsHandler.call(fastify, req.raw[kWs], req, req.params)
+          const result = wsHandler.call(fastify, request.raw[kWs], request)
           if (result && typeof result.catch === 'function') {
-            result.catch(err => req.raw[kWs].destroy(err))
+            result.catch(err => request.raw[kWs].destroy(err))
           }
         } else {
-          return handler.call(fastify, req, reply, req.params)
+          return handler.call(fastify, request, reply)
         }
       }
     }
