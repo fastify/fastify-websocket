@@ -296,12 +296,14 @@ test('Should pass route params to handlers', t => {
   t.tearDown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
-  fastify.get('/ws', { websocket: true }, (conn, req, params) => {
+  fastify.get('/ws', { websocket: true }, (conn, req) => {
+    const params = req.params
     t.equal(Object.keys(params).length, 0, 'params are empty')
     conn.write('empty')
     conn.end()
   })
-  fastify.get('/ws/:id', { websocket: true }, (conn, req, params) => {
+  fastify.get('/ws/:id', { websocket: true }, (conn, req) => {
+    const params = req.params
     t.equal(params.id, 'foo', 'params are correct')
     conn.write(params.id)
     conn.end()
