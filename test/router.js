@@ -434,7 +434,7 @@ test('Should expose fastify instance to websocket per-route handler', t => {
   })
 })
 
-test('should call `destroy` when exception is thrown inside async handler', t => {
+test('should call `destroy` when exception is thrown inside async handler (custom route)', t => {
   t.plan(2)
   const fastify = Fastify()
 
@@ -458,6 +458,54 @@ test('should call `destroy` when exception is thrown inside async handler', t =>
 
     client.on('error', (_) => { })
     t.tearDown(client.destroy.bind(client))
+  })
+})
+
+test('should call `destroy` when exception is thrown inside async handler (default route)', t => {
+  t.plan(2)
+  const fastify = Fastify()
+
+  t.tearDown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket, {
+    handle: async function (conn, req) {
+      conn.on('error', err => {
+        t.equal(err.message, 'something wrong')
+        t.end()
+      })
+      throw new Error('something wrong')
+    }
+  })
+
+  fastify.listen(0, err => {
+    t.error(err)
+    const ws = new WebSocket(
+      'ws://localhost:' + (fastify.server.address()).port + '/default-route'
+    )
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+
+    client.on('error', (_) => { })
+    t.tearDown(client.destroy.bind(client))
+  })
+})
+
+test('should call default non websocket fastify route when no match is found', t => {
+  t.plan(2)
+  const fastify = Fastify()
+
+  t.tearDown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket)
+  fastify.get('/ws', function handler (req, reply) {
+    reply.send({ hello: 'world' })
+  })
+
+  fastify.listen(0, err => {
+    t.error(err)
+    get('http://localhost:' + (fastify.server.address()).port + '/wrong-route', function (response) {
+      t.equal(response.statusCode, 404)
+      t.end()
+    })
   })
 })
 
