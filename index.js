@@ -14,7 +14,7 @@ function fastifyWebsocket (fastify, opts, next) {
       return next(new Error('invalid handle function'))
     }
 
-    handle = wsHandle.bind(null, opts.handle)
+    handle = opts.handle
   }
 
   const options = Object.assign({}, opts.options)
@@ -78,12 +78,22 @@ function fastifyWebsocket (fastify, opts, next) {
     oldClose.call(this, cb)
   }
 
-  function wsHandle (handle, req, res) {
-    return handle.call(fastify, req[kWs], res)
+  function noHandle (conn, req) {
+    req[kWs].socket.close()
   }
 
-  function noHandle (req, res) {
-    req[kWs].socket.close()
+  // We monkeypatch the default route in order to
+  // support the websocket global handler
+  const oldDefaultRoute = fastify.defaultRoute
+  fastify.defaultRoute = function (req, res) {
+    if (req[kWs]) {
+      const result = handle.call(fastify, req[kWs], req)
+      if (result && typeof result.catch === 'function') {
+        result.catch(err => req[kWs].destroy(err))
+      }
+    } else {
+      return oldDefaultRoute(req, res)
+    }
   }
 
   function handleRouting (connection, request) {
