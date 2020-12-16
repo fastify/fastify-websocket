@@ -82,10 +82,8 @@ function fastifyWebsocket (fastify, opts, next) {
     req[kWs].socket.close()
   }
 
-  // We monkeypatch the default route in order to
-  // support the websocket global handler
-  const oldDefaultRoute = fastify.defaultRoute
-  fastify.defaultRoute = function (req, res) {
+  const oldDefaultRoute = fastify.getDefaultRoute()
+  fastify.setDefaultRoute(function (req, res) {
     if (req[kWs]) {
       const result = handle.call(fastify, req[kWs], req)
       if (result && typeof result.catch === 'function') {
@@ -94,7 +92,7 @@ function fastifyWebsocket (fastify, opts, next) {
     } else {
       return oldDefaultRoute(req, res)
     }
-  }
+  })
 
   function handleRouting (connection, request) {
     const response = new ServerResponse(request)
