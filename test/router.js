@@ -1,5 +1,6 @@
 'use strict'
 
+const net = require('net')
 const test = require('tap').test
 const Fastify = require('fastify')
 const fastifyWebsocket = require('..')
@@ -107,7 +108,7 @@ test('Should expose websocket and http route', t => {
   })
 })
 
-test('Should close on unregistered path', t => {
+test('Should close on unregistered path (with no global handler)', t => {
   t.plan(2)
   const fastify = Fastify()
 
@@ -135,6 +136,131 @@ test('Should close on unregistered path', t => {
     ws.on('close', () => {
       t.pass()
     })
+  })
+})
+
+test('Should call global handler on unregistered path', t => {
+  t.plan(3)
+  const fastify = Fastify()
+
+  t.tearDown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket, {
+    handle: (conn, request) => {
+      conn.socket.on('message', message => {
+        try {
+          conn.socket.send('hi from global handler')
+        } catch (err) {
+          conn.socket.send(err.message)
+        }
+      })
+
+      t.tearDown(conn.destroy.bind(conn))
+    }
+  })
+
+  fastify.get('/echo', { websocket: true }, (conn, request) => {
+    conn.socket.on('message', message => {
+      try {
+        conn.socket.send('hi from /echo handler')
+      } catch (err) {
+        conn.socket.send(err.message)
+      }
+    })
+
+    t.tearDown(conn.destroy.bind(conn))
+  })
+
+  fastify.listen(0, err => {
+    t.error(err)
+    const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port)
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+    t.tearDown(client.destroy.bind(client))
+
+    ws.on('open', () => {
+      ws.send('hi from client')
+      client.end()
+    })
+
+    ws.on('message', message => {
+      t.equal(message, 'hi from global handler')
+    })
+
+    ws.on('close', () => {
+      t.pass()
+    })
+  })
+})
+
+test('Should invoke the correct handler depending on the headers', t => {
+  const fastify = Fastify()
+
+  t.tearDown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket)
+  fastify.route({
+    method: 'GET',
+    url: '/',
+    handler: (request, reply) => {
+      reply.send('hi from handler')
+    },
+    wsHandler: (conn, request) => {
+      conn.write('hi from wsHandler')
+      t.tearDown(conn.destroy.bind(conn))
+    }
+  })
+
+  fastify.listen(0, err => {
+    t.error(err)
+
+    const port = fastify.server.address().port
+
+    const httpClient = net.createConnection({ port: port }, () => {
+      httpClient.write('GET / HTTP/1.1\r\n\r\n')
+      httpClient.once('data', data => {
+        t.match(data.toString(), /hi from handler/i)
+      })
+    })
+
+    const wsClient = net.createConnection({ port: port }, () => {
+      wsClient.write('GET / HTTP/1.1\r\nConnection: upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n')
+      wsClient.once('data', data => {
+        t.match(data.toString(), /hi from wsHandler/i)
+        wsClient.end(() => { t.end() })
+      })
+    })
+  })
+})
+
+test('Should call the global handler if a non-websocket route with path exists', t => {
+  const fastify = Fastify()
+  t.tearDown(() => fastify.close())
+
+  fastify.get('/http', (request, reply) => {
+    t.ok('Should not call http handler')
+    reply.send('http route')
+  })
+
+  fastify.register(fastifyWebsocket, {
+    handle: (conn, req) => {
+      t.ok('called', 'global handler')
+      conn.write('global handler')
+      t.tearDown(conn.destroy.bind(conn))
+    }
+  })
+
+  fastify.listen(0, err => {
+    t.error(err)
+    const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/http')
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+    t.tearDown(client.destroy.bind(client))
+
+    client.setEncoding('utf8')
+    // client.on('data', data => {
+    //   t.equal(data, 'global handler')
+    //   client.end(() => { t.end() })
+    // })
+    client.end(() => { t.end() })
   })
 })
 
@@ -290,7 +416,7 @@ test('Should return 404 on http request', t => {
   })
 })
 
-test('Should pass route params to handlers', t => {
+test('Should pass route params to per-route handlers', t => {
   const fastify = Fastify()
 
   t.tearDown(() => fastify.close())
@@ -404,7 +530,7 @@ test('Should expose fastify instance to websocket per-route handler', t => {
   })
 })
 
-test('Should have access to decorators', t => {
+test('Should have access to decorators in per-route handler', t => {
   const fastify = Fastify()
 
   t.tearDown(() => fastify.close())
@@ -419,13 +545,9 @@ test('Should have access to decorators', t => {
 
   fastify.listen(0, err => {
     t.error(err)
-    const ws = new WebSocket(
-      'ws://localhost:' + (fastify.server.address()).port + '/ws'
-    )
+    const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/ws')
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
     t.tearDown(client.destroy.bind(client))
-
-    client.setEncoding('utf8')
 
     client.once('data', chunk => {
       t.equal(chunk, 'empty')
