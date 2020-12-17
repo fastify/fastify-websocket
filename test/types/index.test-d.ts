@@ -1,5 +1,6 @@
 import wsPlugin, { WebsocketHandler, SocketStream } from '../..';
 import fastify, { RouteOptions, FastifyRequest, FastifyInstance, RequestGenericInterface, FastifyReply } from 'fastify';
+import { IncomingMessage } from 'http'
 import { expectType } from 'tsd';
 import { Server } from 'ws';
 
@@ -8,9 +9,10 @@ app.register(wsPlugin);
 app.register(wsPlugin, {});
 app.register(wsPlugin, { options: { maxPayload: 123 } });
 app.register(wsPlugin, {
-  handle: function globalHandler(connection: SocketStream): void {
+  handle: function globalHandler(connection: SocketStream, req: IncomingMessage): void {
     expectType<FastifyInstance>(this);
-    expectType<SocketStream>(connection)
+    expectType<SocketStream>(connection);
+    expectType<IncomingMessage>(req)
   }
 });
 app.register(wsPlugin, { options: { perMessageDeflate: true } });
