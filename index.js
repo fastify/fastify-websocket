@@ -7,14 +7,14 @@ const WebSocket = require('ws')
 const kWs = Symbol('ws')
 
 function fastifyWebsocket (fastify, opts, next) {
-  let handle = noHandle
+  let globalHandler = noHandle
 
   if (opts.handle) {
     if (typeof opts.handle !== 'function') {
       return next(new Error('invalid handle function'))
     }
 
-    handle = opts.handle
+    globalHandler = opts.handle
   }
 
   const options = Object.assign({}, opts.options)
@@ -28,16 +28,20 @@ function fastifyWebsocket (fastify, opts, next) {
   fastify.decorate('websocketServer', wss)
 
   fastify.addHook('onRoute', routeOptions => {
+    let isWebsocketRoute = false
+    let wsHandler = routeOptions.wsHandler
+    let handler = routeOptions.handler
+
     if (routeOptions.websocket || routeOptions.wsHandler) {
       if (routeOptions.method !== 'GET') {
         throw new Error('websocket handler can only be declared in GET method')
       }
 
+      isWebsocketRoute = true
+
       if (routeOptions.path === routeOptions.prefix) {
         return
       }
-      let wsHandler = routeOptions.wsHandler
-      let handler = routeOptions.handler
 
       if (routeOptions.websocket) {
         wsHandler = routeOptions.handler
@@ -49,17 +53,22 @@ function fastifyWebsocket (fastify, opts, next) {
       if (typeof wsHandler !== 'function') {
         throw new Error('invalid wsHandler function')
       }
+    }
 
-      routeOptions.handler = (request, reply) => {
-        if (request.raw[kWs]) {
-          reply.hijack()
-          const result = wsHandler.call(fastify, request.raw[kWs], request)
-          if (result && typeof result.catch === 'function') {
-            result.catch(err => request.raw[kWs].destroy(err))
-          }
+    routeOptions.handler = (request, reply) => {
+      if (request.raw[kWs]) {
+        reply.hijack()
+        let result
+        if (isWebsocketRoute) {
+          result = wsHandler.call(fastify, request.raw[kWs], request)
         } else {
-          return handler.call(fastify, request, reply)
+          result = globalHandler.call(fastify, request.raw[kWs], request.raw)
         }
+        if (result && typeof result.catch === 'function') {
+          result.catch(err => request.raw[kWs].destroy(err))
+        }
+      } else {
+        return handler.call(fastify, request, reply)
       }
     }
   })
@@ -85,7 +94,7 @@ function fastifyWebsocket (fastify, opts, next) {
   const oldDefaultRoute = fastify.getDefaultRoute()
   fastify.setDefaultRoute(function (req, res) {
     if (req[kWs]) {
-      const result = handle.call(fastify, req[kWs], req)
+      const result = globalHandler.call(fastify, req[kWs], req)
       if (result && typeof result.catch === 'function') {
         result.catch(err => req[kWs].destroy(err))
       }
