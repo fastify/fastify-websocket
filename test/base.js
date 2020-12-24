@@ -42,6 +42,71 @@ test('Should expose a websocket', (t) => {
   })
 })
 
+test('Should fail if custom errorHandler is not a function', (t) => {
+  t.plan(2)
+
+  const fastify = Fastify()
+  t.tearDown(() => fastify.close())
+
+  const options = {
+    handle,
+    errorHandler: {}
+  }
+
+  fastify
+    .register(fastifyWebsocket, options)
+    .after(err => t.equal(err.message, 'invalid errorHandler function'))
+
+  function handle (conn) {
+    conn.pipe(conn)
+    t.tearDown(() => conn.destroy())
+  }
+
+  fastify.listen(0, (err) => {
+    t.error(err)
+  })
+})
+
+test('Should be able to pass custom errorHandler', (t) => {
+  t.plan(2)
+
+  const fastify = Fastify()
+  t.tearDown(() => fastify.close())
+
+  const options = {
+    handle,
+    errorHandler: function (error) {
+      t.equal(error.message, 'Fail')
+    }
+  }
+
+  fastify.register(fastifyWebsocket, options)
+
+  fastify.addHook('onRequest', async (request, reply) => { throw new Error('Fail') })
+  fastify.addHook('onError', (request, reply) => t.ok('called', 'onError'))
+
+  function handle (conn) {
+    conn.pipe(conn)
+    t.tearDown(() => conn.destroy())
+  }
+
+  fastify.listen(0, (err) => {
+    t.error(err)
+
+    const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+    t.tearDown(() => client.destroy())
+
+    client.setEncoding('utf8')
+    client.write('hello')
+
+    client.once('data', (chunk) => {
+      t.equal(chunk, 'hello')
+      client.end()
+    })
+  })
+})
+
 test('Should be able to pass custom options to websocket-stream', (t) => {
   t.plan(3)
 

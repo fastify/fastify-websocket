@@ -13,6 +13,11 @@ app.register(wsPlugin, {
     expectType<FastifyInstance>(this);
     expectType<SocketStream>(connection);
     expectType<IncomingMessage>(req)
+  },
+  errorHandler: function errorHandler(connection: SocketStream, error: Error): void {
+    expectType<FastifyInstance>(this);
+    expectType<SocketStream>(connection);
+    expectType<Error>(error)
   }
 });
 app.register(wsPlugin, { options: { perMessageDeflate: true } });

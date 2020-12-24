@@ -2,6 +2,7 @@
 
 const net = require('net')
 const test = require('tap').test
+// const only = require('tap').only
 const Fastify = require('fastify')
 const fastifyWebsocket = require('..')
 const WebSocket = require('ws')
@@ -236,17 +237,17 @@ test('Should call the global handler if a non-websocket route with path exists',
   const fastify = Fastify()
   t.tearDown(() => fastify.close())
 
-  fastify.get('/http', (request, reply) => {
-    t.ok('Should not call http handler')
-    reply.send('http route')
-  })
-
   fastify.register(fastifyWebsocket, {
     handle: (conn, req) => {
       t.ok('called', 'global handler')
       conn.write('global handler')
       t.tearDown(conn.destroy.bind(conn))
     }
+  })
+
+  fastify.get('/http', (request, reply) => {
+    t.fail('Should not call http handler')
+    reply.send('http route')
   })
 
   fastify.listen(0, err => {
@@ -256,10 +257,6 @@ test('Should call the global handler if a non-websocket route with path exists',
     t.tearDown(client.destroy.bind(client))
 
     client.setEncoding('utf8')
-    // client.on('data', data => {
-    //   t.equal(data, 'global handler')
-    //   client.end(() => { t.end() })
-    // })
     client.end(() => { t.end() })
   })
 })
