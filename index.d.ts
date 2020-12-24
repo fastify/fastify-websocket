@@ -49,6 +49,7 @@ export interface SocketStream extends Duplex {
 
 export interface WebsocketPluginOptions {
   handle?: (this: FastifyInstance, connection: SocketStream, req: IncomingMessage) => void;
+  errorHandler?: (this: FastifyInstance, connection: SocketStream, error: Error) => void;
   options?: WebSocket.ServerOptions;
 }
 
