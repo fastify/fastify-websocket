@@ -8,6 +8,7 @@ const kWs = Symbol('ws')
 
 function fastifyWebsocket (fastify, opts, next) {
   let globalHandler = noHandle
+  let errorHandler = defaultErrorHandler
 
   if (opts.handle) {
     if (typeof opts.handle !== 'function') {
@@ -15,6 +16,14 @@ function fastifyWebsocket (fastify, opts, next) {
     }
 
     globalHandler = opts.handle
+  }
+
+  if (opts.errorHandler) {
+    if (typeof opts.errorHandler !== 'function') {
+      return next(new Error('invalid errorHandler function'))
+    }
+
+    errorHandler = opts.errorHandler
   }
 
   const options = Object.assign({}, opts.options)
@@ -26,6 +35,16 @@ function fastifyWebsocket (fastify, opts, next) {
   wss.on('connection', handleRouting)
 
   fastify.decorate('websocketServer', wss)
+
+  fastify.addHook('onError', (request, reply, error, done) => {
+    if (request.raw[kWs]) {
+      // Hijack reply to prevent fastify from sending the error after onError hooks are done running
+      reply.hijack()
+      // Handle the error
+      errorHandler.call(this, request.raw[kWs], error)
+    }
+    done()
+  })
 
   fastify.addHook('onRoute', routeOptions => {
     let isWebsocketRoute = false
@@ -65,7 +84,7 @@ function fastifyWebsocket (fastify, opts, next) {
           result = globalHandler.call(fastify, request.raw[kWs], request.raw)
         }
         if (result && typeof result.catch === 'function') {
-          result.catch(err => request.raw[kWs].destroy(err))
+          result.catch(err => errorHandler.call(this, request.raw[kWs], err))
         }
       } else {
         return handler.call(fastify, request, reply)
@@ -91,12 +110,16 @@ function fastifyWebsocket (fastify, opts, next) {
     req[kWs].socket.close()
   }
 
+  function defaultErrorHandler (conn, error) {
+    conn.destroy(error)
+  }
+
   const oldDefaultRoute = fastify.getDefaultRoute()
   fastify.setDefaultRoute(function (req, res) {
     if (req[kWs]) {
       const result = globalHandler.call(fastify, req[kWs], req)
       if (result && typeof result.catch === 'function') {
-        result.catch(err => req[kWs].destroy(err))
+        result.catch(err => errorHandler.call(this, req[kWs], err))
       }
     } else {
       return oldDefaultRoute(req, res)
