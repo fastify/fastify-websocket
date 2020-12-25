@@ -67,7 +67,7 @@ test('Should fail if custom errorHandler is not a function', (t) => {
   })
 })
 
-test('Should be able to pass custom errorHandler', (t) => {
+test('Should run custom errorHandler on global handler error', (t) => {
   t.plan(2)
 
   const fastify = Fastify()
@@ -75,19 +75,17 @@ test('Should be able to pass custom errorHandler', (t) => {
 
   const options = {
     handle,
-    errorHandler: function (error) {
+    errorHandler: function (connection, error) {
       t.equal(error.message, 'Fail')
     }
   }
 
   fastify.register(fastifyWebsocket, options)
 
-  fastify.addHook('onRequest', async (request, reply) => { throw new Error('Fail') })
-  fastify.addHook('onError', (request, reply) => t.ok('called', 'onError'))
-
   function handle (conn) {
     conn.pipe(conn)
     t.tearDown(() => conn.destroy())
+    return Promise.reject(new Error('Fail'))
   }
 
   fastify.listen(0, (err) => {
@@ -96,14 +94,35 @@ test('Should be able to pass custom errorHandler', (t) => {
     const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
     t.tearDown(() => client.destroy())
+  })
+})
 
-    client.setEncoding('utf8')
-    client.write('hello')
+test('Should run custom errorHandler on websocket handler error', (t) => {
+  t.plan(2)
 
-    client.once('data', (chunk) => {
-      t.equal(chunk, 'hello')
-      client.end()
-    })
+  const fastify = Fastify()
+  t.tearDown(() => fastify.close())
+
+  const options = {
+    errorHandler: function (connection, error) {
+      t.equal(error.message, 'Fail')
+    }
+  }
+
+  fastify.register(fastifyWebsocket, options)
+
+  fastify.get('/', { websocket: true }, async function wsHandler (conn, request) {
+    conn.pipe(conn)
+    t.tearDown(() => conn.destroy())
+    throw new Error('Fail')
+  })
+
+  fastify.listen(0, (err) => {
+    t.error(err)
+
+    const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+    t.tearDown(() => client.destroy())
   })
 })
 
