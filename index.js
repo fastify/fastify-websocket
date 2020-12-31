@@ -111,6 +111,11 @@ function fastifyWebsocket (fastify, opts, next) {
   }
 
   function defaultErrorHandler (conn, error) {
+    // Before destroying the connection, we attach an error listener.
+    // Since we already handled the error, adding this listener prevents the ws
+    // library from emitting the error and causing an uncaughtException
+    // Reference: https://github.com/websockets/ws/blob/master/lib/stream.js#L35
+    conn.on('error', _ => {})
     conn.destroy(error)
   }
 
