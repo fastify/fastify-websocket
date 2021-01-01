@@ -2,7 +2,6 @@
 
 const net = require('net')
 const test = require('tap').test
-// const only = require('tap').only
 const Fastify = require('fastify')
 const fastifyWebsocket = require('..')
 const WebSocket = require('ws')
