@@ -46,15 +46,15 @@ test('Should run onRequest, preParsing, preValidation, preHandler hooks', t => {
   })
 })
 
-test('Should run onTimeout hook', t => {
-  t.plan(3)
+test('Should not run onTimeout hook', t => {
+  t.plan(2)
   const fastify = Fastify()
 
   t.tearDown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
 
-  fastify.addHook('onTimeout', async (request, reply) => t.ok('called', 'onTimeout'))
+  fastify.addHook('onTimeout', async (request, reply) => t.fail('called', 'onTimeout'))
 
   fastify.get('/echo', { websocket: true }, (conn, request) => {
     conn.setEncoding('utf8')
