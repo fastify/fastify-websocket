@@ -116,6 +116,7 @@ function fastifyWebsocket (fastify, opts, next) {
     // library from emitting the error and causing an uncaughtException
     // Reference: https://github.com/websockets/ws/blob/master/lib/stream.js#L35
     conn.on('error', _ => {})
+    // TODO: Use req.log instead in the future.
     fastify.log.error(error)
     conn.destroy(error)
   }
