@@ -197,7 +197,7 @@ const fastify = require('fastify')()
 
 fastify.register(require('fastify-websocket'), {
   handle,
-  errorHandler: function (conn /* SocketStream */, error) {
+  errorHandler: function (error, conn /* SocketStream */) {
     // Do stuff
     // destroy/close connection
     conn.destroy(error)

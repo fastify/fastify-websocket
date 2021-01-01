@@ -75,7 +75,7 @@ test('Should run custom errorHandler on global handler error', (t) => {
 
   const options = {
     handle,
-    errorHandler: function (connection, error) {
+    errorHandler: function (error, connection) {
       t.equal(error.message, 'Fail')
     }
   }
@@ -104,7 +104,7 @@ test('Should run custom errorHandler on websocket handler error', (t) => {
   t.tearDown(() => fastify.close())
 
   const options = {
-    errorHandler: function (connection, error) {
+    errorHandler: function (error, connection) {
       t.equal(error.message, 'Fail')
     }
   }
