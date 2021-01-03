@@ -38,6 +38,9 @@ declare module 'fastify' {
 
 declare const websocketPlugin: FastifyPluginCallback<WebsocketPluginOptions>;
 
+interface WebSocketServerOptions extends Omit<WebSocket.ServerOptions, 'path'> {}
+
+
 export type WebsocketHandler = (
   this: FastifyInstance<Server, IncomingMessage, ServerResponse>,
   connection: SocketStream,
@@ -50,7 +53,7 @@ export interface SocketStream extends Duplex {
 
 export interface WebsocketPluginOptions {
   errorHandler?: (this: FastifyInstance, error: Error, connection: SocketStream, request: FastifyRequest, reply: FastifyReply) => void;
-  options?: WebSocket.ServerOptions;
+  options?: WebSocketServerOptions;
 }
 
 export interface RouteOptions extends fastify.RouteOptions, WebsocketRouteOptions {}

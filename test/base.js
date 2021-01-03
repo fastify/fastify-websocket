@@ -1,6 +1,7 @@
 'use strict'
 
 const http = require('http')
+const split = require('split2')
 const test = require('tap').test
 const Fastify = require('fastify')
 const fastifyWebsocket = require('..')
@@ -131,6 +132,54 @@ test('Should be able to pass custom options to websocket-stream', (t) => {
     }
   }
 
+  fastify.register(fastifyWebsocket, { options })
+
+  fastify.get('/*', { websocket: true }, (connection, request) => {
+    connection.pipe(connection)
+    t.tearDown(() => connection.destroy())
+  })
+
+  fastify.listen(0, (err) => {
+    t.error(err)
+
+    const clientOptions = { headers: { 'x-custom-header': 'fastify is awesome !' } }
+    const ws = new WebSocket('ws://localhost:' + fastify.server.address().port, clientOptions)
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+    t.tearDown(() => client.destroy())
+
+    client.setEncoding('utf8')
+    client.write('hello')
+
+    client.once('data', (chunk) => {
+      t.equal(chunk, 'hello')
+      client.end()
+    })
+  })
+})
+
+test('Should warn if path option is provided to websocket-stream', (t) => {
+  t.plan(4)
+  const logStream = split(JSON.parse)
+  let fastify
+  try {
+    fastify = Fastify({
+      logger: {
+        stream: logStream,
+        level: 'warn'
+      }
+    })
+  } catch (e) {
+    t.fail()
+  }
+
+  logStream.once('data', line => {
+    t.equal(line.msg, 'ws server path option shouldn\'t be provided, use a route instead')
+    t.equal(line.level, 40)
+  })
+
+  t.tearDown(() => fastify.close())
+
+  const options = { path: 'my-path' }
   fastify.register(fastifyWebsocket, { options })
 
   fastify.get('/*', { websocket: true }, (connection, request) => {

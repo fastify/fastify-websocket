@@ -33,6 +33,7 @@
     "fastify": "ayoubelk/fastify#websocket-fastifyrequest",
     "pre-commit": "^1.2.2",
     "snazzy": "^9.0.0",
+    "split2": "^3.2.2",
     "standard": "^16.0.1",
     "tap": "^14.10.8",
     "tsd": "^0.14.0"

@@ -193,7 +193,7 @@ fastify.listen(3000, err => {
 
 ## Options :
 
-`fastify-websocket` accept the same options as [`ws`](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback) :
+`fastify-websocket` accept these options for [`ws`](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback) :
 
 - `objectMode` - Send each chunk on its own, and do not try to pack them in a single websocket frame.
 - `host` - The hostname where to bind the server.
@@ -202,7 +202,6 @@ fastify.listen(3000, err => {
 - `server` - A pre-created Node.js HTTP/S server.
 - `verifyClient` - A function which can be used to validate incoming connections.
 - `handleProtocols` - A function which can be used to handle the WebSocket subprotocols.
-- `path` - Accept only connections matching this path.
 - `noServer` - Enable no server mode.
 - `clientTracking` - Specifies whether or not to track clients.
 - `perMessageDeflate` - Enable/disable permessage-deflate.
@@ -211,6 +210,8 @@ fastify.listen(3000, err => {
 For more informations you can check [`ws` options documentation](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback).
 
 _**NB:** By default if you do not provide a `server` option `fastify-websocket` will bind your websocket server instance to the scoped `fastify` instance._
+
+_**NB:** `path` option from `ws` shouldn't be provided (and will be ignored) since the routing is handled by fastify itself_
 
 ## Acknowledgements
 
