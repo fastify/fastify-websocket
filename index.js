@@ -7,17 +7,7 @@ const WebSocket = require('ws')
 const kWs = Symbol('ws')
 
 function fastifyWebsocket (fastify, opts, next) {
-  let globalHandler = noHandle
   let errorHandler = defaultErrorHandler
-
-  if (opts.handle) {
-    if (typeof opts.handle !== 'function') {
-      return next(new Error('invalid handle function'))
-    }
-
-    globalHandler = opts.handle
-  }
-
   if (opts.errorHandler) {
     if (typeof opts.errorHandler !== 'function') {
       return next(new Error('invalid errorHandler function'))
@@ -81,7 +71,7 @@ function fastifyWebsocket (fastify, opts, next) {
         if (isWebsocketRoute) {
           result = wsHandler.call(fastify, request.raw[kWs], request)
         } else {
-          result = globalHandler.call(fastify, request.raw[kWs], request.raw)
+          result = noHandle.call(fastify, request.raw[kWs], request.raw)
         }
         if (result && typeof result.catch === 'function') {
           result.catch(err => errorHandler.call(this, err, request.raw[kWs]))
@@ -124,10 +114,7 @@ function fastifyWebsocket (fastify, opts, next) {
   const oldDefaultRoute = fastify.getDefaultRoute()
   fastify.setDefaultRoute(function (req, res) {
     if (req[kWs]) {
-      const result = globalHandler.call(fastify, req[kWs], req)
-      if (result && typeof result.catch === 'function') {
-        result.catch(err => errorHandler.call(this, err, req[kWs]))
-      }
+      noHandle.call(fastify, req[kWs], req)
     } else {
       return oldDefaultRoute(req, res)
     }
