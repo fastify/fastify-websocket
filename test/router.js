@@ -143,6 +143,43 @@ test('Should close on unregistered path (with no wildcard route websocket handle
   })
 })
 
+test('Should use wildcard websocket route when (with a normal http wildcard route defined as well)', t => {
+  t.plan(2)
+  const fastify = Fastify()
+
+  t.tearDown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket)
+
+  fastify.route({
+    method: 'GET',
+    url: '/*',
+    handler: (req, reply) => {
+      reply.send({ hello: 'world' })
+    },
+    wsHandler: (conn, req) => {
+      conn.setEncoding('utf8')
+      conn.write('hello client')
+
+      conn.once('data', chunk => {
+        conn.end()
+      })
+    }
+  })
+
+  fastify.listen(0, err => {
+    t.error(err)
+    const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port)
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+    t.tearDown(client.destroy.bind(client))
+
+    client.once('data', chunk => {
+      t.equal(chunk, 'hello client')
+      client.end()
+    })
+  })
+})
+
 test('Should call wildcard route handler on unregistered path', t => {
   t.plan(3)
   const fastify = Fastify()
