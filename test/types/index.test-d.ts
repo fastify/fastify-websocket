@@ -9,11 +9,6 @@ app.register(wsPlugin);
 app.register(wsPlugin, {});
 app.register(wsPlugin, { options: { maxPayload: 123 } });
 app.register(wsPlugin, {
-  handle: function globalHandler(connection: SocketStream, req: IncomingMessage): void {
-    expectType<FastifyInstance>(this);
-    expectType<SocketStream>(connection);
-    expectType<IncomingMessage>(req)
-  },
   errorHandler: function errorHandler(error: Error, connection: SocketStream): void {
     expectType<FastifyInstance>(this);
     expectType<Error>(error)
