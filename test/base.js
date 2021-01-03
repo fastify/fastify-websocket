@@ -12,9 +12,9 @@ test('Should expose a websocket', (t) => {
   const fastify = Fastify()
   t.tearDown(() => fastify.close())
 
-  fastify.register(fastifyWebsocket, { handle })
+  fastify.register(fastifyWebsocket)
 
-  function handle (connection) {
+  fastify.get('/', { websocket: true }, (connection, request) => {
     connection.setEncoding('utf8')
     connection.write('hello client')
     t.tearDown(() => connection.destroy())
@@ -23,7 +23,7 @@ test('Should expose a websocket', (t) => {
       t.equal(chunk, 'hello server')
       connection.end()
     })
-  }
+  })
 
   fastify.listen(0, (err) => {
     t.error(err)
@@ -48,45 +48,36 @@ test('Should fail if custom errorHandler is not a function', (t) => {
   const fastify = Fastify()
   t.tearDown(() => fastify.close())
 
-  const options = {
-    handle,
-    errorHandler: {}
-  }
-
   fastify
-    .register(fastifyWebsocket, options)
+    .register(fastifyWebsocket, { errorHandler: {} })
     .after(err => t.equal(err.message, 'invalid errorHandler function'))
 
-  function handle (conn) {
-    conn.pipe(conn)
-    t.tearDown(() => conn.destroy())
-  }
+  fastify.get('/', { websocket: true }, (connection, request) => {
+    t.tearDown(() => connection.destroy())
+  })
 
   fastify.listen(0, (err) => {
     t.error(err)
   })
 })
 
-test('Should run custom errorHandler on global handler error', (t) => {
+test('Should run custom errorHandler on wildcard route handler error', (t) => {
   t.plan(2)
 
   const fastify = Fastify()
   t.tearDown(() => fastify.close())
 
-  const options = {
-    handle,
+  fastify.register(fastifyWebsocket, {
     errorHandler: function (error, connection) {
       t.equal(error.message, 'Fail')
     }
-  }
+  })
 
-  fastify.register(fastifyWebsocket, options)
-
-  function handle (conn) {
+  fastify.get('/*', { websocket: true }, (conn, request) => {
     conn.pipe(conn)
     t.tearDown(() => conn.destroy())
     return Promise.reject(new Error('Fail'))
-  }
+  })
 
   fastify.listen(0, (err) => {
     t.error(err)
@@ -140,13 +131,12 @@ test('Should be able to pass custom options to websocket-stream', (t) => {
     }
   }
 
-  fastify.register(fastifyWebsocket, { handle, options })
+  fastify.register(fastifyWebsocket, { options })
 
-  // this is all that's needed to create an echo server
-  function handle (connection) {
+  fastify.get('/*', { websocket: true }, (connection, request) => {
     connection.pipe(connection)
     t.tearDown(() => connection.destroy())
-  }
+  })
 
   fastify.listen(0, (err) => {
     t.error(err)
@@ -188,13 +178,12 @@ test('Should be able to pass a custom server option to websocket-stream', (t) =>
     server: externalServer
   }
 
-  fastify.register(fastifyWebsocket, { handle, options })
+  fastify.register(fastifyWebsocket, { options })
 
-  // this is all that's needed to create an echo server
-  function handle (connection) {
+  fastify.get('/', { websocket: true }, (connection, request) => {
     connection.pipe(connection)
     t.tearDown(() => connection.destroy())
-  }
+  })
 
   fastify.listen(0, (err) => {
     t.error(err)
@@ -213,30 +202,14 @@ test('Should be able to pass a custom server option to websocket-stream', (t) =>
   })
 })
 
-test('Should throw on an invalid handle parameter', (t) => {
-  t.plan(2)
-
-  const fastify = Fastify()
-  t.tearDown(() => fastify.close())
-
-  const handle = 'handle must be a function'
-
-  fastify.register(fastifyWebsocket, { handle })
-
-  fastify.listen(0, (err) => {
-    t.ok(err)
-    t.equal(err.message, 'invalid handle function')
-  })
-})
-
 test('Should gracefully close with a connected client', (t) => {
   t.plan(6)
 
   const fastify = Fastify()
 
-  fastify.register(fastifyWebsocket, { handle })
+  fastify.register(fastifyWebsocket)
 
-  function handle (connection) {
+  fastify.get('/', { websocket: true }, (connection, request) => {
     connection.setEncoding('utf8')
     connection.write('hello client')
 
@@ -248,7 +221,7 @@ test('Should gracefully close with a connected client', (t) => {
       t.pass('end emitted on server side')
     })
     // this connection stays alive untile we close the server
-  }
+  })
 
   fastify.listen(0, (err) => {
     t.error(err)
@@ -287,9 +260,9 @@ test('Should keep accepting connection', t => {
   let unhandled = 0
   let threshold = 0
 
-  fastify.register(fastifyWebsocket, { handle })
+  fastify.register(fastifyWebsocket)
 
-  function handle ({ socket }) {
+  fastify.get('/', { websocket: true }, ({ socket }, request, reply) => {
     socket.on('message', message => {
       unhandled--
     })
@@ -310,7 +283,7 @@ test('Should keep accepting connection', t => {
       clearInterval(safetyInterval)
       socket.terminate()
     }, 100)
-  }
+  })
 
   fastify.listen(0, err => {
     t.error(err)
@@ -419,13 +392,13 @@ test('Should not set server if noServer option is set', (t) => {
     noServer: true
   }
 
-  fastify.register(fastifyWebsocket, { handle, options })
+  fastify.register(fastifyWebsocket, { options })
 
   // this is all that's needed to create an echo server
-  function handle (connection) {
+  fastify.get('/', { websocket: true }, (connection, request) => {
     connection.pipe(connection)
     t.tearDown(() => connection.destroy())
-  }
+  })
 
   // As the websocketserver is now completely detached, we have to
   // handle the upgrade event.

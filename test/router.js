@@ -108,7 +108,7 @@ test('Should expose websocket and http route', t => {
   })
 })
 
-test('Should close on unregistered path (with no global handler)', t => {
+test('Should close on unregistered path (with no wildcard route handler defined)', t => {
   t.plan(2)
   const fastify = Fastify()
 
@@ -139,24 +139,24 @@ test('Should close on unregistered path (with no global handler)', t => {
   })
 })
 
-test('Should call global handler on unregistered path', t => {
+test('Should call wildcard route handler on unregistered path', t => {
   t.plan(3)
   const fastify = Fastify()
 
   t.tearDown(() => fastify.close())
 
-  fastify.register(fastifyWebsocket, {
-    handle: (conn, request) => {
-      conn.socket.on('message', message => {
-        try {
-          conn.socket.send('hi from global handler')
-        } catch (err) {
-          conn.socket.send(err.message)
-        }
-      })
+  fastify.register(fastifyWebsocket)
 
-      t.tearDown(conn.destroy.bind(conn))
-    }
+  fastify.get('/*', { websocket: true }, (conn, request) => {
+    conn.socket.on('message', message => {
+      try {
+        conn.socket.send('hi from wildcard route handler')
+      } catch (err) {
+        conn.socket.send(err.message)
+      }
+    })
+
+    t.tearDown(conn.destroy.bind(conn))
   })
 
   fastify.get('/echo', { websocket: true }, (conn, request) => {
@@ -183,7 +183,7 @@ test('Should call global handler on unregistered path', t => {
     })
 
     ws.on('message', message => {
-      t.equal(message, 'hi from global handler')
+      t.equal(message, 'hi from wildcard route handler')
     })
 
     ws.on('close', () => {
@@ -232,16 +232,16 @@ test('Should invoke the correct handler depending on the headers', t => {
   })
 })
 
-test('Should call the global handler if a non-websocket route with path exists', t => {
+test('Should call the wildcard handler if a no other non-websocket route with path exists', t => {
+  t.plan(2)
   const fastify = Fastify()
   t.tearDown(() => fastify.close())
 
-  fastify.register(fastifyWebsocket, {
-    handle: (conn, req) => {
-      t.ok('called', 'global handler')
-      conn.write('global handler')
-      t.tearDown(conn.destroy.bind(conn))
-    }
+  fastify.register(fastifyWebsocket)
+
+  fastify.get('/*', { websocket: true }, (conn, request) => {
+    t.ok('called', 'wildcard handler')
+    t.tearDown(conn.destroy.bind(conn))
   })
 
   fastify.get('/http', (request, reply) => {
@@ -251,12 +251,39 @@ test('Should call the global handler if a non-websocket route with path exists',
 
   fastify.listen(0, err => {
     t.error(err)
-    const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/http')
+    const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/http2')
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
     t.tearDown(client.destroy.bind(client))
 
     client.setEncoding('utf8')
     client.end(() => { t.end() })
+  })
+})
+
+test('Should close the connection if a non-websocket route with path exists', t => {
+  t.plan(2)
+  const fastify = Fastify()
+  t.tearDown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket)
+
+  fastify.get('/*', { websocket: true }, (conn, request) => {
+    t.fail('called', 'wildcard handler')
+    t.tearDown(conn.destroy.bind(conn))
+  })
+
+  fastify.get('/http', (request, reply) => {
+    t.fail('Should not call /http handler')
+    reply.send('http route')
+  })
+
+  fastify.listen(0, err => {
+    t.error(err)
+    const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/http')
+    ws.on('close', (code) => {
+      t.equal(code, 1005, 'closed websocket')
+      t.end()
+    })
   })
 })
 
@@ -553,7 +580,7 @@ test('Should have access to decorators in per-route handler', t => {
   })
 })
 
-test('should call `destroy` when exception is thrown inside async handler (custom route)', t => {
+test('should call `destroy` when exception is thrown inside async handler', t => {
   t.plan(2)
   const fastify = Fastify()
 
@@ -572,34 +599,6 @@ test('should call `destroy` when exception is thrown inside async handler (custo
     t.error(err)
     const ws = new WebSocket(
       'ws://localhost:' + (fastify.server.address()).port + '/ws'
-    )
-    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-
-    client.on('error', (_) => { })
-    t.tearDown(client.destroy.bind(client))
-  })
-})
-
-test('should call `destroy` when exception is thrown inside async handler (default route)', t => {
-  t.plan(2)
-  const fastify = Fastify()
-
-  t.tearDown(() => fastify.close())
-
-  fastify.register(fastifyWebsocket, {
-    handle: async function (conn, req) {
-      conn.on('error', err => {
-        t.equal(err.message, 'something wrong')
-        t.end()
-      })
-      throw new Error('something wrong')
-    }
-  })
-
-  fastify.listen(0, err => {
-    t.error(err)
-    const ws = new WebSocket(
-      'ws://localhost:' + (fastify.server.address()).port + '/default-route'
     )
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
 
