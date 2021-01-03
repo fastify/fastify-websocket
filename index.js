@@ -19,7 +19,6 @@ function fastifyWebsocket (fastify, opts, next) {
   const options = Object.assign({}, opts.options)
   if (options.path) {
     fastify.log.warn('ws server path option shouldn\'t be provided, use a route instead')
-    delete options.path
   }
   if (!options.server && !options.noServer) {
     options.server = fastify.server

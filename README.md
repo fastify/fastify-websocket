@@ -210,7 +210,7 @@ For more informations you can check [`ws` options documentation](https://github.
 
 _**NB:** By default if you do not provide a `server` option `fastify-websocket` will bind your websocket server instance to the scoped `fastify` instance._
 
-_**NB:** `path` option from `ws` shouldn't be provided (and will be ignored) since the routing is handled by fastify itself_
+_**NB:** `path` option from `ws` shouldn't be provided since the routing is handled by fastify itself_
 
 ## Acknowledgements
 

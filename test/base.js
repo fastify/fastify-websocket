@@ -179,7 +179,7 @@ test('Should warn if path option is provided to websocket-stream', (t) => {
 
   t.tearDown(() => fastify.close())
 
-  const options = { path: 'my-path' }
+  const options = { path: '/' }
   fastify.register(fastifyWebsocket, { options })
 
   fastify.get('/*', { websocket: true }, (connection, request) => {
