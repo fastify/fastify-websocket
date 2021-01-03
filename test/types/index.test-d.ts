@@ -1,6 +1,5 @@
 import wsPlugin, { WebsocketHandler, SocketStream } from '../..';
-import fastify, { RouteOptions, FastifyRequest, FastifyInstance, RequestGenericInterface, FastifyReply } from 'fastify';
-import { IncomingMessage } from 'http'
+import fastify, { RouteOptions, FastifyRequest, FastifyInstance, FastifyReply } from 'fastify';
 import { expectType } from 'tsd';
 import { Server } from 'ws';
 
