@@ -101,6 +101,7 @@ function fastifyWebsocket (fastify, opts, next) {
   }
 
   function noHandle (conn, req) {
+    this.log.info({ path: req.url }, 'closed incoming websocket connection')
     req[kWs].socket.close()
   }
 
