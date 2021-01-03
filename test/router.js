@@ -108,13 +108,17 @@ test('Should expose websocket and http route', t => {
   })
 })
 
-test('Should close on unregistered path (with no wildcard route handler defined)', t => {
+test('Should close on unregistered path (with no wildcard route websocket handler defined)', t => {
   t.plan(2)
   const fastify = Fastify()
 
   t.tearDown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
+
+  fastify.get('/*', (request, reply) => {
+    reply.send('hello world')
+  })
 
   fastify.get('/echo', { websocket: true }, (connection, request) => {
     connection.socket.on('message', message => {
