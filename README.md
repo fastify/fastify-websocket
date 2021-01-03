@@ -15,45 +15,6 @@ npm install fastify-websocket --save
 
 ## Usage
 
-There are two possible ways of using this plugin: with a **global handler** or with a **per route handler**.
-
-### Global handler
-
-All you need to do is to add it to your project with `register` and pass handle function. You are done!
-
-```js
-'use strict'
-
-const fastify = require('fastify')()
-
-fastify.register(require('fastify-websocket'), {
-  handle,
-  options: {
-    maxPayload: 1048576, // we set the maximum allowed messages size to 1 MiB (1024 bytes * 1024 bytes)
-    path: '/fastify', // we accept only connections matching this path e.g.: ws://localhost:3000/fastify
-    verifyClient: function (info, next) {
-      if (info.req.headers['x-fastify-header'] !== 'fastify is awesome !') {
-        return next(false) // the connection is not allowed
-      }
-      next(true) // the connection is allowed
-    }
-  }
-})
-
-function handle (conn /* SocketStream */, req /* IncomingMessage */) {
-  conn.pipe(conn) // creates an echo server
-}
-
-fastify.listen(3000, err => {
-  if (err) {
-    fastify.log.error(err)
-    process.exit(1)
-  }
-})
-```
-
-### Per route handler
-
 After registering this plugin, you can choose on which routes the WS server will respond. This could be achieved by adding `websocket: true` property to `routeOptions` on a fastify's `.get` route. In this case two arguments will be passed to the handler: the socket connection and the fastify's request object.
 
 ```js
@@ -78,22 +39,25 @@ fastify.listen(3000, err => {
 })
 ```
 
-In this case there won't be any global handler, so it will respond with a 404 error on every unregistered route, closing the incoming upgrade connection requests.
+In this case, it will respond with a 404 error on every unregistered route, closing the incoming upgrade connection requests.
 
-However you can still pass a default global handler, that will be used as default handler.
+However you can still define a wildcard route, that will be used as default handler.
 
 ```js
 'use strict'
 
 const fastify = require('fastify')()
 
-function handle (conn /* SocketStream */, req /* IncomingMessage */) {
-  conn.pipe(conn) // creates an echo server
-}
-
 fastify.register(require('fastify-websocket'), {
-  handle,
   options: { maxPayload: 1048576 }
+})
+
+
+fastify.get('/*', { websocket: true }, (connection /* SocketStream */, req /* FastifyRequest */) => {
+  connection.socket.on('message', message => {
+    // message === 'hi from client'
+    connection.socket.send('hi from wildcard route')
+  })
 })
 
 fastify.get('/', { websocket: true }, (connection /* SocketStream */, req /* FastifyRequest */) => {
@@ -110,14 +74,13 @@ fastify.listen(3000, err => {
   }
 })
 ```
-
 **NB:** 
 
 This plugin uses the same router as the fastify instance, this has a few implications to take into account:
-- Websocket per-route handlers follow the usual `fastify` request lifecycle, where as the global handler doesn't.
-- You can access the fastify server via `this` in both global and per route handlers
-- You can access the fastify request decorations via the `req` object in per route handlers
-- When using `fastify-websocket`, it needs to be registered before all routes in order to be able to intercept websocket connections to existing routes and call the global handler (or close the connection if no global handler is specified)
+- Websocket route handlers follow the usual `fastify` request lifecycle.
+- You can access the fastify server via `this` in your handlers
+- You can access the fastify request decorations via the `req` object your handlers
+- When using `fastify-websocket`, it needs to be registered before all routes in order to be able to intercept websocket connections to existing routes and close the connection on non-websocket routes.
 
 ```js
 'use strict'
@@ -196,7 +159,6 @@ You can optionally provide a custom errorHandler that will be used to handle any
 const fastify = require('fastify')()
 
 fastify.register(require('fastify-websocket'), {
-  handle,
   errorHandler: function (error, conn /* SocketStream */) {
     // Do stuff
     // destroy/close connection
@@ -214,9 +176,12 @@ fastify.register(require('fastify-websocket'), {
   }
 })
 
-function handle (conn /* SocketStream */, req /* IncomingMessage */) {
-  conn.pipe(conn) // creates an echo server
-}
+fastify.get('/', { websocket: true }, (connection /* SocketStream */, req /* FastifyRequest */) => {
+  connection.socket.on('message', message => {
+    // message === 'hi from client'
+    connection.socket.send('hi from server')
+  })
+})
 
 fastify.listen(3000, err => {
   if (err) {
