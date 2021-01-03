@@ -9,10 +9,12 @@ app.register(wsPlugin);
 app.register(wsPlugin, {});
 app.register(wsPlugin, { options: { maxPayload: 123 } });
 app.register(wsPlugin, {
-  errorHandler: function errorHandler(error: Error, connection: SocketStream): void {
+  errorHandler: function errorHandler(error: Error, connection: SocketStream, request: FastifyRequest, reply: FastifyReply): void {
     expectType<FastifyInstance>(this);
     expectType<Error>(error)
-    expectType<SocketStream>(connection);
+    expectType<SocketStream>(connection)
+    expectType<FastifyRequest>(request)
+    expectType<FastifyReply>(reply)
   }
 });
 app.register(wsPlugin, { options: { perMessageDeflate: true } });

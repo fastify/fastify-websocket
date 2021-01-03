@@ -31,7 +31,7 @@ function fastifyWebsocket (fastify, opts, next) {
       // Hijack reply to prevent fastify from sending the error after onError hooks are done running
       reply.hijack()
       // Handle the error
-      errorHandler.call(this, error, request.raw[kWs])
+      errorHandler.call(this, error, request.raw[kWs], request, reply)
     }
     done()
   })
@@ -74,7 +74,7 @@ function fastifyWebsocket (fastify, opts, next) {
           result = noHandle.call(fastify, request.raw[kWs], request.raw)
         }
         if (result && typeof result.catch === 'function') {
-          result.catch(err => errorHandler.call(this, err, request.raw[kWs]))
+          result.catch(err => errorHandler.call(this, err, request.raw[kWs], request, reply))
         }
       } else {
         return handler.call(fastify, request, reply)
@@ -100,14 +100,13 @@ function fastifyWebsocket (fastify, opts, next) {
     req[kWs].socket.close()
   }
 
-  function defaultErrorHandler (error, conn) {
+  function defaultErrorHandler (error, conn, request, reply) {
     // Before destroying the connection, we attach an error listener.
     // Since we already handled the error, adding this listener prevents the ws
     // library from emitting the error and causing an uncaughtException
     // Reference: https://github.com/websockets/ws/blob/master/lib/stream.js#L35
     conn.on('error', _ => {})
-    // TODO: Use req.log instead in the future.
-    fastify.log.error(error)
+    request.log.error(error)
     conn.destroy(error)
   }
 

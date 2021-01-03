@@ -159,7 +159,7 @@ You can optionally provide a custom errorHandler that will be used to handle any
 const fastify = require('fastify')()
 
 fastify.register(require('fastify-websocket'), {
-  errorHandler: function (error, conn /* SocketStream */) {
+  errorHandler: function (error, conn /* SocketStream */, req /* FastifyRequest */, reply /* FastifyReply */) {
     // Do stuff
     // destroy/close connection
     conn.destroy(error)

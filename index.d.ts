@@ -4,6 +4,7 @@ import { FastifyRequest, FastifyPluginCallback, RawServerBase, RawServerDefault,
 import * as fastify from 'fastify';
 import * as WebSocket from 'ws';
 import { Duplex } from 'stream';
+import { FastifyReply } from 'fastify/types/reply';
 
 interface WebsocketRouteOptions {
   wsHandler?: WebsocketHandler
@@ -48,7 +49,7 @@ export interface SocketStream extends Duplex {
 }
 
 export interface WebsocketPluginOptions {
-  errorHandler?: (this: FastifyInstance, error: Error, connection: SocketStream) => void;
+  errorHandler?: (this: FastifyInstance, error: Error, connection: SocketStream, request: FastifyRequest, reply: FastifyReply) => void;
   options?: WebSocket.ServerOptions;
 }
 
