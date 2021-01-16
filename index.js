@@ -39,9 +39,6 @@ function fastifyWebsocket (fastify, opts, next) {
         throw new Error('websocket handler can only be declared in GET method')
       }
 
-      if (routeOptions.path === routeOptions.prefix) {
-        return
-      }
       let wsHandler = routeOptions.wsHandler
       let handler = routeOptions.handler
 
@@ -113,6 +110,6 @@ function close (fastify, done) {
 }
 
 module.exports = fp(fastifyWebsocket, {
-  fastify: '3.x',
+  fastify: '>= 3.10.1',
   name: 'fastify-websocket'
 })
