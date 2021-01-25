@@ -47,6 +47,46 @@ test('Should expose a websocket on prefixed route', t => {
   })
 })
 
+test('Should expose a websocket on prefixed route with /', t => {
+  t.plan(3)
+  const fastify = Fastify()
+
+  t.tearDown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket)
+  fastify.register(
+    function (instance, opts, next) {
+      instance.get('/', { websocket: true }, (conn, req) => {
+        conn.setEncoding('utf8')
+        conn.write('hello client')
+        t.tearDown(conn.destroy.bind(conn))
+
+        conn.once('data', chunk => {
+          t.equal(chunk, 'hello server')
+          conn.end()
+        })
+      })
+      next()
+    },
+    { prefix: '/baz' }
+  )
+
+  fastify.listen(0, err => {
+    t.error(err)
+    const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/baz')
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+    t.tearDown(client.destroy.bind(client))
+
+    client.setEncoding('utf8')
+    client.write('hello server')
+
+    client.once('data', chunk => {
+      t.equal(chunk, 'hello client')
+      client.end()
+    })
+  })
+})
+
 test('Should expose websocket and http route', t => {
   t.plan(4)
   const fastify = Fastify()

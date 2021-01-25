@@ -51,10 +51,6 @@ function fastifyWebsocket (fastify, opts, next) {
 
       isWebsocketRoute = true
 
-      if (routeOptions.path === routeOptions.prefix) {
-        return
-      }
-
       if (routeOptions.websocket) {
         wsHandler = routeOptions.handler
         handler = function (request, reply) {
@@ -146,6 +142,6 @@ function close (fastify, done) {
 }
 
 module.exports = fp(fastifyWebsocket, {
-  fastify: '3.x',
+  fastify: '>= 3.10.1',
   name: 'fastify-websocket'
 })
