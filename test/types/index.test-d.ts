@@ -1,7 +1,6 @@
 import wsPlugin, { WebsocketHandler, SocketStream } from '../..';
-import fastify, { RouteOptions, FastifyRequest, FastifyInstance, RequestGenericInterface, FastifyReply } from 'fastify';
+import fastify, { RouteOptions, FastifyRequest, FastifyInstance, FastifyReply } from 'fastify';
 import { expectType } from 'tsd';
-import { Server as HttpServer, IncomingMessage } from 'http'
 import { Server } from 'ws';
 
 const app: FastifyInstance = fastify();
@@ -9,26 +8,27 @@ app.register(wsPlugin);
 app.register(wsPlugin, {});
 app.register(wsPlugin, { options: { maxPayload: 123 } });
 app.register(wsPlugin, {
-  handle: function globalHandler(connection: SocketStream): void {
+  errorHandler: function errorHandler(error: Error, connection: SocketStream, request: FastifyRequest, reply: FastifyReply): void {
     expectType<FastifyInstance>(this);
+    expectType<Error>(error)
     expectType<SocketStream>(connection)
+    expectType<FastifyRequest>(request)
+    expectType<FastifyReply>(reply)
   }
 });
 app.register(wsPlugin, { options: { perMessageDeflate: true } });
 
-app.get('/websockets-via-inferrence', { websocket: true }, async function(connection, req, params) {
+app.get('/websockets-via-inferrence', { websocket: true }, async function(connection, request) {
   expectType<FastifyInstance>(this);
   expectType<SocketStream>(connection);
   expectType<Server>(app.websocketServer);
-  expectType<IncomingMessage>(req)
-  expectType<{ [key: string]: any } | undefined>(params);
+  expectType<FastifyRequest>(request)
 });
 
-const handler: WebsocketHandler = async (connection, req, params) => {
+const handler: WebsocketHandler = async (connection, request) => {
   expectType<SocketStream>(connection);
   expectType<Server>(app.websocketServer);
-  expectType<IncomingMessage>(req)
-  expectType<{ [key: string]: any } | undefined>(params);
+  expectType<FastifyRequest>(request)
 }
 
 app.get('/websockets-via-annotated-const', { websocket: true }, handler);
@@ -50,10 +50,9 @@ app.route({
     expectType<FastifyRequest>(request);
     expectType<FastifyReply>(reply);
   },
-  wsHandler: (connection, req, params) => {
+  wsHandler: (connection, request) => {
     expectType<SocketStream>(connection);
-    expectType<IncomingMessage>(req)
-    expectType<{ [key: string]: any } | undefined>(params);
+    expectType<FastifyRequest>(request);
   },
 });
 
@@ -64,10 +63,9 @@ const augmentedRouteOptions: RouteOptions = {
     expectType<FastifyRequest>(request);
     expectType<FastifyReply>(reply);
   },
-  wsHandler: (connection, req, params) => {
+  wsHandler: (connection, request) => {
     expectType<SocketStream>(connection);
-    expectType<IncomingMessage>(req)
-    expectType<{ [key: string]: any } | undefined>(params);
+    expectType<FastifyRequest>(request)
   },
 };
 app.route(augmentedRouteOptions);

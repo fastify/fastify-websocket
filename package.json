@@ -30,16 +30,16 @@
   "homepage": "https://github.com/fastify/fastify-websocket#readme",
   "devDependencies": {
     "@types/ws": "^7.4.0",
-    "fastify": "^3.10.1",
+    "fastify": "^3.11.0",
     "pre-commit": "^1.2.2",
     "snazzy": "^9.0.0",
+    "split2": "^3.2.2",
     "standard": "^16.0.1",
     "tap": "^14.11.0",
     "tsd": "^0.14.0"
   },
   "dependencies": {
     "fastify-plugin": "^3.0.0",
-    "find-my-way": "^3.0.5",
     "ws": "^7.4.2"
   }
 }

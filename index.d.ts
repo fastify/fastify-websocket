@@ -1,9 +1,10 @@
 /// <reference types="node" />
 import { IncomingMessage, ServerResponse, Server } from 'http';
-import { FastifyPluginCallback, RawServerBase, RawServerDefault, RawRequestDefaultExpression, RawReplyDefaultExpression, RequestGenericInterface, ContextConfigDefault, FastifyInstance } from 'fastify';
+import { FastifyRequest, FastifyPluginCallback, RawServerBase, RawServerDefault, RawRequestDefaultExpression, RawReplyDefaultExpression, RequestGenericInterface, ContextConfigDefault, FastifyInstance } from 'fastify';
 import * as fastify from 'fastify';
 import * as WebSocket from 'ws';
 import { Duplex } from 'stream';
+import { FastifyReply } from 'fastify/types/reply';
 
 interface WebsocketRouteOptions {
   wsHandler?: WebsocketHandler
@@ -37,11 +38,13 @@ declare module 'fastify' {
 
 declare const websocketPlugin: FastifyPluginCallback<WebsocketPluginOptions>;
 
+interface WebSocketServerOptions extends Omit<WebSocket.ServerOptions, 'path'> {}
+
+
 export type WebsocketHandler = (
   this: FastifyInstance<Server, IncomingMessage, ServerResponse>,
   connection: SocketStream,
-  request: IncomingMessage,
-  params?: { [key: string]: any }
+  request: FastifyRequest,
 ) => void | Promise<any>;
 
 export interface SocketStream extends Duplex {
@@ -49,8 +52,8 @@ export interface SocketStream extends Duplex {
 }
 
 export interface WebsocketPluginOptions {
-  handle?: (this: FastifyInstance, connection: SocketStream) => void;
-  options?: WebSocket.ServerOptions;
+  errorHandler?: (this: FastifyInstance, error: Error, connection: SocketStream, request: FastifyRequest, reply: FastifyReply) => void;
+  options?: WebSocketServerOptions;
 }
 
 export interface RouteOptions extends fastify.RouteOptions, WebsocketRouteOptions {}

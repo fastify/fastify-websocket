@@ -3,44 +3,53 @@
 const { ServerResponse } = require('http')
 const fp = require('fastify-plugin')
 const WebSocket = require('ws')
-const findMyWay = require('find-my-way')
 
 const kWs = Symbol('ws')
 
 function fastifyWebsocket (fastify, opts, next) {
-  let handle = noHandle
-
-  if (opts.handle) {
-    if (typeof opts.handle !== 'function') {
-      return next(new Error('invalid handle function'))
+  let errorHandler = defaultErrorHandler
+  if (opts.errorHandler) {
+    if (typeof opts.errorHandler !== 'function') {
+      return next(new Error('invalid errorHandler function'))
     }
 
-    handle = wsHandle.bind(null, opts.handle)
+    errorHandler = opts.errorHandler
   }
 
   const options = Object.assign({}, opts.options)
+  if (options.path) {
+    fastify.log.warn('ws server path option shouldn\'t be provided, use a route instead')
+  }
   if (!options.server && !options.noServer) {
     options.server = fastify.server
   }
-
-  const router = findMyWay({
-    ignoreTrailingSlash: true,
-    defaultRoute: handle
-  })
 
   const wss = new WebSocket.Server(options)
   wss.on('connection', handleRouting)
 
   fastify.decorate('websocketServer', wss)
 
+  fastify.addHook('onError', (request, reply, error, done) => {
+    if (request.raw[kWs]) {
+      // Hijack reply to prevent fastify from sending the error after onError hooks are done running
+      reply.hijack()
+      // Handle the error
+      errorHandler.call(this, error, request.raw[kWs], request, reply)
+    }
+    done()
+  })
+
   fastify.addHook('onRoute', routeOptions => {
+    let isWebsocketRoute = false
+    let wsHandler = routeOptions.wsHandler
+    let handler = routeOptions.handler
+
     if (routeOptions.websocket || routeOptions.wsHandler) {
       if (routeOptions.method !== 'GET') {
         throw new Error('websocket handler can only be declared in GET method')
       }
 
-      let wsHandler = routeOptions.wsHandler
-      let handler = routeOptions.handler
+      isWebsocketRoute = true
 
       if (routeOptions.websocket) {
         wsHandler = routeOptions.handler
@@ -52,16 +61,23 @@ function fastifyWebsocket (fastify, opts, next) {
       if (typeof wsHandler !== 'function') {
         throw new Error('invalid wsHandler function')
       }
+    }
 
-      router.on('GET', routeOptions.path, (req, _, params) => {
-        const result = wsHandler.call(fastify, req[kWs], req, params)
-
-        if (result && typeof result.catch === 'function') {
-          result.catch(err => req[kWs].destroy(err))
+    routeOptions.handler = (request, reply) => {
+      if (request.raw[kWs]) {
+        reply.hijack()
+        let result
+        if (isWebsocketRoute) {
+          result = wsHandler.call(fastify, request.raw[kWs], request)
+        } else {
+          result = noHandle.call(fastify, request.raw[kWs], request.raw)
         }
-      })
-
-      routeOptions.handler = handler
+        if (result && typeof result.catch === 'function') {
+          result.catch(err => errorHandler.call(this, err, request.raw[kWs], request, reply))
+        }
+      } else {
+        return handler.call(fastify, request, reply)
+      }
     }
   })
 
@@ -79,13 +95,29 @@ function fastifyWebsocket (fastify, opts, next) {
     oldClose.call(this, cb)
   }
 
-  function wsHandle (handle, req, res) {
-    return handle.call(fastify, req[kWs], res)
-  }
-
-  function noHandle (req, res) {
+  function noHandle (conn, req) {
+    this.log.info({ path: req.url }, 'closed incoming websocket connection')
     req[kWs].socket.close()
   }
+
+  function defaultErrorHandler (error, conn, request, reply) {
+    // Before destroying the connection, we attach an error listener.
+    // Since we already handled the error, adding this listener prevents the ws
+    // library from emitting the error and causing an uncaughtException
+    // Reference: https://github.com/websockets/ws/blob/master/lib/stream.js#L35
+    conn.on('error', _ => {})
+    request.log.error(error)
+    conn.destroy(error)
+  }
+
+  const oldDefaultRoute = fastify.getDefaultRoute()
+  fastify.setDefaultRoute(function (req, res) {
+    if (req[kWs]) {
+      noHandle.call(fastify, req[kWs], req)
+    } else {
+      return oldDefaultRoute(req, res)
+    }
+  })
 
   function handleRouting (connection, request) {
     const response = new ServerResponse(request)
@@ -98,7 +130,7 @@ function fastifyWebsocket (fastify, opts, next) {
       }
     })
 
-    router.lookup(request, response)
+    fastify.routing(request, response)
   }
 
   next()
@@ -110,6 +142,6 @@ function close (fastify, done) {
 }
 
 module.exports = fp(fastifyWebsocket, {
-  fastify: '>= 3.10.1',
+  fastify: '>= 3.11.0',
   name: 'fastify-websocket'
 })
