@@ -20,11 +20,10 @@ After registering this plugin, you can choose on which routes the WS server will
 ```js
 'use strict'
 
-const fastify = Fastify()
-
+const fastify = require('fastify')()
 fastify.register(require('fastify-websocket'))
 
-fastify.get('/', { websocket: true }, (conn /* SocketStream */, req /* FastifyRequest */) => {
+fastify.get('/', { websocket: true }, (connection /* SocketStream */, req /* FastifyRequest */) => {
   connection.socket.on('message', message => {
     // message === 'hi from client'
     connection.socket.send('hi from server')
