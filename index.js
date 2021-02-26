@@ -88,11 +88,14 @@ function fastifyWebsocket (fastify, opts, next) {
   // to monkeypatching for now.
   const oldClose = fastify.server.close
   fastify.server.close = function (cb) {
+    // Call oldClose first so that we stop listening. This ensures the
+    // server.clients list will be up to date when we start closing below.
+    oldClose.call(this, cb)
+
     const server = fastify.websocketServer
     for (const client of server.clients) {
       client.close()
     }
-    oldClose.call(this, cb)
   }
 
   function noHandle (conn, req) {
