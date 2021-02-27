@@ -92,10 +92,19 @@ function fastifyWebsocket (fastify, opts, next) {
     // server.clients list will be up to date when we start closing below.
     oldClose.call(this, cb)
 
-    const server = fastify.websocketServer
-    for (const client of server.clients) {
-      client.close()
+    function closeAllClients () {
+      if (fastify.server.listening) {
+        setTimeout(closeAllClients, 0)
+        return
+      }
+
+      const server = fastify.websocketServer
+      for (const client of server.clients) {
+        client.close()
+      }
     }
+
+    closeAllClients()
   }
 
   function noHandle (conn, req) {
