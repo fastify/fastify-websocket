@@ -294,6 +294,49 @@ test('Should gracefully close with a connected client', (t) => {
   })
 })
 
+test('Should gracefully close when clients attempt to connect after calling close', (t) => {
+  t.plan(5)
+
+  const fastify = Fastify()
+
+  const oldClose = fastify.server.close
+  fastify.server.close = function (cb) {
+    const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
+
+    ws.on('close', () => {
+      t.pass('client 2 closed')
+    })
+
+    ws.on('open', () => {
+      oldClose.call(this, cb)
+    })
+  }
+
+  fastify.register(fastifyWebsocket)
+
+  fastify.get('/', { websocket: true }, (connection, request) => {
+    t.pass('received client connection')
+    t.teardown(() => connection.destroy())
+    // this connection stays alive until we close the server
+  })
+
+  fastify.listen(0, (err) => {
+    t.error(err)
+
+    const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
+
+    ws.on('close', () => {
+      t.pass('client 1 closed')
+    })
+
+    ws.on('open', (chunk) => {
+      fastify.close(function (err) {
+        t.error(err)
+      })
+    })
+  })
+})
+
 /*
   This test sends one message every 10 ms.
   After 50 messages have been sent, we check how many unhandled messages the server has.

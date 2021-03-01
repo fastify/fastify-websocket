@@ -83,16 +83,23 @@ function fastifyWebsocket (fastify, opts, next) {
 
   fastify.addHook('onClose', close)
 
+  let closing = false
+
   // Fastify is missing a pre-close event, or the ability to
   // add a hook before the server.close call. We need to resort
   // to monkeypatching for now.
   const oldClose = fastify.server.close
   fastify.server.close = function (cb) {
+    closing = true
+
+    // Call oldClose first so that we stop listening. This ensures the
+    // server.clients list will be up to date when we start closing below.
+    oldClose.call(this, cb)
+
     const server = fastify.websocketServer
     for (const client of server.clients) {
       client.close()
     }
-    oldClose.call(this, cb)
   }
 
   function noHandle (conn, req) {
@@ -120,6 +127,11 @@ function fastifyWebsocket (fastify, opts, next) {
   })
 
   function handleRouting (connection, request) {
+    if (closing) {
+      connection.close(1001)
+      return
+    }
+
     const response = new ServerResponse(request)
     request[kWs] = WebSocket.createWebSocketStream(connection)
     request[kWs].socket = connection
