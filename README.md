@@ -73,7 +73,25 @@ fastify.listen(3000, err => {
   }
 })
 ```
-**NB:** 
+
+### Attaching event handlers
+
+It is important that websocket route handlers attach event handlers synchronously during handler execution to avoid accidentally dropping messages. If you want to do any async work in your websocket handler, say to authenticate a user or load data from a datastore, ensure you attach any `on('message')` handlers *before* you trigger this async work. Otherwise, messages might arrive while this async work is underway, and if there is no handler listening for this data, it will be silently dropped.
+
+Here's an example of how to attach message handlers synchronously while still accessing asynchronous resources. We store a promise for the async thing in a local variable, and then attach the message handler synchronously, and then make the message handler itself asynchronous to grab the async data and do some processing.
+
+```javascript
+fastify.get('/*', { websocket: true }, (connection, request) => {
+  const sessionPromise = request.getSession() // example async session getter, called synchronously to return a promise
+
+  connection.socket.on('message', async (message) => {
+    const session = await sessionPromise()
+    // do somthing with the message and session
+  })
+})
+```
+
+**NB:**
 
 This plugin uses the same router as the fastify instance, this has a few implications to take into account:
 - Websocket route handlers follow the usual `fastify` request lifecycle.
@@ -150,7 +168,7 @@ fastify.listen(3000, err => {
 
 ### Custom error handler:
 
-You can optionally provide a custom errorHandler that will be used to handle any cleaning up: 
+You can optionally provide a custom errorHandler that will be used to handle any cleaning up:
 
 ```js
 'use strict'
@@ -189,7 +207,7 @@ fastify.listen(3000, err => {
 })
 ```
 
-## Options :
+## Options
 
 `fastify-websocket` accept these options for [`ws`](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback) :
 
@@ -200,7 +218,6 @@ fastify.listen(3000, err => {
 - `server` - A pre-created Node.js HTTP/S server.
 - `verifyClient` - A function which can be used to validate incoming connections.
 - `handleProtocols` - A function which can be used to handle the WebSocket subprotocols.
-- `noServer` - Enable no server mode.
 - `clientTracking` - Specifies whether or not to track clients.
 - `perMessageDeflate` - Enable/disable permessage-deflate.
 - `maxPayload` - The maximum allowed message size in bytes.
@@ -209,7 +226,9 @@ For more informations you can check [`ws` options documentation](https://github.
 
 _**NB:** By default if you do not provide a `server` option `fastify-websocket` will bind your websocket server instance to the scoped `fastify` instance._
 
-_**NB:** `path` option from `ws` shouldn't be provided since the routing is handled by fastify itself_
+_**NB:** the `path` option from `ws` shouldn't be provided since the routing is handled by fastify itself_
+
+_**NB:** the `noServer` option from `ws` shouldn't be provided since the point of fastify-websocket is to listen on the fastify server. If you want a custom server, you can use the `server` option, and if you want more control, you can use the `ws` library directly_
 
 ## Acknowledgements
 
