@@ -472,55 +472,10 @@ test('Should keep processing message when many medium sized messages are sent', 
   })
 })
 
-test('Should not set server if noServer option is set', (t) => {
-  t.plan(5)
-
+test('Should error server if the noServer option is set', (t) => {
+  t.plan(1)
   const fastify = Fastify()
-  t.tearDown(() => {
-    fastify.close()
-  })
 
-  const options = {
-    noServer: true
-  }
-
-  fastify.register(fastifyWebsocket, { options })
-
-  // this is all that's needed to create an echo server
-  fastify.get('/', { websocket: true }, (connection, request) => {
-    connection.pipe(connection)
-    t.tearDown(() => connection.destroy())
-  })
-
-  // As the websocketserver is now completely detached, we have to
-  // handle the upgrade event.
-  fastify.ready((err) => {
-    t.error(err)
-
-    t.assert(!fastify.websocketServer.server)
-
-    fastify.server.on('upgrade', (request, socket, head) => {
-      fastify.websocketServer.handleUpgrade(request, socket, head, (ws) => {
-        fastify.websocketServer.emit('connection', ws, request)
-      })
-    })
-  })
-
-  fastify.listen(0, (err) => {
-    t.error(err)
-
-    const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
-    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-    t.tearDown(() => client.destroy())
-
-    client.setEncoding('utf8')
-    client.write('hello')
-
-    client.once('data', (chunk) => {
-      t.equal(chunk, 'hello')
-      fastify.close(function (err) {
-        t.error(err)
-      })
-    })
-  })
+  fastify.register(fastifyWebsocket, { options: { noServer: true } })
+  t.rejects(fastify.ready())
 })

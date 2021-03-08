@@ -179,3 +179,45 @@ test('Should not hijack reply for a normal http request in the internal onError 
     })
   })
 })
+
+test('Should run async hooks and still deliver quickly sent messages', (t) => {
+  t.plan(3)
+  const fastify = Fastify()
+
+  t.tearDown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket)
+
+  fastify.addHook(
+    'preValidation',
+    async () => await new Promise((resolve) => setTimeout(resolve, 25))
+  )
+
+  fastify.get('/echo', { websocket: true }, (conn, request) => {
+    conn.setEncoding('utf8')
+    conn.write('hello client')
+    t.tearDown(conn.destroy.bind(conn))
+
+    conn.socket.on('message', (message) => {
+      t.equal(message.toString('utf-8'), 'hello server')
+      conn.end()
+    })
+  })
+
+  fastify.listen(0, (err) => {
+    t.error(err)
+    const ws = new WebSocket(
+      'ws://localhost:' + fastify.server.address().port + '/echo'
+    )
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+    t.tearDown(client.destroy.bind(client))
+
+    client.setEncoding('utf8')
+    client.write('hello server')
+
+    client.once('data', (chunk) => {
+      t.equal(chunk, 'hello client')
+      client.end()
+    })
+  })
+})
