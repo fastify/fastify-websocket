@@ -29,7 +29,7 @@ declare module 'fastify' {
     <RequestGeneric extends RequestGenericInterface = RequestGenericInterface, ContextConfig = ContextConfigDefault>(
       path: string,
       opts: RouteShorthandOptions<RawServer, RawRequest, RawReply, RequestGeneric, ContextConfig> & { websocket: true }, // this creates an overload that only applies these different types if the handler is for websockets
-      handler?: WebsocketHandler
+      handler?: WebsocketHandler<RawServer, RawRequest, RequestGeneric>
     ): FastifyInstance<RawServer, RawRequest, RawReply>;
   }
 
@@ -41,10 +41,14 @@ declare const websocketPlugin: FastifyPluginCallback<WebsocketPluginOptions>;
 interface WebSocketServerOptions extends Omit<WebSocket.ServerOptions, 'path'> {}
 
 
-export type WebsocketHandler = (
+export type WebsocketHandler<
+  RawServer extends RawServerBase = RawServerDefault,
+  RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>,
+  RequestGeneric extends RequestGenericInterface = RequestGenericInterface
+> = (
   this: FastifyInstance<Server, IncomingMessage, ServerResponse>,
   connection: SocketStream,
-  request: FastifyRequest,
+  request: FastifyRequest<RequestGeneric, RawServer, RawRequest>,
 ) => void | Promise<any>;
 
 export interface SocketStream extends Duplex {
