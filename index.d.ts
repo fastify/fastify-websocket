@@ -44,11 +44,11 @@ interface WebSocketServerOptions extends Omit<WebSocket.ServerOptions, 'path'> {
 export type WebsocketHandler<
   RawServer extends RawServerBase = RawServerDefault,
   RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>,
-  RouteGeneric extends RouteGenericInterface = RouteGenericInterface
+  RequestGeneric extends RequestGenericInterface = RequestGenericInterface
 > = (
   this: FastifyInstance<Server, IncomingMessage, ServerResponse>,
   connection: SocketStream,
-  request: FastifyRequest<RouteGeneric, RawServer, RawRequest>,
+  request: FastifyRequest<RequestGeneric, RawServer, RawRequest>,
 ) => void | Promise<any>;
 
 export interface SocketStream extends Duplex {
