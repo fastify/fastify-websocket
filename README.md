@@ -233,7 +233,7 @@ _**NB:** the `noServer` option from `ws` should not be provided since the point 
 
 ## Acknowledgements
 
-This project is kindly sponsored by [nearForm](http://nearform.com).
+This project is kindly sponsored by [nearForm](https://nearform.com).
 
 ## License
 
