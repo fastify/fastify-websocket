@@ -11,7 +11,7 @@ test('Should expose a websocket on prefixed route', t => {
   t.plan(3)
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
   fastify.register(
@@ -19,7 +19,7 @@ test('Should expose a websocket on prefixed route', t => {
       instance.get('/echo', { websocket: true }, (conn, request) => {
         conn.setEncoding('utf8')
         conn.write('hello client')
-        t.tearDown(conn.destroy.bind(conn))
+        t.teardown(conn.destroy.bind(conn))
 
         conn.once('data', chunk => {
           t.equal(chunk, 'hello server')
@@ -35,7 +35,7 @@ test('Should expose a websocket on prefixed route', t => {
     t.error(err)
     const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/baz/echo')
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-    t.tearDown(client.destroy.bind(client))
+    t.teardown(client.destroy.bind(client))
 
     client.setEncoding('utf8')
     client.write('hello server')
@@ -51,7 +51,7 @@ test('Should expose a websocket on prefixed route with /', t => {
   t.plan(3)
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
   fastify.register(
@@ -59,7 +59,7 @@ test('Should expose a websocket on prefixed route with /', t => {
       instance.get('/', { websocket: true }, (conn, req) => {
         conn.setEncoding('utf8')
         conn.write('hello client')
-        t.tearDown(conn.destroy.bind(conn))
+        t.teardown(conn.destroy.bind(conn))
 
         conn.once('data', chunk => {
           t.equal(chunk, 'hello server')
@@ -75,7 +75,7 @@ test('Should expose a websocket on prefixed route with /', t => {
     t.error(err)
     const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/baz')
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-    t.tearDown(client.destroy.bind(client))
+    t.teardown(client.destroy.bind(client))
 
     client.setEncoding('utf8')
     client.write('hello server')
@@ -91,7 +91,7 @@ test('Should expose websocket and http route', t => {
   t.plan(4)
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
   fastify.register(
@@ -105,7 +105,7 @@ test('Should expose websocket and http route', t => {
         wsHandler: (conn, req) => {
           conn.setEncoding('utf8')
           conn.write('hello client')
-          t.tearDown(conn.destroy.bind(conn))
+          t.teardown(conn.destroy.bind(conn))
 
           conn.once('data', chunk => {
             t.equal(chunk, 'hello server')
@@ -123,7 +123,7 @@ test('Should expose websocket and http route', t => {
     const url = '//localhost:' + (fastify.server.address()).port + '/baz/echo'
     const ws = new WebSocket('ws:' + url)
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-    t.tearDown(client.destroy.bind(client))
+    t.teardown(client.destroy.bind(client))
 
     client.setEncoding('utf8')
     client.write('hello server')
@@ -152,7 +152,7 @@ test('Should close on unregistered path (with no wildcard route websocket handle
   t.plan(2)
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
 
@@ -169,14 +169,14 @@ test('Should close on unregistered path (with no wildcard route websocket handle
       }
     })
 
-    t.tearDown(connection.destroy.bind(connection))
+    t.teardown(connection.destroy.bind(connection))
   })
 
   fastify.listen(0, err => {
     t.error(err)
     const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port)
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-    t.tearDown(client.destroy.bind(client))
+    t.teardown(client.destroy.bind(client))
     ws.on('close', () => {
       t.pass()
     })
@@ -187,7 +187,7 @@ test('Should use wildcard websocket route when (with a normal http wildcard rout
   t.plan(2)
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
 
@@ -211,7 +211,7 @@ test('Should use wildcard websocket route when (with a normal http wildcard rout
     t.error(err)
     const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port)
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-    t.tearDown(client.destroy.bind(client))
+    t.teardown(client.destroy.bind(client))
 
     client.once('data', chunk => {
       t.equal(chunk, 'hello client')
@@ -224,7 +224,7 @@ test('Should call wildcard route handler on unregistered path', t => {
   t.plan(3)
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
 
@@ -237,7 +237,7 @@ test('Should call wildcard route handler on unregistered path', t => {
       }
     })
 
-    t.tearDown(conn.destroy.bind(conn))
+    t.teardown(conn.destroy.bind(conn))
   })
 
   fastify.get('/echo', { websocket: true }, (conn, request) => {
@@ -249,14 +249,14 @@ test('Should call wildcard route handler on unregistered path', t => {
       }
     })
 
-    t.tearDown(conn.destroy.bind(conn))
+    t.teardown(conn.destroy.bind(conn))
   })
 
   fastify.listen(0, err => {
     t.error(err)
     const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port)
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-    t.tearDown(client.destroy.bind(client))
+    t.teardown(client.destroy.bind(client))
 
     ws.on('open', () => {
       ws.send('hi from client')
@@ -276,7 +276,7 @@ test('Should call wildcard route handler on unregistered path', t => {
 test('Should invoke the correct handler depending on the headers', t => {
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
   fastify.route({
@@ -287,7 +287,7 @@ test('Should invoke the correct handler depending on the headers', t => {
     },
     wsHandler: (conn, request) => {
       conn.write('hi from wsHandler')
-      t.tearDown(conn.destroy.bind(conn))
+      t.teardown(conn.destroy.bind(conn))
     }
   })
 
@@ -316,13 +316,13 @@ test('Should invoke the correct handler depending on the headers', t => {
 test('Should call the wildcard handler if a no other non-websocket route with path exists', t => {
   t.plan(2)
   const fastify = Fastify()
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
 
   fastify.get('/*', { websocket: true }, (conn, request) => {
     t.ok('called', 'wildcard handler')
-    t.tearDown(conn.destroy.bind(conn))
+    t.teardown(conn.destroy.bind(conn))
   })
 
   fastify.get('/http', (request, reply) => {
@@ -334,7 +334,7 @@ test('Should call the wildcard handler if a no other non-websocket route with pa
     t.error(err)
     const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/http2')
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-    t.tearDown(client.destroy.bind(client))
+    t.teardown(client.destroy.bind(client))
 
     client.setEncoding('utf8')
     client.end(() => { t.end() })
@@ -344,13 +344,13 @@ test('Should call the wildcard handler if a no other non-websocket route with pa
 test('Should close the connection if a non-websocket route with path exists', t => {
   t.plan(2)
   const fastify = Fastify()
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
 
   fastify.get('/*', { websocket: true }, (conn, request) => {
     t.fail('called', 'wildcard handler')
-    t.tearDown(conn.destroy.bind(conn))
+    t.teardown(conn.destroy.bind(conn))
   })
 
   fastify.get('/http', (request, reply) => {
@@ -372,7 +372,7 @@ test('Should throw on wrong HTTP method', t => {
   t.plan(2)
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
 
@@ -384,7 +384,7 @@ test('Should throw on wrong HTTP method', t => {
         connection.socket.send(err.message)
       }
     })
-    t.tearDown(connection.destroy.bind(connection))
+    t.teardown(connection.destroy.bind(connection))
   })
   fastify.listen(0, (err) => {
     t.ok(err)
@@ -396,7 +396,7 @@ test('Should throw on invalid wsHandler', t => {
   t.plan(2)
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
   fastify.route({
@@ -419,7 +419,7 @@ test('Should open on registered path', t => {
   t.plan(2)
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
 
@@ -432,7 +432,7 @@ test('Should open on registered path', t => {
       }
     })
 
-    t.tearDown(connection.destroy.bind(connection))
+    t.teardown(connection.destroy.bind(connection))
   })
 
   fastify.listen(0, err => {
@@ -444,7 +444,7 @@ test('Should open on registered path', t => {
     })
 
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-    t.tearDown(client.destroy.bind(client))
+    t.teardown(client.destroy.bind(client))
   })
 })
 
@@ -452,7 +452,7 @@ test('Should send message and close', t => {
   t.plan(5)
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
 
@@ -466,14 +466,14 @@ test('Should send message and close', t => {
       t.pass()
     })
 
-    t.tearDown(connection.destroy.bind(connection))
+    t.teardown(connection.destroy.bind(connection))
   })
 
   fastify.listen(0, err => {
     t.error(err)
     const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/')
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-    t.tearDown(client.destroy.bind(client))
+    t.teardown(client.destroy.bind(client))
 
     ws.on('message', message => {
       t.equal(message, 'hi from server')
@@ -493,7 +493,7 @@ test('Should send message and close', t => {
 test('Should return 404 on http request', t => {
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
 
@@ -507,7 +507,7 @@ test('Should return 404 on http request', t => {
       t.pass()
     })
 
-    t.tearDown(connection.destroy.bind(connection))
+    t.teardown(connection.destroy.bind(connection))
   })
 
   fastify.inject({
@@ -523,7 +523,7 @@ test('Should return 404 on http request', t => {
 test('Should pass route params to per-route handlers', t => {
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
   fastify.get('/ws', { websocket: true }, (conn, request) => {
@@ -550,8 +550,8 @@ test('Should pass route params to per-route handlers', t => {
       'ws://localhost:' + (fastify.server.address()).port + '/ws'
     )
     const client2 = WebSocket.createWebSocketStream(ws2, { encoding: 'utf8' })
-    t.tearDown(client.destroy.bind(client))
-    t.tearDown(client2.destroy.bind(client2))
+    t.teardown(client.destroy.bind(client))
+    t.teardown(client2.destroy.bind(client2))
 
     client.setEncoding('utf8')
     client2.setEncoding('utf8')
@@ -572,7 +572,7 @@ test('Should pass route params to per-route handlers', t => {
 test('Should not thow error when register empty get with prefix', t => {
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
 
@@ -607,7 +607,7 @@ test('Should not thow error when register empty get with prefix', t => {
 test('Should expose fastify instance to websocket per-route handler', t => {
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
   fastify.get('/ws', { websocket: true }, function wsHandler (conn, request) {
@@ -622,7 +622,7 @@ test('Should expose fastify instance to websocket per-route handler', t => {
       'ws://localhost:' + (fastify.server.address()).port + '/ws'
     )
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-    t.tearDown(client.destroy.bind(client))
+    t.teardown(client.destroy.bind(client))
 
     client.setEncoding('utf8')
 
@@ -637,7 +637,7 @@ test('Should expose fastify instance to websocket per-route handler', t => {
 test('Should have access to decorators in per-route handler', t => {
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.decorateRequest('str', 'it works!')
   fastify.register(fastifyWebsocket)
@@ -651,7 +651,7 @@ test('Should have access to decorators in per-route handler', t => {
     t.error(err)
     const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/ws')
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-    t.tearDown(client.destroy.bind(client))
+    t.teardown(client.destroy.bind(client))
 
     client.once('data', chunk => {
       t.equal(chunk, 'empty')
@@ -665,7 +665,7 @@ test('should call `destroy` when exception is thrown inside async handler', t =>
   t.plan(2)
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
   fastify.get('/ws', { websocket: true }, async function wsHandler (conn, request) {
@@ -684,7 +684,7 @@ test('should call `destroy` when exception is thrown inside async handler', t =>
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
 
     client.on('error', (_) => { })
-    t.tearDown(client.destroy.bind(client))
+    t.teardown(client.destroy.bind(client))
   })
 })
 
@@ -692,7 +692,7 @@ test('should call default non websocket fastify route when no match is found', t
   t.plan(2)
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
   fastify.get('/ws', function handler (request, reply) {
@@ -712,7 +712,7 @@ test('register a non websocket route', t => {
   t.plan(2)
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
   fastify.get('/ws', function handler (request, reply) {
