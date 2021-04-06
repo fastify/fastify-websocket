@@ -10,7 +10,7 @@ test('Should run onRequest, preParsing, preValidation, preHandler hooks', t => {
   t.plan(7)
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
 
@@ -22,7 +22,7 @@ test('Should run onRequest, preParsing, preValidation, preHandler hooks', t => {
   fastify.get('/echo', { websocket: true }, (conn, request) => {
     conn.setEncoding('utf8')
     conn.write('hello client')
-    t.tearDown(conn.destroy.bind(conn))
+    t.teardown(conn.destroy.bind(conn))
 
     conn.once('data', chunk => {
       t.equal(chunk, 'hello server')
@@ -34,7 +34,7 @@ test('Should run onRequest, preParsing, preValidation, preHandler hooks', t => {
     t.error(err)
     const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/echo')
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-    t.tearDown(client.destroy.bind(client))
+    t.teardown(client.destroy.bind(client))
 
     client.setEncoding('utf8')
     client.write('hello server')
@@ -50,7 +50,7 @@ test('Should not run onTimeout hook', t => {
   t.plan(2)
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
 
@@ -60,14 +60,14 @@ test('Should not run onTimeout hook', t => {
     conn.setEncoding('utf8')
     conn.write('hello client')
     request.raw.setTimeout(50)
-    t.tearDown(conn.destroy.bind(conn))
+    t.teardown(conn.destroy.bind(conn))
   })
 
   fastify.listen(0, err => {
     t.error(err)
     const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/echo')
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-    t.tearDown(client.destroy.bind(client))
+    t.teardown(client.destroy.bind(client))
 
     client.once('data', chunk => {
       t.equal(chunk, 'hello client')
@@ -79,7 +79,7 @@ test('Should run onError hook before handler is executed (error thrown in onRequ
   t.plan(3)
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
 
@@ -87,14 +87,14 @@ test('Should run onError hook before handler is executed (error thrown in onRequ
   fastify.addHook('onError', async (request, reply) => t.ok('called', 'onError'))
 
   fastify.get('/echo', { websocket: true }, (conn, request) => {
-    t.tearDown(conn.destroy.bind(conn))
+    t.teardown(conn.destroy.bind(conn))
   })
 
   fastify.listen(0, function (err) {
     t.error(err)
     const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/echo')
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-    t.tearDown(client.destroy.bind(client))
+    t.teardown(client.destroy.bind(client))
     ws.on('close', code => t.equal(code, 1006))
   })
 })
@@ -103,14 +103,14 @@ test('Should not run onError hook if reply was already hijacked (error thrown in
   t.plan(2)
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
 
   fastify.addHook('onError', async (request, reply) => t.fail('called', 'onError'))
 
   fastify.get('/echo', { websocket: true }, async (conn, request) => {
-    t.tearDown(conn.destroy.bind(conn))
+    t.teardown(conn.destroy.bind(conn))
     throw new Error('Fail')
   })
 
@@ -118,7 +118,7 @@ test('Should not run onError hook if reply was already hijacked (error thrown in
     t.error(err)
     const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/echo')
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-    t.tearDown(client.destroy.bind(client))
+    t.teardown(client.destroy.bind(client))
     ws.on('close', code => t.equal(code, 1006))
   })
 })
@@ -127,7 +127,7 @@ test('Should not run preSerialization/onSend hooks', t => {
   t.plan(2)
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
 
@@ -137,7 +137,7 @@ test('Should not run preSerialization/onSend hooks', t => {
   fastify.get('/echo', { websocket: true }, async (conn, request) => {
     conn.setEncoding('utf8')
     conn.write('hello client')
-    t.tearDown(conn.destroy.bind(conn))
+    t.teardown(conn.destroy.bind(conn))
     conn.end()
   })
 
@@ -145,7 +145,7 @@ test('Should not run preSerialization/onSend hooks', t => {
     t.error(err)
     const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/echo')
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-    t.tearDown(client.destroy.bind(client))
+    t.teardown(client.destroy.bind(client))
 
     client.once('data', chunk => {
       t.equal(chunk, 'hello client')
@@ -158,7 +158,7 @@ test('Should not hijack reply for a normal http request in the internal onError 
   t.plan(2)
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
 
@@ -184,7 +184,7 @@ test('Should run async hooks and still deliver quickly sent messages', (t) => {
   t.plan(3)
   const fastify = Fastify()
 
-  t.tearDown(() => fastify.close())
+  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
 
@@ -196,7 +196,7 @@ test('Should run async hooks and still deliver quickly sent messages', (t) => {
   fastify.get('/echo', { websocket: true }, (conn, request) => {
     conn.setEncoding('utf8')
     conn.write('hello client')
-    t.tearDown(conn.destroy.bind(conn))
+    t.teardown(conn.destroy.bind(conn))
 
     conn.socket.on('message', (message) => {
       t.equal(message.toString('utf-8'), 'hello server')
@@ -210,7 +210,7 @@ test('Should run async hooks and still deliver quickly sent messages', (t) => {
       'ws://localhost:' + fastify.server.address().port + '/echo'
     )
     const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-    t.tearDown(client.destroy.bind(client))
+    t.teardown(client.destroy.bind(client))
 
     client.setEncoding('utf8')
     client.write('hello server')
