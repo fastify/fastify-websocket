@@ -1,8 +1,9 @@
 # fastify-websocket
 
-[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](http://standardjs.com/)
-![CI
-workflow](https://github.com/fastify/fastify-websocket/workflows/CI%20workflow/badge.svg)
+![CI](https://github.com/fastify/fastify-websocket/workflows/CI/badge.svg)
+[![NPM version](https://img.shields.io/npm/v/fastify-websocket.svg?style=flat)](https://www.npmjs.com/package/fastify-websocket)
+[![Known Vulnerabilities](https://snyk.io/test/github/fastify/fastify-websocket/badge.svg)](https://snyk.io/test/github/fastify/fastify-websocket)
+[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://standardjs.com/)
 
 WebSocket support for [Fastify](https://github.com/fastify/fastify).
 Built upon [ws](https://www.npmjs.com/package/ws).
@@ -40,7 +41,7 @@ fastify.listen(3000, err => {
 
 In this case, it will respond with a 404 error on every unregistered route, closing the incoming upgrade connection requests.
 
-However you can still define a wildcard route, that will be used as default handler.
+However, you can still define a wildcard route, that will be used as default handler.
 
 ```js
 'use strict'
@@ -76,9 +77,9 @@ fastify.listen(3000, err => {
 
 ### Attaching event handlers
 
-It is important that websocket route handlers attach event handlers synchronously during handler execution to avoid accidentally dropping messages. If you want to do any async work in your websocket handler, say to authenticate a user or load data from a datastore, ensure you attach any `on('message')` handlers *before* you trigger this async work. Otherwise, messages might arrive while this async work is underway, and if there is no handler listening for this data, it will be silently dropped.
+It is important that websocket route handlers attach event handlers synchronously during handler execution to avoid accidentally dropping messages. If you want to do any async work in your websocket handler, say to authenticate a user or load data from a datastore, ensure you attach any `on('message')` handlers *before* you trigger this async work. Otherwise, messages might arrive whilst this async work is underway, and if there is no handler listening for this data it will be silently dropped.
 
-Here's an example of how to attach message handlers synchronously while still accessing asynchronous resources. We store a promise for the async thing in a local variable, and then attach the message handler synchronously, and then make the message handler itself asynchronous to grab the async data and do some processing.
+Here is an example of how to attach message handlers synchronously while still accessing asynchronous resources. We store a promise for the async thing in a local variable, attach the message handler synchronously, and then make the message handler itself asynchronous to grab the async data and do some processing.
 
 ```javascript
 fastify.get('/*', { websocket: true }, (connection, request) => {
@@ -222,17 +223,17 @@ fastify.listen(3000, err => {
 - `perMessageDeflate` - Enable/disable permessage-deflate.
 - `maxPayload` - The maximum allowed message size in bytes.
 
-For more informations you can check [`ws` options documentation](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback).
+For more information, you can check [`ws` options documentation](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback).
 
 _**NB:** By default if you do not provide a `server` option `fastify-websocket` will bind your websocket server instance to the scoped `fastify` instance._
 
-_**NB:** the `path` option from `ws` shouldn't be provided since the routing is handled by fastify itself_
+_**NB:** the `path` option from `ws` should not be provided since the routing is handled by fastify itself_
 
-_**NB:** the `noServer` option from `ws` shouldn't be provided since the point of fastify-websocket is to listen on the fastify server. If you want a custom server, you can use the `server` option, and if you want more control, you can use the `ws` library directly_
+_**NB:** the `noServer` option from `ws` should not be provided since the point of fastify-websocket is to listen on the fastify server. If you want a custom server, you can use the `server` option, and if you want more control, you can use the `ws` library directly_
 
 ## Acknowledgements
 
-This project is kindly sponsored by [nearForm](http://nearform.com).
+This project is kindly sponsored by [nearForm](https://nearform.com).
 
 ## License
 
