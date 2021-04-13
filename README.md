@@ -16,7 +16,7 @@ npm install fastify-websocket --save
 
 ## Usage
 
-After registering this plugin, you can choose on which routes the WS server will respond. This could be achieved by adding `websocket: true` property to `routeOptions` on a fastify's `.get` route. In this case two arguments will be passed to the handler: the socket connection and the fastify's request object.
+After registering this plugin, you can choose on which routes the WS server will respond. This can be achieved by adding `websocket: true` property to `routeOptions` on a fastify's `.get` route. In this case two arguments will be passed to the handler, the socket connection, and the `fastify` request object:
 
 ```js
 'use strict'
@@ -41,7 +41,7 @@ fastify.listen(3000, err => {
 
 In this case, it will respond with a 404 error on every unregistered route, closing the incoming upgrade connection requests.
 
-However, you can still define a wildcard route, that will be used as default handler.
+However, you can still define a wildcard route, that will be used as default handler:
 
 ```js
 'use strict'
@@ -79,7 +79,7 @@ fastify.listen(3000, err => {
 
 It is important that websocket route handlers attach event handlers synchronously during handler execution to avoid accidentally dropping messages. If you want to do any async work in your websocket handler, say to authenticate a user or load data from a datastore, ensure you attach any `on('message')` handlers *before* you trigger this async work. Otherwise, messages might arrive whilst this async work is underway, and if there is no handler listening for this data it will be silently dropped.
 
-Here is an example of how to attach message handlers synchronously while still accessing asynchronous resources. We store a promise for the async thing in a local variable, attach the message handler synchronously, and then make the message handler itself asynchronous to grab the async data and do some processing.
+Here is an example of how to attach message handlers synchronously while still accessing asynchronous resources. We store a promise for the async thing in a local variable, attach the message handler synchronously, and then make the message handler itself asynchronous to grab the async data and do some processing:
 
 ```javascript
 fastify.get('/*', { websocket: true }, (connection, request) => {
@@ -92,9 +92,8 @@ fastify.get('/*', { websocket: true }, (connection, request) => {
 })
 ```
 
-**NB:**
-
-This plugin uses the same router as the fastify instance, this has a few implications to take into account:
+**NB**
+This plugin uses the same router as the `fastify` instance, this has a few implications to take into account:
 - Websocket route handlers follow the usual `fastify` request lifecycle.
 - You can access the fastify server via `this` in your handlers
 - You can access the fastify request decorations via the `req` object your handlers
@@ -225,11 +224,11 @@ fastify.listen(3000, err => {
 
 For more information, you can check [`ws` options documentation](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback).
 
-_**NB:** By default if you do not provide a `server` option `fastify-websocket` will bind your websocket server instance to the scoped `fastify` instance._
+_**NB** By default if you do not provide a `server` option `fastify-websocket` will bind your websocket server instance to the scoped `fastify` instance._
 
-_**NB:** the `path` option from `ws` should not be provided since the routing is handled by fastify itself_
+_**NB** The `path` option from `ws` should not be provided since the routing is handled by fastify itself_
 
-_**NB:** the `noServer` option from `ws` should not be provided since the point of fastify-websocket is to listen on the fastify server. If you want a custom server, you can use the `server` option, and if you want more control, you can use the `ws` library directly_
+_**NB** The `noServer` option from `ws` should not be provided since the point of fastify-websocket is to listen on the fastify server. If you want a custom server, you can use the `server` option, and if you want more control, you can use the `ws` library directly_
 
 ## Acknowledgements
 
