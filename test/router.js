@@ -8,7 +8,7 @@ const WebSocket = require('ws')
 const get = require('http').get
 
 test('Should expose a websocket on prefixed route', t => {
-  t.plan(3)
+  t.plan(4)
   const fastify = Fastify()
 
   t.teardown(() => fastify.close())
@@ -16,7 +16,8 @@ test('Should expose a websocket on prefixed route', t => {
   fastify.register(fastifyWebsocket)
   fastify.register(
     function (instance, opts, next) {
-      instance.get('/echo', { websocket: true }, (conn, request) => {
+      instance.get('/echo', { websocket: true }, function (conn, request) {
+        t.equal(this.prefix, '/baz')
         conn.setEncoding('utf8')
         conn.write('hello client')
         t.teardown(conn.destroy.bind(conn))
@@ -274,6 +275,7 @@ test('Should call wildcard route handler on unregistered path', t => {
 })
 
 test('Should invoke the correct handler depending on the headers', t => {
+  t.plan(4)
   const fastify = Fastify()
 
   t.teardown(() => fastify.close())
@@ -300,6 +302,7 @@ test('Should invoke the correct handler depending on the headers', t => {
       httpClient.write('GET / HTTP/1.1\r\n\r\n')
       httpClient.once('data', data => {
         t.match(data.toString(), /hi from handler/i)
+        httpClient.end()
       })
     })
 
@@ -307,7 +310,7 @@ test('Should invoke the correct handler depending on the headers', t => {
       wsClient.write('GET / HTTP/1.1\r\nConnection: upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n')
       wsClient.once('data', data => {
         t.match(data.toString(), /hi from wsHandler/i)
-        wsClient.end(() => { t.end() })
+        wsClient.end(() => { t.pass() })
       })
     })
   })

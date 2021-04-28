@@ -105,18 +105,18 @@ function fastifyWebsocket (fastify, opts, next) {
     }
 
     // we always override the route handler so we can close websocket connections to routes to handlers that don't support websocket connections
-    routeOptions.handler = (request, reply) => {
+    // This is not an arrow function to fetch the encapsulated this
+    routeOptions.handler = function (request, reply) {
       // within the route handler, we check if there has been a connection upgrade by looking at request.raw[kWs]. we need to dispatch the normal HTTP handler if not, and hijack to dispatch the websocket handler if so
       if (request.raw[kWs]) {
         reply.hijack()
         handleUpgrade(request.raw, connection => {
           let result
-
           try {
             if (isWebsocketRoute) {
-              result = wsHandler.call(fastify, connection, request)
+              result = wsHandler.call(this, connection, request)
             } else {
-              result = noHandle.call(fastify, connection, request)
+              result = noHandle.call(this, connection, request)
             }
           } catch (err) {
             return errorHandler.call(this, err, connection, request, reply)
@@ -127,7 +127,7 @@ function fastifyWebsocket (fastify, opts, next) {
           }
         })
       } else {
-        return handler.call(fastify, request, reply)
+        return handler.call(this, request, reply)
       }
     }
   })

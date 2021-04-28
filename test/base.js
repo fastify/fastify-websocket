@@ -508,3 +508,24 @@ test('Should error server if the noServer option is set', (t) => {
   fastify.register(fastifyWebsocket, { options: { noServer: true } })
   t.rejects(fastify.ready())
 })
+
+test('Should preserve the prefix in non-websocket routes', (t) => {
+  t.plan(3)
+
+  const fastify = Fastify()
+  t.teardown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket)
+
+  fastify.register(async function (fastify) {
+    t.equal(fastify.prefix, '/hello')
+    fastify.get('/', function (request, reply) {
+      t.equal(this.prefix, '/hello')
+      reply.send('hello')
+    })
+  }, { prefix: '/hello' })
+
+  fastify.inject('/hello', function (err) {
+    t.error(err)
+  })
+})
