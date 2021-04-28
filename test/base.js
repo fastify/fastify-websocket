@@ -89,7 +89,36 @@ test('Should run custom errorHandler on wildcard route handler error', (t) => {
   })
 })
 
-test('Should run custom errorHandler on websocket handler error', (t) => {
+test('Should run custom errorHandler on error inside websocket handler', (t) => {
+  t.plan(2)
+
+  const fastify = Fastify()
+  t.teardown(() => fastify.close())
+
+  const options = {
+    errorHandler: function (error, connection) {
+      t.equal(error.message, 'Fail')
+    }
+  }
+
+  fastify.register(fastifyWebsocket, options)
+
+  fastify.get('/', { websocket: true }, function wsHandler (conn, request) {
+    conn.pipe(conn)
+    t.teardown(() => conn.destroy())
+    throw new Error('Fail')
+  })
+
+  fastify.listen(0, (err) => {
+    t.error(err)
+
+    const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+    t.teardown(() => client.destroy())
+  })
+})
+
+test('Should run custom errorHandler on error inside async websocket handler', (t) => {
   t.plan(2)
 
   const fastify = Fastify()

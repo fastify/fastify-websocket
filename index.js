@@ -111,10 +111,15 @@ function fastifyWebsocket (fastify, opts, next) {
         reply.hijack()
         handleUpgrade(request.raw, connection => {
           let result
-          if (isWebsocketRoute) {
-            result = wsHandler.call(fastify, connection, request)
-          } else {
-            result = noHandle.call(fastify, connection, request)
+
+          try {
+            if (isWebsocketRoute) {
+              result = wsHandler.call(fastify, connection, request)
+            } else {
+              result = noHandle.call(fastify, connection, request)
+            }
+          } catch (err) {
+            return errorHandler.call(this, err, connection, request, reply)
           }
 
           if (result && typeof result.catch === 'function') {
