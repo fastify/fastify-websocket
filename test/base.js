@@ -427,7 +427,7 @@ test('Should keep accepting connection', t => {
 
           fastify.close(err => {
             t.error(err)
-            t.ok(unhandled < threshold)
+            t.ok(unhandled <= threshold)
           })
         }
       }, 10)
