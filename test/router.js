@@ -8,7 +8,7 @@ const WebSocket = require('ws')
 const get = require('http').get
 
 test('Should expose a websocket on prefixed route', t => {
-  t.plan(3)
+  t.plan(4)
   const fastify = Fastify()
 
   t.teardown(() => fastify.close())
@@ -16,7 +16,8 @@ test('Should expose a websocket on prefixed route', t => {
   fastify.register(fastifyWebsocket)
   fastify.register(
     function (instance, opts, next) {
-      instance.get('/echo', { websocket: true }, (conn, request) => {
+      instance.get('/echo', { websocket: true }, function (conn, request) {
+        t.equal(this.prefix, '/baz')
         conn.setEncoding('utf8')
         conn.write('hello client')
         t.teardown(conn.destroy.bind(conn))
