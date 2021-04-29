@@ -147,9 +147,11 @@ function fastifyWebsocket (fastify, opts, next) {
     // server.clients list will be up to date when we start closing below.
     oldClose.call(this, cb)
 
-    const server = fastify.websocketServer
-    for (const client of server.clients) {
-      client.close()
+    const clients = fastify.websocketServer.clients
+    if (typeof clients !== 'undefined') {
+      for (const client of clients) {
+        client.close()
+      }
     }
   }
 
