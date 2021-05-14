@@ -5,10 +5,12 @@ import * as fastify from 'fastify';
 import * as WebSocket from 'ws';
 import { Duplex } from 'stream';
 import { FastifyReply } from 'fastify/types/reply';
+import { RouteGenericInterface } from 'fastify/types/route';
 
-interface WebsocketRouteOptions {
-  wsHandler?: WebsocketHandler
+interface WebsocketRouteOptions<RawServer extends RawServerBase = RawServerDefault, RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>, RequestGeneric extends RequestGenericInterface = RequestGenericInterface> {
+  wsHandler?: WebsocketHandler<RawServer, RawRequest, RequestGeneric>;
 }
+
 declare module 'fastify' {
   interface RouteShorthandOptions<
     RawServer extends RawServerBase = RawServerDefault
@@ -33,13 +35,12 @@ declare module 'fastify' {
     ): FastifyInstance<RawServer, RawRequest, RawReply>;
   }
 
-  interface RouteOptions extends WebsocketRouteOptions {}
+  interface RouteOptions<RawServer extends RawServerBase = RawServerDefault, RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>, RawReply extends RawReplyDefaultExpression<RawServer> = RawReplyDefaultExpression<RawServer>, RouteGeneric extends RouteGenericInterface = RouteGenericInterface, ContextConfig = ContextConfigDefault,SchemaCompiler = fastify.FastifySchema> extends WebsocketRouteOptions<RawServer, RawRequest, RouteGeneric> {}
 }
 
 declare const websocketPlugin: FastifyPluginCallback<WebsocketPluginOptions>;
 
-interface WebSocketServerOptions extends Omit<WebSocket.ServerOptions, 'path'> {}
-
+interface WebSocketServerOptions extends Omit<WebSocket.ServerOptions, "path"> {}
 
 export type WebsocketHandler<
   RawServer extends RawServerBase = RawServerDefault,
@@ -60,6 +61,6 @@ export interface WebsocketPluginOptions {
   options?: WebSocketServerOptions;
 }
 
-export interface RouteOptions extends fastify.RouteOptions, WebsocketRouteOptions {}
+export interface RouteOptions<RawServer extends RawServerBase = RawServerDefault, RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>, RawReply extends RawReplyDefaultExpression<RawServer> = RawReplyDefaultExpression<RawServer>, RouteGeneric extends RouteGenericInterface = RouteGenericInterface, ContextConfig = ContextConfigDefault, SchemaCompiler = fastify.FastifySchema> extends fastify.RouteOptions<RawServer, RawRequest, RawReply, RouteGeneric, ContextConfig, SchemaCompiler>, WebsocketRouteOptions<RawServer, RawRequest, RouteGeneric> {}
 
 export default websocketPlugin;

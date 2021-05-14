@@ -2,6 +2,7 @@ import wsPlugin, { WebsocketHandler, SocketStream } from '../..';
 import fastify, { RouteOptions, FastifyRequest, FastifyInstance, FastifyReply, RequestGenericInterface } from 'fastify';
 import { expectType } from 'tsd';
 import { Server } from 'ws';
+import { RouteGenericInterface } from 'fastify/types/route';
 
 const app: FastifyInstance = fastify();
 app.register(wsPlugin);
@@ -19,11 +20,11 @@ app.register(wsPlugin, {
 app.register(wsPlugin, { options: { perMessageDeflate: true } });
 
 app.get('/websockets-via-inferrence', { websocket: true }, async function(connection, request) {
-  expectType<FastifyInstance>(this);
-  expectType<SocketStream>(connection);
-  expectType<Server>(app.websocketServer);
-  expectType<FastifyRequest<RequestGenericInterface>>(request)
-});
+    expectType<FastifyInstance>(this);
+    expectType<SocketStream>(connection);
+    expectType<Server>(app.websocketServer);
+    expectType<FastifyRequest<RequestGenericInterface>>(request)
+  });
 
 const handler: WebsocketHandler = async (connection, request) => {
   expectType<SocketStream>(connection);
@@ -52,7 +53,7 @@ app.route({
   },
   wsHandler: (connection, request) => {
     expectType<SocketStream>(connection);
-    expectType<FastifyRequest<RequestGenericInterface>>(request);
+    expectType<FastifyRequest<RouteGenericInterface>>(request);
   },
 });
 
@@ -65,7 +66,7 @@ const augmentedRouteOptions: RouteOptions = {
   },
   wsHandler: (connection, request) => {
     expectType<SocketStream>(connection);
-    expectType<FastifyRequest<RequestGenericInterface>>(request)
+    expectType<FastifyRequest<RouteGenericInterface>>(request)
   },
 };
 app.route(augmentedRouteOptions);
