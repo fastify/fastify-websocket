@@ -265,7 +265,7 @@ test('Should call wildcard route handler on unregistered path', t => {
     })
 
     ws.on('message', message => {
-      t.equal(message, 'hi from wildcard route handler')
+      t.equal(message.toString(), 'hi from wildcard route handler')
     })
 
     ws.on('close', () => {
@@ -461,7 +461,7 @@ test('Should send message and close', t => {
 
   fastify.get('/', { websocket: true }, (connection, request) => {
     connection.socket.on('message', message => {
-      t.equal(message, 'hi from client')
+      t.equal(message.toString(), 'hi from client')
       connection.socket.send('hi from server')
     })
 
@@ -479,7 +479,7 @@ test('Should send message and close', t => {
     t.teardown(client.destroy.bind(client))
 
     ws.on('message', message => {
-      t.equal(message, 'hi from server')
+      t.equal(message.toString(), 'hi from server')
     })
 
     ws.on('open', () => {
@@ -502,7 +502,7 @@ test('Should return 404 on http request', t => {
 
   fastify.get('/', { websocket: true }, (connection, request) => {
     connection.socket.on('message', message => {
-      t.equal(message, 'hi from client')
+      t.equal(message.toString(), 'hi from client')
       connection.socket.send('hi from server')
     })
 
@@ -572,7 +572,7 @@ test('Should pass route params to per-route handlers', t => {
   })
 })
 
-test('Should not thow error when register empty get with prefix', t => {
+test('Should not throw error when register empty get with prefix', t => {
   const fastify = Fastify()
 
   t.teardown(() => fastify.close())
@@ -583,7 +583,7 @@ test('Should not thow error when register empty get with prefix', t => {
     function (instance, opts, next) {
       instance.get('/', { websocket: true }, (connection, request) => {
         connection.socket.on('message', message => {
-          t.equal(message, 'hi from client')
+          t.equal(message.toString(), 'hi from client')
           connection.socket.send('hi from server')
         })
       })

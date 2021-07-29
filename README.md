@@ -26,7 +26,7 @@ fastify.register(require('fastify-websocket'))
 
 fastify.get('/', { websocket: true }, (connection /* SocketStream */, req /* FastifyRequest */) => {
   connection.socket.on('message', message => {
-    // message === 'hi from client'
+    // message.toString() === 'hi from client'
     connection.socket.send('hi from server')
   })
 })
@@ -55,14 +55,14 @@ fastify.register(require('fastify-websocket'), {
 
 fastify.get('/*', { websocket: true }, (connection /* SocketStream */, req /* FastifyRequest */) => {
   connection.socket.on('message', message => {
-    // message === 'hi from client'
+    // message.toString() === 'hi from client'
     connection.socket.send('hi from wildcard route')
   })
 })
 
 fastify.get('/', { websocket: true }, (connection /* SocketStream */, req /* FastifyRequest */) => {
   connection.socket.on('message', message => {
-    // message === 'hi from client'
+    // message.toString() === 'hi from client'
     connection.socket.send('hi from server')
   })
 })
@@ -87,7 +87,7 @@ fastify.get('/*', { websocket: true }, (connection, request) => {
 
   connection.socket.on('message', async (message) => {
     const session = await sessionPromise()
-    // do somthing with the message and session
+    // do something with the message and session
   })
 })
 ```
@@ -111,7 +111,7 @@ fastify.get('/', { websocket: true }, function wsHandler (connection, req) {
   this.myDecoration.someFunc()
 
   connection.socket.on('message', message => {
-    // message === 'hi from client'
+    // message.toString() === 'hi from client'
     connection.socket.send('hi from server')
   })
 })
@@ -194,7 +194,7 @@ fastify.register(require('fastify-websocket'), {
 
 fastify.get('/', { websocket: true }, (connection /* SocketStream */, req /* FastifyRequest */) => {
   connection.socket.on('message', message => {
-    // message === 'hi from client'
+    // message.toString() === 'hi from client'
     connection.socket.send('hi from server')
   })
 })
