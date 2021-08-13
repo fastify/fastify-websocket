@@ -148,6 +148,7 @@ function fastifyWebsocket (fastify, opts, next) {
     oldClose.call(this, cb)
 
     const server = fastify.websocketServer
+    if (!server.clients) return
     for (const client of server.clients) {
       client.close()
     }

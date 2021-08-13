@@ -280,6 +280,30 @@ test('Should be able to pass a custom server option to websocket-stream', (t) =>
   })
 })
 
+test('Should be able to pass clientTracking option in false to websocket-stream', (t) => {
+  t.plan(2)
+
+  const fastify = Fastify()
+
+  const options = {
+    clientTracking: false
+  }
+
+  fastify.register(fastifyWebsocket, { options })
+
+  fastify.get('/*', { websocket: true }, (connection, request) => {
+    connection.destroy()
+  })
+
+  fastify.listen(0, (err) => {
+    t.error(err)
+
+    fastify.close(err => {
+      t.error(err)
+    })
+  })
+})
+
 test('Should gracefully close with a connected client', (t) => {
   t.plan(6)
 
