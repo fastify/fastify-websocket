@@ -6,7 +6,7 @@
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://standardjs.com/)
 
 WebSocket support for [Fastify](https://github.com/fastify/fastify).
-Built upon [ws](https://www.npmjs.com/package/ws).
+Built upon [ws@8](https://www.npmjs.com/package/ws).
 
 ## Install
 

@@ -40,6 +40,6 @@
   },
   "dependencies": {
     "fastify-plugin": "^3.0.0",
-    "ws": "^7.5.4"
+    "ws": "^8.0.0"
   }
 }
