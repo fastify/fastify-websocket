@@ -10,8 +10,18 @@ Built upon [ws@8](https://www.npmjs.com/package/ws).
 
 ## Install
 
-```
+```shell
 npm install fastify-websocket --save
+# or 
+yarn install fastify-websocket
+```
+
+If you're a TypeScript user, this package has its own TypeScript types built in, but you will also need to install the types for the `ws` package:
+
+```shell
+npm install @types/ws --save-dev
+# or
+yarn install -D @types/ws
 ```
 
 ## Usage
