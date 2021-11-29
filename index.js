@@ -8,6 +8,8 @@ const kWs = Symbol('ws-socket')
 const kWsHead = Symbol('ws-head')
 
 function fastifyWebsocket (fastify, opts, next) {
+  fastify.decorateRequest("ws", false);
+
   let errorHandler = defaultErrorHandler
   if (opts.errorHandler) {
     if (typeof opts.errorHandler !== 'function') {
@@ -104,6 +106,20 @@ function fastifyWebsocket (fastify, opts, next) {
       }
     }
 
+    if (typeof routeOptions.preHandler === "undefined") {
+      routeOptions.preHandler = function (request, reply) {
+        request.ws = request.raw[kWs] ? true : false;
+      }
+    } else if (typeof routeOptions.preHandler === "function") {
+      routeOptions.preHandler = [function (request, reply) {
+        request.ws = request.raw[kWs] ? true : false;
+      }, routeOptions.preHandler];
+    } else {
+      routeOptions.preHandler = [function (request, reply) {
+        request.ws = request.raw[kWs] ? true : false;
+      }, ...routeOptions.preHandler];
+    }
+
     // we always override the route handler so we can close websocket connections to routes to handlers that don't support websocket connections
     // This is not an arrow function to fetch the encapsulated this
     routeOptions.handler = function (request, reply) {
@@ -126,7 +142,7 @@ function fastifyWebsocket (fastify, opts, next) {
             result.catch(err => errorHandler.call(this, err, connection, request, reply))
           }
         })
-      } else {
+      } else 
         return handler.call(this, request, reply)
       }
     }
