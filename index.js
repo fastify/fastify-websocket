@@ -69,6 +69,15 @@ function fastifyWebsocket (fastify, opts, next) {
       callback(connection)
     })
   }
+  
+  fastify.addHook('onRequest', (request, reply, done) => {
+    if (request.raw[kWs]) {
+      request.ws = true;
+    } else {
+      request.ws = false;
+    }
+    done()
+  });
 
   fastify.addHook('onError', (request, reply, error, done) => {
     if (request.raw[kWs]) {
@@ -104,22 +113,6 @@ function fastifyWebsocket (fastify, opts, next) {
       if (typeof wsHandler !== 'function') {
         throw new Error('invalid wsHandler function')
       }
-    }
-    
-    // this is to add req.ws
-    function reqWsAdder(request, reply) {
-      if (request.raw[kWs]) {
-        request.ws = true;
-      } else {
-        request.ws = false;
-      }
-    }
-    if (Array.isArray(routeOptions.preHandler)) {
-      routeOptions.preHandler = [reqWsAdder, ...routeOptions.preHandler];
-    } else if (typeof routeOptions.preHandler === "function") {
-      routeOptions.preHandler = [reqWsAdder, routeOptions.preHandler];
-    } else {
-      routeOptions.preHandler = reqWsAdder;
     }
 
     // we always override the route handler so we can close websocket connections to routes to handlers that don't support websocket connections
