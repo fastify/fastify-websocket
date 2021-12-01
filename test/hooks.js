@@ -6,8 +6,8 @@ const Fastify = require('fastify')
 const fastifyWebsocket = require('..')
 const WebSocket = require('ws')
 
-test('Should run onRequest, preParsing, preValidation, preHandler hooks', t => {
-  t.plan(7)
+test('Should run onRequest, preValidation, preHandler hooks', t => {
+  t.plan(6)
   const fastify = Fastify()
 
   t.teardown(() => fastify.close())
@@ -15,7 +15,6 @@ test('Should run onRequest, preParsing, preValidation, preHandler hooks', t => {
   fastify.register(fastifyWebsocket)
 
   fastify.addHook('onRequest', async (request, reply) => t.ok('called', 'onRequest'))
-  fastify.addHook('preParsing', async (request, reply, payload) => t.ok('called', 'preParsing'))
   fastify.addHook('preValidation', async (request, reply) => t.ok('called', 'preValidation'))
   fastify.addHook('preHandler', async (request, reply) => t.ok('called', 'preHandler'))
 
