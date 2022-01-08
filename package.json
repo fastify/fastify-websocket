@@ -29,14 +29,14 @@
   },
   "homepage": "https://github.com/fastify/fastify-websocket#readme",
   "devDependencies": {
-    "@types/ws": "^8.2.0",
-    "fastify": "^3.11.0",
+    "@types/ws": "^8.2.2",
+    "fastify": "^3.25.3",
     "pre-commit": "^1.2.2",
     "snazzy": "^9.0.0",
     "split2": "^4.1.0",
-    "standard": "^16.0.1",
-    "tap": "^15.0.2",
-    "tsd": "^0.19.0"
+    "standard": "^16.0.4",
+    "tap": "^15.1.6",
+    "tsd": "^0.19.1"
   },
   "dependencies": {
     "fastify-plugin": "^3.0.0",
