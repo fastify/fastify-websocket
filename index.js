@@ -47,6 +47,7 @@ function fastifyWebsocket (fastify, opts, next) {
       })
     } else {
       const rawResponse = new ServerResponse(rawRequest)
+      rawResponse.assignSocket(socket)
       fastify.routing(rawRequest, rawResponse)
     }
   })
