@@ -1,4 +1,5 @@
 import wsPlugin, { WebsocketHandler, SocketStream } from '../..';
+import type {IncomingMessage} from "http";
 import fastify, { RouteOptions, FastifyRequest, FastifyInstance, FastifyReply, RequestGenericInterface } from 'fastify';
 import { expectType } from 'tsd';
 import { Server } from 'ws';
@@ -19,12 +20,12 @@ app.register(wsPlugin, {
 });
 app.register(wsPlugin, { options: { perMessageDeflate: true } });
 
-app.get('/websockets-via-inferrence', { websocket: true }, async function(connection, request) {
-    expectType<FastifyInstance>(this);
-    expectType<SocketStream>(connection);
-    expectType<Server>(app.websocketServer);
-    expectType<FastifyRequest<RequestGenericInterface>>(request)
-  });
+app.get('/websockets-via-inferrence', { websocket: true }, async function (connection, request) {
+  expectType<FastifyInstance>(this);
+  expectType<SocketStream>(connection);
+  expectType<Server>(app.websocketServer);
+  expectType<FastifyRequest<RequestGenericInterface>>(request)
+});
 
 const handler: WebsocketHandler = async (connection, request) => {
   expectType<SocketStream>(connection);
@@ -70,3 +71,33 @@ const augmentedRouteOptions: RouteOptions = {
   },
 };
 app.route(augmentedRouteOptions);
+
+
+app.get<{ Params: { foo: string }, Body: { bar: string }, Querystring: { search: string }, Headers: { auth: string } }>('/shorthand-explicit-types', {
+  websocket: true
+}, async (connection, request) => {
+  expectType<SocketStream>(connection);
+  expectType<{ foo: string }>(request.params);
+  expectType<{ bar: string }>(request.body);
+  expectType<{ search: string }>(request.query);
+  expectType< IncomingMessage['headers'] & { auth: string }>(request.headers);
+});
+
+
+app.route<{ Params: { foo: string }, Body: { bar: string }, Querystring: { search: string }, Headers: { auth: string } }>({
+  method: 'GET',
+  url: '/longhand-explicit-types',
+  handler: (request, _reply) => {
+    expectType<{ foo: string }>(request.params);
+    expectType<{ bar: string }>(request.body);
+    expectType<{ search: string }>(request.query);
+    expectType<IncomingMessage['headers'] & {  auth: string }>(request.headers);
+  },
+  wsHandler: (connection, request) => {
+    expectType<SocketStream>(connection);
+    expectType<{ foo: string }>(request.params);
+    expectType<{ bar: string }>(request.body);
+    expectType<{ search: string }>(request.query);
+    expectType<IncomingMessage['headers'] & { auth: string }>(request.headers);
+  },
+});
