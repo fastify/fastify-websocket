@@ -8,9 +8,9 @@ const kWs = Symbol('ws-socket')
 const kWsHead = Symbol('ws-head')
 
 function fastifyWebsocket (fastify, opts, next) {
-  fastify.decorateRequest('ws', null) // this is a decorator for the Request ws property
+  fastify.decorateRequest('ws', null)
 
-  let errorHandler = defaultErrorHandler;
+  let errorHandler = defaultErrorHandler
   if (opts.errorHandler) {
     if (typeof opts.errorHandler !== 'function') {
       return next(new Error('invalid errorHandler function'))
