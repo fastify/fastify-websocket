@@ -101,12 +101,29 @@ fastify.get('/*', { websocket: true }, (connection, request) => {
   })
 })
 ```
+### Using hooks
+
+Routes registered with `fastify-websocket` respect the Fastify plugin encapsulation contexts, and so will run any hooks that have been registered. This means the same route hooks you might use for authentication or error handling of plain old HTTP handlers will apply to websocket handlers as well.
+
+```js
+fastify.addHook('preValidation', async (request, reply) => {
+  // check if the request is authenticated
+  if (!request.isAuthenticated()) {
+    await reply.code(401).send("not authenticated");
+  }
+})
+fastify.get('/', { websocket: true }, (connection, req) => {
+  // the connection will only be opened for authenticated incoming requests
+  connection.socket.on('message', message => {
+    // ...
+  })
+})
+```
 
 **NB**
 This plugin uses the same router as the `fastify` instance, this has a few implications to take into account:
-- Websocket route handlers follow the usual `fastify` request lifecycle.
+- Websocket route handlers follow the usual `fastify` request lifecycle, which means hooks, error handlers, and decorators all work the same way as other route handlers.
 - You can access the fastify server via `this` in your handlers
-- You can access the fastify request decorations via the `req` object your handlers
 - When using `fastify-websocket`, it needs to be registered before all routes in order to be able to intercept websocket connections to existing routes and close the connection on non-websocket routes.
 
 ```js

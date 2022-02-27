@@ -99,6 +99,65 @@ test('Should run onError hook before handler is executed (error thrown in onRequ
   })
 })
 
+test('Should run onError hook before handler is executed (error thrown in preValidation hook)', t => {
+  t.plan(3)
+  const fastify = Fastify()
+
+  t.teardown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket)
+
+  fastify.addHook('preValidation', async (request, reply) => {
+    await Promise.resolve()
+    throw new Error('Fail')
+  })
+
+  fastify.addHook('onError', async (request, reply) => t.ok('called', 'onError'))
+
+  fastify.get('/echo', { websocket: true }, (conn, request) => {
+    t.fail()
+  })
+
+  fastify.listen(0, function (err) {
+    t.error(err)
+    const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/echo')
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+    t.teardown(client.destroy.bind(client))
+    ws.on('close', code => t.equal(code, 1006))
+  })
+})
+
+test('onError hooks can send a reply and prevent hijacking', t => {
+  t.plan(3)
+  const fastify = Fastify()
+
+  t.teardown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket)
+
+  fastify.addHook('preValidation', async (request, reply) => {
+    await Promise.resolve()
+    throw new Error('Fail')
+  })
+
+  fastify.addHook('onError', async (request, reply) => {
+    t.ok('called', 'onError')
+    await reply.code(404).send('there was an error')
+  })
+
+  fastify.get('/echo', { websocket: true }, (conn, request) => {
+    t.fail()
+  })
+
+  fastify.listen(0, function (err) {
+    t.error(err)
+    const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/echo')
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+    t.teardown(client.destroy.bind(client))
+    ws.on('close', code => t.equal(code, 1006))
+  })
+})
+
 test('Should not run onError hook if reply was already hijacked (error thrown in websocket handler)', t => {
   t.plan(2)
   const fastify = Fastify()
@@ -172,6 +231,8 @@ test('Should not hijack reply for a normal http request in the internal onError 
     const port = fastify.server.address().port
 
     const httpClient = net.createConnection({ port: port }, () => {
+      t.teardown(httpClient.destroy.bind(httpClient))
+
       httpClient.write('GET / HTTP/1.1\r\n\r\n')
       httpClient.once('data', data => {
         t.match(data.toString(), /Fail/i)
@@ -219,5 +280,59 @@ test('Should run async hooks and still deliver quickly sent messages', (t) => {
       t.equal(chunk, 'hello client')
       client.end()
     })
+  })
+})
+
+test('Should not hijack reply for an normal request to a websocket route that is sent a normal HTTP response in a hook', t => {
+  t.plan(2)
+  const fastify = Fastify()
+  t.teardown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket)
+  fastify.addHook('preValidation', async (request, reply) => {
+    await Promise.resolve()
+    await reply.code(404).send('not found')
+  })
+  fastify.get('/echo', { websocket: true }, (conn, request) => {
+    t.fail()
+  })
+
+  fastify.listen(0, err => {
+    t.error(err)
+
+    const port = fastify.server.address().port
+
+    const httpClient = net.createConnection({ port: port }, () => {
+      t.teardown(httpClient.destroy.bind(httpClient))
+      httpClient.write('GET /echo HTTP/1.1\r\n\r\n')
+      httpClient.once('data', data => {
+        t.match(data.toString(), /not found/i)
+      })
+    })
+  })
+})
+
+test('Should not hijack reply for an WS request to a WS route that gets sent a normal HTTP response in a hook', t => {
+  t.plan(2)
+  const fastify = Fastify()
+  t.teardown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket)
+  fastify.addHook('preValidation', async (request, reply) => {
+    await Promise.resolve()
+    await reply.code(404).send('not found')
+  })
+  fastify.get('/echo', { websocket: true }, (conn, request) => {
+    t.fail()
+  })
+
+  fastify.listen(0, err => {
+    t.error(err)
+
+    const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/echo')
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+    t.teardown(client.destroy.bind(client))
+
+    client.on('error', error => t.ok(error))
   })
 })
