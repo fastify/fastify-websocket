@@ -69,7 +69,7 @@ function fastifyWebsocket (fastify, opts, next) {
       callback(connection)
     })
   }
-  
+
   fastify.addHook('onRequest', (request, reply, done) => { // this adds req.ws to the Request object
     if (request.raw[kWs]) {
       request.ws = true
