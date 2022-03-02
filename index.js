@@ -8,6 +8,8 @@ const kWs = Symbol('ws-socket')
 const kWsHead = Symbol('ws-head')
 
 function fastifyWebsocket (fastify, opts, next) {
+  fastify.decorateRequest('ws', null)
+
   let errorHandler = defaultErrorHandler
   if (opts.errorHandler) {
     if (typeof opts.errorHandler !== 'function') {
@@ -68,6 +70,15 @@ function fastifyWebsocket (fastify, opts, next) {
       callback(connection)
     })
   }
+
+  fastify.addHook('onRequest', (request, reply, done) => { // this adds req.ws to the Request object
+    if (request.raw[kWs]) {
+      request.ws = true
+    } else {
+      request.ws = false
+    }
+    done()
+  })
 
   fastify.addHook('onError', (request, reply, error, done) => {
     if (request.raw[kWs]) {
