@@ -23,7 +23,7 @@ declare module 'fastify' {
     websocketServer: WebSocket.Server,
   }
 
-  interface FastifyReply {
+  interface FastifyRequest {
     ws: boolean
   }
 
