@@ -23,6 +23,10 @@ declare module 'fastify' {
     websocketServer: WebSocket.Server,
   }
 
+  interface FastifyReply {
+    ws: boolean
+  }
+
   interface RouteShorthandMethod<
     RawServer extends RawServerBase = RawServerDefault,
     RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>,
