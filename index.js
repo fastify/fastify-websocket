@@ -58,7 +58,7 @@ function fastifyWebsocket (fastify, opts, next) {
     wss.handleUpgrade(rawRequest, rawRequest[kWs], rawRequest[kWsHead], (socket) => {
       wss.emit('connection', socket, rawRequest)
 
-      const connection = WebSocket.createWebSocketStream(socket)
+      const connection = WebSocket.createWebSocketStream(socket, opts.connectionOptions)
       connection.socket = socket
 
       connection.socket.on('newListener', event => {

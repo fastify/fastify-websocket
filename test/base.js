@@ -304,6 +304,41 @@ test('Should be able to pass clientTracking option in false to websocket-stream'
   })
 })
 
+test('Should be able to pass custom connectionOptions to createWebSocketStream', (t) => {
+  t.plan(3)
+
+  const fastify = Fastify()
+  t.teardown(() => fastify.close())
+
+  const connectionOptions = {
+    readableObjectMode: true
+  }
+
+  fastify.register(fastifyWebsocket, { connectionOptions })
+
+  fastify.get('/', { websocket: true }, (connection, request) => {
+    t.equal(connection.readableObjectMode, true)
+    connection.socket.binaryType = 'arraybuffer'
+
+    connection.once('data', (chunk) => {
+      const message = new TextDecoder().decode(chunk)
+      t.equal(message, 'Hello')
+    })
+    t.teardown(() => connection.destroy())
+  })
+
+  fastify.listen(0, (err) => {
+    t.error(err)
+
+    const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+    t.teardown(() => client.destroy())
+
+    client.setEncoding('utf8')
+    client.write('Hello')
+  })
+})
+
 test('Should gracefully close with a connected client', (t) => {
   t.plan(6)
 
