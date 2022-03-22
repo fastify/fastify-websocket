@@ -3,7 +3,7 @@ import { IncomingMessage, ServerResponse, Server } from 'http';
 import { FastifyRequest, FastifyPluginCallback, RawServerBase, RawServerDefault, RawRequestDefaultExpression, RawReplyDefaultExpression, RequestGenericInterface, ContextConfigDefault, FastifyInstance } from 'fastify';
 import * as fastify from 'fastify';
 import * as WebSocket from 'ws';
-import { Duplex } from 'stream';
+import { Duplex, DuplexOptions } from 'stream';
 import { FastifyReply } from 'fastify/types/reply';
 import { RouteGenericInterface } from 'fastify/types/route';
 
@@ -59,6 +59,7 @@ export interface SocketStream extends Duplex {
 export interface WebsocketPluginOptions {
   errorHandler?: (this: FastifyInstance, error: Error, connection: SocketStream, request: FastifyRequest, reply: FastifyReply) => void;
   options?: WebSocketServerOptions;
+  connectionOptions?: DuplexOptions;
 }
 
 export interface RouteOptions<RawServer extends RawServerBase = RawServerDefault, RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>, RawReply extends RawReplyDefaultExpression<RawServer> = RawReplyDefaultExpression<RawServer>, RouteGeneric extends RouteGenericInterface = RouteGenericInterface, ContextConfig = ContextConfigDefault, SchemaCompiler = fastify.FastifySchema> extends fastify.RouteOptions<RawServer, RawRequest, RawReply, RouteGeneric, ContextConfig, SchemaCompiler>, WebsocketRouteOptions<RawServer, RawRequest, RouteGeneric> {}

@@ -238,7 +238,6 @@ fastify.listen(3000, err => {
 
 `fastify-websocket` accept these options for [`ws`](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback) :
 
-- `objectMode` - Send each chunk on its own, and do not try to pack them in a single websocket frame.
 - `host` - The hostname where to bind the server.
 - `port` - The port where to bind the server.
 - `backlog` - The maximum length of the queue of pending connections.
@@ -257,6 +256,16 @@ _**NB** The `path` option from `ws` should not be provided since the routing is 
 
 _**NB** The `noServer` option from `ws` should not be provided since the point of fastify-websocket is to listen on the fastify server. If you want a custom server, you can use the `server` option, and if you want more control, you can use the `ws` library directly_
 
+You can also pass the following as `connectionOptions` for [createWebSocketStream](https://github.com/websockets/ws/blob/master/doc/ws.md#createwebsocketstreamwebsocket-options).
+
+- `allowHalfOpen` <boolean> If set to false, then the stream will automatically end the writable side when the readable side ends. Default: true.
+- `readable` <boolean> Sets whether the Duplex should be readable. Default: true.
+- `writable` <boolean> Sets whether the Duplex should be writable. Default: true.
+- `readableObjectMode` <boolean> Sets objectMode for readable side of the stream. Has no effect if objectMode is true. Default: false.
+- `readableHighWaterMark` <number> Sets highWaterMark for the readable side of the stream.
+- `writableHighWaterMark` <number> Sets highWaterMark for the writable side of the stream.
+
+[ws](https://github.com/websockets/ws) does not allow you to set `objectMode` or `writableObjectMode` to true
 ## Acknowledgements
 
 This project is kindly sponsored by [nearForm](https://nearform.com).

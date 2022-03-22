@@ -1,6 +1,7 @@
 'use strict'
 
 const http = require('http')
+const util = require('util')
 const split = require('split2')
 const test = require('tap').test
 const Fastify = require('fastify')
@@ -301,6 +302,46 @@ test('Should be able to pass clientTracking option in false to websocket-stream'
     fastify.close(err => {
       t.error(err)
     })
+  })
+})
+
+test('Should be able to pass custom connectionOptions to createWebSocketStream', (t) => {
+  t.plan(3)
+
+  const fastify = Fastify()
+  t.teardown(() => fastify.close())
+
+  const connectionOptions = {
+    readableObjectMode: true
+  }
+
+  fastify.register(fastifyWebsocket, { connectionOptions })
+
+  fastify.get('/', { websocket: true }, (connection, request) => {
+    // readableObjectMode was added in Node v12.3.0 so for earlier versions
+    // we check the encapsulated readable state directly
+    const mode = (typeof connection.readableObjectMode === 'undefined')
+      ? connection._readableState.objectMode
+      : connection.readableObjectMode
+    t.equal(mode, true)
+    connection.socket.binaryType = 'arraybuffer'
+
+    connection.once('data', (chunk) => {
+      const message = new util.TextDecoder().decode(chunk)
+      t.equal(message, 'Hello')
+    })
+    t.teardown(() => connection.destroy())
+  })
+
+  fastify.listen(0, (err) => {
+    t.error(err)
+
+    const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
+    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+    t.teardown(() => client.destroy())
+
+    client.setEncoding('utf8')
+    client.write('Hello')
   })
 })
 
