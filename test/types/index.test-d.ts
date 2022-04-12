@@ -25,6 +25,7 @@ app.get('/websockets-via-inferrence', { websocket: true }, async function (conne
   expectType<SocketStream>(connection);
   expectType<Server>(app.websocketServer);
   expectType<FastifyRequest<RequestGenericInterface>>(request)
+  expectType<boolean>(request.ws);
 });
 
 const handler: WebsocketHandler = async (connection, request) => {
@@ -38,6 +39,7 @@ app.get('/websockets-via-annotated-const', { websocket: true }, handler);
 app.get('/not-specifed', async (request, reply) => {
   expectType<FastifyRequest>(request);
   expectType<FastifyReply>(reply)
+  expectType<boolean>(request.ws);
 });
 
 app.get('/not-websockets', { websocket: false }, async (request, reply) => {
@@ -51,10 +53,12 @@ app.route({
   handler: (request, reply) => {
     expectType<FastifyRequest>(request);
     expectType<FastifyReply>(reply);
+    expectType<boolean>(request.ws);
   },
   wsHandler: (connection, request) => {
     expectType<SocketStream>(connection);
     expectType<FastifyRequest<RouteGenericInterface>>(request);
+    expectType<boolean>(request.ws);
   },
 });
 
