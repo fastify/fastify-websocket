@@ -60,7 +60,7 @@ function fastifyWebsocket (fastify, opts, next) {
       wss.emit('connection', socket, rawRequest)
       const connection = WebSocket.createWebSocketStream(socket, opts.connectionOptions)
       socket.afterDuplex = true
-      socket.validator = request[kWebSocketSchema]
+      socket.validator = request.context[kWebSocketSchema]
       socket.strict = opts.strictMode ? opts.strictMode : false
       connection.socket = socket
 
