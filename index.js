@@ -6,6 +6,7 @@ const WebSocket = require('ws')
 
 const kWs = Symbol('ws-socket')
 const kWsHead = Symbol('ws-head')
+const kWebSocketSchema = Symbol('websocket-body-schema')
 
 function fastifyWebsocket (fastify, opts, next) {
   fastify.decorateRequest('ws', null)
@@ -59,7 +60,7 @@ function fastifyWebsocket (fastify, opts, next) {
       wss.emit('connection', socket, rawRequest)
       const connection = WebSocket.createWebSocketStream(socket, opts.connectionOptions)
       socket.afterDuplex = true
-      socket.validator = request && request.context.schema ? fastify.validatorCompiler({ schema: request.context.schema.body }) : null
+      socket.validator = request[kWebSocketSchema]
       socket.strict = opts.strictMode ? opts.strictMode : false
       connection.socket = socket
 
@@ -121,6 +122,8 @@ function fastifyWebsocket (fastify, opts, next) {
     // we always override the route handler so we can close websocket connections to routes to handlers that don't support websocket connections
     // This is not an arrow function to fetch the encapsulated this
     routeOptions.handler = function (request, reply) {
+      request.context[kWebSocketSchema] = request.context.schema ? fastify.validatorCompiler({ schema: request.context.schema.body }) : null
+
       // within the route handler, we check if there has been a connection upgrade by looking at request.raw[kWs]. we need to dispatch the normal HTTP handler if not, and hijack to dispatch the websocket handler if so
       if (request.raw[kWs]) {
         reply.hijack()
