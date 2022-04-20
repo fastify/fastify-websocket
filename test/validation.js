@@ -56,6 +56,34 @@ test('Should validate a websocket message', (t) => {
   })
 })
 
+test('Should not validate a websocket binary message', (t) => {
+  t.plan(2)
+
+  const fastify = Fastify()
+  t.teardown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket, { options: { WebSocket: ValidateWebSocket } })
+
+  fastify.get('/', { websocket: true, schema: testSchema }, (connection, request) => {
+    connection.socket.on('message', (message, isBinary) => {
+      t.equal(isBinary, true)
+      t.teardown(connection.destroy.bind(connection))
+    })
+  })
+
+  fastify.listen(0, (err) => {
+    t.error(err)
+    const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/')
+    ws.on('open', e => {
+      const array = new Float32Array(5)
+      for (let i = 0; i < array.length; ++i) {
+        array[i] = i / 2
+      }
+      ws.send(array)
+    })
+  })
+})
+
 test('Should invalidate a websocket message strict mode True', (t) => {
   t.plan(2)
   const fastify = Fastify()
@@ -138,6 +166,7 @@ test('Should invalidate a websocket message strict mode False', (t) => {
     })
   })
 })
+
 test('Should invalidate a malformed websocket message strict mode False', (t) => {
   t.plan(3)
   const fastify = Fastify()

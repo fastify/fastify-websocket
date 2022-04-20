@@ -60,7 +60,7 @@ function fastifyWebsocket (fastify, opts, next) {
       wss.emit('connection', socket, rawRequest)
       const connection = WebSocket.createWebSocketStream(socket, opts.connectionOptions)
       socket.afterDuplex = true
-      socket.validator = request.context[kWebSocketSchema]
+      socket.validator = request && request.context ? request.context[kWebSocketSchema] : null
       socket.strict = opts.strictMode ? opts.strictMode : false
       connection.socket = socket
 
@@ -189,7 +189,7 @@ function fastifyWebsocket (fastify, opts, next) {
   const oldDefaultRoute = fastify.getDefaultRoute()
   fastify.setDefaultRoute(function (req, res) {
     if (req[kWs]) {
-      handleUpgrade(req, (connection) => {
+      handleUpgrade(req, null, (connection) => {
         noHandle.call(fastify, connection, req)
       })
     } else {
