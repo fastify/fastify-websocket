@@ -181,7 +181,7 @@ function fastifyWebsocket (fastify, opts, next) {
     // Since we already handled the error, adding this listener prevents the ws
     // library from emitting the error and causing an uncaughtException
     // Reference: https://github.com/websockets/ws/blob/master/lib/stream.js#L35
-    conn.on('error', _ => {})
+    conn.on('error', _ => { })
     request.log.error(error)
     conn.destroy(error)
   }
@@ -217,13 +217,12 @@ class ValidateWebSocket extends WebSocket {
     return (message, isBinary) => {
       if (isBinary) return handler(message, isBinary)
       try {
-        if (!this.validator(JSON.parse(message.toString()))) {
-          if (this.strict) {
-            return this.close(1003, 'Unsupported payload')
-          } else {
-            return this.send(JSON.stringify(this.validator.errors))
-          }
+        const parsedInput = JSON.parse(message.toString())
+        if (this.validator(parsedInput)) return handler(parsedInput, false)
+        if (this.strict) {
+          return this.close(1003, 'Unsupported payload')
         }
+        return this.send(JSON.stringify(this.validator.errors))
       } catch (e) {
         if (this.strict) {
           return this.close(1003, 'Unsupported payload')
@@ -231,7 +230,6 @@ class ValidateWebSocket extends WebSocket {
           return this.send('Unsupported payload')
         }
       }
-      return handler(message, isBinary)
     }
   }
 
