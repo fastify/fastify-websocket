@@ -230,7 +230,7 @@ test('Should not hijack reply for a normal http request in the internal onError 
 
     const port = fastify.server.address().port
 
-    const httpClient = net.createConnection({ port: port }, () => {
+    const httpClient = net.createConnection({ port }, () => {
       t.teardown(httpClient.destroy.bind(httpClient))
 
       httpClient.write('GET / HTTP/1.1\r\n\r\n')
@@ -302,7 +302,7 @@ test('Should not hijack reply for an normal request to a websocket route that is
 
     const port = fastify.server.address().port
 
-    const httpClient = net.createConnection({ port: port }, () => {
+    const httpClient = net.createConnection({ port }, () => {
       t.teardown(httpClient.destroy.bind(httpClient))
       httpClient.write('GET /echo HTTP/1.1\r\n\r\n')
       httpClient.once('data', data => {
