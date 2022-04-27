@@ -1,6 +1,6 @@
 {
-  "name": "fastify-websocket",
-  "version": "4.2.2",
+  "name": "@fastify/websocket",
+  "version": "5.0.0",
   "description": "basic websocket support for fastify",
   "main": "index.js",
   "types": "index.d.ts",
@@ -41,5 +41,8 @@
   "dependencies": {
     "fastify-plugin": "^3.0.0",
     "ws": "^8.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
