@@ -1,7 +1,7 @@
-# fastify-websocket
+# @fastify/websocket
 
 ![CI](https://github.com/fastify/fastify-websocket/workflows/CI/badge.svg)
-[![NPM version](https://img.shields.io/npm/v/fastify-websocket.svg?style=flat)](https://www.npmjs.com/package/fastify-websocket)
+[![NPM version](https://img.shields.io/npm/v/@fastify/websocket.svg?style=flat)](https://www.npmjs.com/package/@fastify/websocket)
 [![Known Vulnerabilities](https://snyk.io/test/github/fastify/fastify-websocket/badge.svg)](https://snyk.io/test/github/fastify/fastify-websocket)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://standardjs.com/)
 
@@ -11,9 +11,9 @@ Built upon [ws@8](https://www.npmjs.com/package/ws).
 ## Install
 
 ```shell
-npm install fastify-websocket --save
+npm install @fastify/websocket --save
 # or 
-yarn add fastify-websocket
+yarn add @fastify/websocket
 ```
 
 If you're a TypeScript user, this package has its own TypeScript types built in, but you will also need to install the types for the `ws` package:
@@ -32,7 +32,7 @@ After registering this plugin, you can choose on which routes the WS server will
 'use strict'
 
 const fastify = require('fastify')()
-fastify.register(require('fastify-websocket'))
+fastify.register(require('@fastify/websocket'))
 
 fastify.get('/', { websocket: true }, (connection /* SocketStream */, req /* FastifyRequest */) => {
   connection.socket.on('message', message => {
@@ -58,7 +58,7 @@ However, you can still define a wildcard route, that will be used as default han
 
 const fastify = require('fastify')()
 
-fastify.register(require('fastify-websocket'), {
+fastify.register(require('@fastify/websocket'), {
   options: { maxPayload: 1048576 }
 })
 
@@ -103,7 +103,7 @@ fastify.get('/*', { websocket: true }, (connection, request) => {
 ```
 ### Using hooks
 
-Routes registered with `fastify-websocket` respect the Fastify plugin encapsulation contexts, and so will run any hooks that have been registered. This means the same route hooks you might use for authentication or error handling of plain old HTTP handlers will apply to websocket handlers as well.
+Routes registered with `@fastify/websocket` respect the Fastify plugin encapsulation contexts, and so will run any hooks that have been registered. This means the same route hooks you might use for authentication or error handling of plain old HTTP handlers will apply to websocket handlers as well.
 
 ```js
 fastify.addHook('preValidation', async (request, reply) => {
@@ -124,14 +124,14 @@ fastify.get('/', { websocket: true }, (connection, req) => {
 This plugin uses the same router as the `fastify` instance, this has a few implications to take into account:
 - Websocket route handlers follow the usual `fastify` request lifecycle, which means hooks, error handlers, and decorators all work the same way as other route handlers.
 - You can access the fastify server via `this` in your handlers
-- When using `fastify-websocket`, it needs to be registered before all routes in order to be able to intercept websocket connections to existing routes and close the connection on non-websocket routes.
+- When using `@fastify/websocket`, it needs to be registered before all routes in order to be able to intercept websocket connections to existing routes and close the connection on non-websocket routes.
 
 ```js
 'use strict'
 
 const fastify = require('fastify')()
 
-fastify.register(require('fastify-websocket'))
+fastify.register(require('@fastify/websocket'))
 
 fastify.get('/', { websocket: true }, function wsHandler (connection, req) {
   // bound to fastify server
@@ -162,7 +162,7 @@ function handle (conn, req) {
   conn.pipe(conn) // creates an echo server
 }
 
-fastify.register(require('fastify-websocket'), {
+fastify.register(require('@fastify/websocket'), {
   handle,
   options: { maxPayload: 1048576 }
 })
@@ -202,7 +202,7 @@ You can optionally provide a custom errorHandler that will be used to handle any
 
 const fastify = require('fastify')()
 
-fastify.register(require('fastify-websocket'), {
+fastify.register(require('@fastify/websocket'), {
   errorHandler: function (error, conn /* SocketStream */, req /* FastifyRequest */, reply /* FastifyReply */) {
     // Do stuff
     // destroy/close connection
@@ -236,7 +236,7 @@ fastify.listen(3000, err => {
 
 ## Options
 
-`fastify-websocket` accept these options for [`ws`](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback) :
+`@fastify/websocket` accept these options for [`ws`](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback) :
 
 - `host` - The hostname where to bind the server.
 - `port` - The port where to bind the server.
@@ -250,11 +250,11 @@ fastify.listen(3000, err => {
 
 For more information, you can check [`ws` options documentation](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback).
 
-_**NB** By default if you do not provide a `server` option `fastify-websocket` will bind your websocket server instance to the scoped `fastify` instance._
+_**NB** By default if you do not provide a `server` option `@fastify/websocket` will bind your websocket server instance to the scoped `fastify` instance._
 
 _**NB** The `path` option from `ws` should not be provided since the routing is handled by fastify itself_
 
-_**NB** The `noServer` option from `ws` should not be provided since the point of fastify-websocket is to listen on the fastify server. If you want a custom server, you can use the `server` option, and if you want more control, you can use the `ws` library directly_
+_**NB** The `noServer` option from `ws` should not be provided since the point of @fastify/websocket is to listen on the fastify server. If you want a custom server, you can use the `server` option, and if you want more control, you can use the `ws` library directly_
 
 You can also pass the following as `connectionOptions` for [createWebSocketStream](https://github.com/websockets/ws/blob/master/doc/ws.md#createwebsocketstreamwebsocket-options).
 
