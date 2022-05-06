@@ -144,7 +144,7 @@ fastify.get('/', { websocket: true }, function wsHandler (connection, req) {
   })
 })
 
-await fastify.listen(3000)
+await fastify.listen({ port: 3000 })
 ```
 
 If you need to handle both HTTP requests and incoming socket connections on the same route, you can still do it using the [full declaration syntax](https://www.fastify.io/docs/latest/Routes/#full-declaration), adding a `wsHandler` property.
