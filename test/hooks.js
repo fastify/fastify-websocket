@@ -337,12 +337,10 @@ test('Should not hijack reply for an normal request to a websocket route that is
 test('Should not hijack reply for an WS request to a WS route that gets sent a normal HTTP response in a hook', t => {
   t.plan(2)
   const fastify = Fastify()
-  t.teardown(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
   fastify.register(async function (fastify) {
     fastify.addHook('preValidation', async (request, reply) => {
-      await Promise.resolve()
       await reply.code(404).send('not found')
     })
     fastify.get('/echo', { websocket: true }, (conn, request) => {
@@ -354,9 +352,11 @@ test('Should not hijack reply for an WS request to a WS route that gets sent a n
     t.error(err)
 
     const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/echo')
-    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-    t.teardown(client.destroy.bind(client))
 
-    client.on('error', error => t.ok(error))
+    ws.on('error', error => {
+      t.ok(error)
+      ws.close()
+      fastify.close()
+    })
   })
 })

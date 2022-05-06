@@ -329,15 +329,17 @@ test('Should call the wildcard handler if a no other non-websocket route with pa
 
   fastify.register(fastifyWebsocket)
 
-  fastify.get('/*', { websocket: true }, (conn, request) => {
-    t.ok('called', 'wildcard handler')
-    conn.end()
-    t.teardown(conn.destroy.bind(conn))
-  })
+  fastify.register(async function (fastify) {
+    fastify.get('/*', { websocket: true }, (conn, request) => {
+      t.ok('called', 'wildcard handler')
+      conn.end()
+      t.teardown(conn.destroy.bind(conn))
+    })
 
-  fastify.get('/http', (request, reply) => {
-    t.fail('Should not call http handler')
-    reply.send('http route')
+    fastify.get('/http', (request, reply) => {
+      t.fail('Should not call http handler')
+      reply.send('http route')
+    })
   })
 
   fastify.listen({ port: 0 }, err => {

@@ -93,6 +93,13 @@ function fastifyWebsocket (fastify, opts, next) {
     done()
   })
 
+  fastify.addHook('onResponse', (request, reply, error, done) => {
+    if (request.ws) {
+      request.raw[kWs].destroy()
+    }
+    done()
+  })
+
   fastify.addHook('onRoute', routeOptions => {
     let isWebsocketRoute = false
     let wsHandler = routeOptions.wsHandler
