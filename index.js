@@ -98,7 +98,9 @@ function fastifyWebsocket (fastify, opts, next) {
     let handler = routeOptions.handler
 
     if (routeOptions.websocket || routeOptions.wsHandler) {
-      if (routeOptions.method !== 'GET') {
+      if (routeOptions.method === 'HEAD') {
+        return
+      } else if (routeOptions.method !== 'GET') {
         throw new Error('websocket handler can only be declared in GET method')
       }
 
@@ -106,7 +108,7 @@ function fastifyWebsocket (fastify, opts, next) {
 
       if (routeOptions.websocket) {
         wsHandler = routeOptions.handler
-        handler = function (request, reply) {
+        handler = function (_, reply) {
           reply.code(404).send()
         }
       }
@@ -171,7 +173,7 @@ function fastifyWebsocket (fastify, opts, next) {
     connection.socket.close()
   }
 
-  function defaultErrorHandler (error, conn, request, reply) {
+  function defaultErrorHandler (error, conn, request) {
     // Before destroying the connection, we attach an error listener.
     // Since we already handled the error, adding this listener prevents the ws
     // library from emitting the error and causing an uncaughtException

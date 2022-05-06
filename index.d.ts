@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { IncomingMessage, ServerResponse, Server } from 'http';
-import { FastifyRequest, FastifyPluginCallback, RawServerBase, RawServerDefault, RawRequestDefaultExpression, RawReplyDefaultExpression, RequestGenericInterface, ContextConfigDefault, FastifyInstance } from 'fastify';
+import { FastifyRequest, FastifyPluginCallback, RawServerBase, RawServerDefault, RawRequestDefaultExpression, RawReplyDefaultExpression, RequestGenericInterface, ContextConfigDefault, FastifyInstance} from 'fastify';
 import * as fastify from 'fastify';
 import * as WebSocket from 'ws';
 import { Duplex, DuplexOptions } from 'stream';
@@ -18,8 +18,8 @@ declare module 'fastify' {
     websocket?: boolean;
   }
 
-  interface FastifyInstance<RawServer, RawRequest, RawReply> {
-    get: RouteShorthandMethod<RawServer, RawRequest, RawReply>
+  interface FastifyInstance<RawServer, RawRequest, RawReply, Logger, TypeProvider> {
+    get: RouteShorthandMethod<RawServer, RawRequest, RawReply, TypeProvider>,
     websocketServer: WebSocket.Server,
   }
 
