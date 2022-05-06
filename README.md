@@ -33,11 +33,12 @@ After registering this plugin, you can choose on which routes the WS server will
 
 const fastify = require('fastify')()
 fastify.register(require('@fastify/websocket'))
-
-fastify.get('/', { websocket: true }, (connection /* SocketStream */, req /* FastifyRequest */) => {
-  connection.socket.on('message', message => {
-    // message.toString() === 'hi from client'
-    connection.socket.send('hi from server')
+fastify.register(async function (fastify) {
+  fastify.get('/', { websocket: true }, (connection /* SocketStream */, req /* FastifyRequest */) => {
+    connection.socket.on('message', message => {
+      // message.toString() === 'hi from client'
+      connection.socket.send('hi from server')
+    })
   })
 })
 
@@ -62,18 +63,19 @@ fastify.register(require('@fastify/websocket'), {
   options: { maxPayload: 1048576 }
 })
 
-
-fastify.get('/*', { websocket: true }, (connection /* SocketStream */, req /* FastifyRequest */) => {
-  connection.socket.on('message', message => {
-    // message.toString() === 'hi from client'
-    connection.socket.send('hi from wildcard route')
+fastify.register(async function (fastify) {
+  fastify.get('/*', { websocket: true }, (connection /* SocketStream */, req /* FastifyRequest */) => {
+    connection.socket.on('message', message => {
+      // message.toString() === 'hi from client'
+      connection.socket.send('hi from wildcard route')
+    })
   })
-})
 
-fastify.get('/', { websocket: true }, (connection /* SocketStream */, req /* FastifyRequest */) => {
-  connection.socket.on('message', message => {
-    // message.toString() === 'hi from client'
-    connection.socket.send('hi from server')
+  fastify.get('/', { websocket: true }, (connection /* SocketStream */, req /* FastifyRequest */) => {
+    connection.socket.on('message', message => {
+      // message.toString() === 'hi from client'
+      connection.socket.send('hi from server')
+    })
   })
 })
 
@@ -127,11 +129,10 @@ This plugin uses the same router as the `fastify` instance, this has a few impli
 - When using `@fastify/websocket`, it needs to be registered before all routes in order to be able to intercept websocket connections to existing routes and close the connection on non-websocket routes.
 
 ```js
-'use strict'
+import Fastify from 'fastify'
 
-const fastify = require('fastify')()
-
-fastify.register(require('@fastify/websocket'))
+const fastify = Fastify()
+await fastify.register(require('@fastify/websocket'))
 
 fastify.get('/', { websocket: true }, function wsHandler (connection, req) {
   // bound to fastify server
@@ -143,12 +144,7 @@ fastify.get('/', { websocket: true }, function wsHandler (connection, req) {
   })
 })
 
-fastify.listen(3000, err => {
-  if (err) {
-    fastify.log.error(err)
-    process.exit(1)
-  }
-})
+await fastify.listen(3000)
 ```
 
 If you need to handle both HTTP requests and incoming socket connections on the same route, you can still do it using the [full declaration syntax](https://www.fastify.io/docs/latest/Routes/#full-declaration), adding a `wsHandler` property.
@@ -167,22 +163,24 @@ fastify.register(require('@fastify/websocket'), {
   options: { maxPayload: 1048576 }
 })
 
-fastify.route({
-  method: 'GET',
-  url: '/hello',
-  handler: (req, reply) => {
-    // this will handle http requests
-    reply.send({ hello: 'world' })
-  },
-  wsHandler: (conn, req) => {
-    // this will handle websockets connections
-    conn.setEncoding('utf8')
-    conn.write('hello client')
+fastify.register(async function () {
+  fastify.route({
+    method: 'GET',
+    url: '/hello',
+    handler: (req, reply) => {
+      // this will handle http requests
+      reply.send({ hello: 'world' })
+    },
+    wsHandler: (conn, req) => {
+      // this will handle websockets connections
+      conn.setEncoding('utf8')
+      conn.write('hello client')
 
-    conn.once('data', chunk => {
-      conn.end()
-    })
-  }
+      conn.once('data', chunk => {
+        conn.end()
+      })
+    }
+  })
 })
 
 fastify.listen(3000, err => {
