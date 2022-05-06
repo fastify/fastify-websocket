@@ -81,7 +81,6 @@ function fastifyWebsocket (fastify, opts, next) {
   })
 
   fastify.addHook('onError', (request, reply, error, done) => {
-    /* istanbul ignore next */
     if (request.raw[kWs]) {
       // Hijack reply to prevent fastify from sending the error after onError hooks are done running
       reply.hijack()
