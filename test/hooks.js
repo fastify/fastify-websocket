@@ -5,6 +5,7 @@ const net = require('net')
 const Fastify = require('fastify')
 const fastifyWebsocket = require('..')
 const WebSocket = require('ws')
+const split = require('split2')
 
 test('Should run onRequest, preValidation, preHandler hooks', t => {
   t.plan(7)
@@ -335,8 +336,9 @@ test('Should not hijack reply for an normal request to a websocket route that is
 })
 
 test('Should not hijack reply for an WS request to a WS route that gets sent a normal HTTP response in a hook', t => {
-  t.plan(2)
-  const fastify = Fastify()
+  t.plan(6)
+  const stream = split(JSON.parse)
+  const fastify = Fastify({ logger: { stream } })
 
   fastify.register(fastifyWebsocket)
   fastify.register(async function (fastify) {
@@ -346,6 +348,10 @@ test('Should not hijack reply for an WS request to a WS route that gets sent a n
     fastify.get('/echo', { websocket: true }, (conn, request) => {
       t.fail()
     })
+  })
+
+  stream.on('data', (chunk) => {
+    t.ok(chunk.level < 50)
   })
 
   fastify.listen({ port: 0 }, err => {
