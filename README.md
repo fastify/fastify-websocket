@@ -2,7 +2,6 @@
 
 ![CI](https://github.com/fastify/fastify-websocket/workflows/CI/badge.svg)
 [![NPM version](https://img.shields.io/npm/v/@fastify/websocket.svg?style=flat)](https://www.npmjs.com/package/@fastify/websocket)
-[![Known Vulnerabilities](https://snyk.io/test/github/fastify/fastify-websocket/badge.svg)](https://snyk.io/test/github/fastify/fastify-websocket)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://standardjs.com/)
 
 WebSocket support for [Fastify](https://github.com/fastify/fastify).
