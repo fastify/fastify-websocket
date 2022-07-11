@@ -39,7 +39,7 @@
     "tsd": "^0.22.0"
   },
   "dependencies": {
-    "fastify-plugin": "^3.0.0",
+    "fastify-plugin": "^4.0.0",
     "ws": "^8.0.0"
   },
   "publishConfig": {
