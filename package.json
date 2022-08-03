@@ -1,0 +1,48 @@
+{
+  "name": "@fastify/websocket",
+  "version": "6.0.1",
+  "description": "basic websocket support for fastify",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "tsd": {
+    "directory": "./test/types"
+  },
+  "scripts": {
+    "lint": "standard | snazzy",
+    "unit": "tap --100 \"test/*.js\"",
+    "test:js": "npm run lint && npm run unit",
+    "test:ts": "tsd",
+    "test": "npm run lint && npm run test:js && npm run test:ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fastify/fastify-websocket.git"
+  },
+  "keywords": [
+    "fastify",
+    "websocket"
+  ],
+  "author": "Matteo Collina <hello@matteocollina.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fastify/fastify-websocket/issues"
+  },
+  "homepage": "https://github.com/fastify/fastify-websocket#readme",
+  "devDependencies": {
+    "@fastify/pre-commit": "^2.0.2",
+    "@types/ws": "^8.2.2",
+    "fastify": "^4.0.0-rc.2",
+    "snazzy": "^9.0.0",
+    "split2": "^4.1.0",
+    "standard": "^17.0.0",
+    "tap": "^16.0.0",
+    "tsd": "^0.22.0"
+  },
+  "dependencies": {
+    "fastify-plugin": "^4.0.0",
+    "ws": "^8.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
