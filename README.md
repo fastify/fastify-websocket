@@ -192,11 +192,11 @@ fastify.listen(3000, err => {
 
 ### Custom error handler:
 
-You can optionally provide a custom errorHandler that will be used to handle any cleaning up:
+You can optionally provide a custom `errorHandler` that will be used to handle any cleaning up of established websocket connections. The `errorHandler` will be called if any errors are thrown by your websocket route handler after the connection has been established. Note that neither Fastify's `onError` hook or functions registered with `fastify.setErrorHandler` will be called for errors thrown during a websocket request handler.
+
+Neither the `errorHandler` passed to this plugin or fastify's `onError` hook will be called for errors encountered during message processing for your connection. If you want to handle unexpected errors within your `message` event handlers, you'll need to use your own `try { } catch {}` statements and decide what to send back over the websocket.
 
 ```js
-'use strict'
-
 const fastify = require('fastify')()
 
 fastify.register(require('@fastify/websocket'), {
@@ -231,6 +231,7 @@ fastify.listen(3000, err => {
 })
 ```
 
+Note: Fastify's `onError` and error handlers registered by `setErrorHandler` will still be called for errors encountered *before* the websocket connection is established. This means errors thrown by `onRequest` hooks, `preValidation` handlers, and hooks registered by plugins will use the normal error handling mechanisms in Fastify. Once the websocket is established and your websocket route handler is called, `fastify-websocket`'s `errorHandler` takes over.
 ## Options
 
 `@fastify/websocket` accept these options for [`ws`](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback) :

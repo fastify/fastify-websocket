@@ -93,16 +93,14 @@ test('Should run onError hook before handler is executed (error thrown in onRequ
     fastify.addHook('onError', async (request, reply) => t.ok('called', 'onError'))
 
     fastify.get('/echo', { websocket: true }, (conn, request) => {
-      t.teardown(conn.destroy.bind(conn))
+      t.fail()
     })
   })
 
   fastify.listen({ port: 0 }, function (err) {
     t.error(err)
     const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/echo')
-    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-    t.teardown(client.destroy.bind(client))
-    ws.on('close', code => t.equal(code, 1006))
+    ws.on('unexpected-response', (_request, response) => t.equal(response.statusCode, 500))
   })
 })
 
@@ -130,9 +128,7 @@ test('Should run onError hook before handler is executed (error thrown in preVal
   fastify.listen({ port: 0 }, function (err) {
     t.error(err)
     const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/echo')
-    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-    t.teardown(client.destroy.bind(client))
-    ws.on('close', code => t.equal(code, 1006))
+    ws.on('unexpected-response', (_request, response) => t.equal(response.statusCode, 500))
   })
 })
 
@@ -152,7 +148,7 @@ test('onError hooks can send a reply and prevent hijacking', t => {
 
     fastify.addHook('onError', async (request, reply) => {
       t.ok('called', 'onError')
-      await reply.code(404).send('there was an error')
+      await reply.code(501).send('there was an error')
     })
 
     fastify.get('/echo', { websocket: true }, (conn, request) => {
@@ -163,9 +159,39 @@ test('onError hooks can send a reply and prevent hijacking', t => {
   fastify.listen({ port: 0 }, function (err) {
     t.error(err)
     const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/echo')
-    const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-    t.teardown(client.destroy.bind(client))
-    ws.on('close', code => t.equal(code, 1006))
+    ws.on('unexpected-response', (_request, response) => t.equal(response.statusCode, 501))
+  })
+})
+
+test('setErrorHandler functions can send a reply and prevent hijacking', t => {
+  t.plan(4)
+  const fastify = Fastify()
+
+  t.teardown(() => fastify.close())
+
+  fastify.register(fastifyWebsocket)
+
+  fastify.register(async function (fastify) {
+    fastify.addHook('preValidation', async (request, reply) => {
+      await Promise.resolve()
+      throw new Error('Fail')
+    })
+
+    fastify.setErrorHandler(async (error, request, reply) => {
+      t.ok('called', 'onError')
+      t.ok(error)
+      await reply.code(501).send('there was an error')
+    })
+
+    fastify.get('/echo', { websocket: true }, (conn, request) => {
+      t.fail()
+    })
+  })
+
+  fastify.listen({ port: 0 }, function (err) {
+    t.error(err)
+    const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/echo')
+    ws.on('unexpected-response', (_request, response) => t.equal(response.statusCode, 501))
   })
 })
 
