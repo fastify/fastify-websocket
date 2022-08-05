@@ -41,7 +41,7 @@ fastify.register(async function (fastify) {
   })
 })
 
-fastify.listen(3000, err => {
+fastify.listen({ port: 3000 }, err => {
   if (err) {
     fastify.log.error(err)
     process.exit(1)
@@ -78,7 +78,7 @@ fastify.register(async function (fastify) {
   })
 })
 
-fastify.listen(3000, err => {
+fastify.listen({ port: 3000 }, err => {
   if (err) {
     fastify.log.error(err)
     process.exit(1)
@@ -182,7 +182,7 @@ fastify.register(async function () {
   })
 })
 
-fastify.listen(3000, err => {
+fastify.listen({ port: 3000 }, err => {
   if (err) {
     fastify.log.error(err)
     process.exit(1)
@@ -223,7 +223,7 @@ fastify.get('/', { websocket: true }, (connection /* SocketStream */, req /* Fas
   })
 })
 
-fastify.listen(3000, err => {
+fastify.listen({ port: 3000 }, err => {
   if (err) {
     fastify.log.error(err)
     process.exit(1)
