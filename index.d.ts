@@ -66,6 +66,6 @@ export interface WebsocketPluginOptions {
   connectionOptions?: DuplexOptions;
 }
 
-export interface RouteOptions<RawServer extends RawServerBase = RawServerDefault, RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>, RawReply extends RawReplyDefaultExpression<RawServer> = RawReplyDefaultExpression<RawServer>, RouteGeneric extends RouteGenericInterface = RouteGenericInterface, ContextConfig = ContextConfigDefault, SchemaCompiler = fastify.FastifySchema> extends fastify.RouteOptions<RawServer, RawRequest, RawReply, RouteGeneric, ContextConfig, SchemaCompiler>, WebsocketRouteOptions<RawServer, RawRequest, RouteGeneric> {}
+export interface RouteOptions<RawServer extends RawServerBase = RawServerDefault, RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>, RawReply extends RawReplyDefaultExpression<RawServer> = RawReplyDefaultExpression<RawServer>, RouteGeneric extends RouteGenericInterface = RouteGenericInterface, ContextConfig = ContextConfigDefault, SchemaCompiler extends fastify.FastifySchema = fastify.FastifySchema> extends fastify.RouteOptions<RawServer, RawRequest, RawReply, RouteGeneric, ContextConfig, SchemaCompiler>, WebsocketRouteOptions<RawServer, RawRequest, RouteGeneric> {}
 
 export default websocketPlugin;
