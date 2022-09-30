@@ -4,6 +4,8 @@ import fastify, { RouteOptions, FastifyRequest, FastifyInstance, FastifyReply, R
 import { expectType } from 'tsd';
 import { Server } from 'ws';
 import { RouteGenericInterface } from 'fastify/types/route';
+import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
+import { Type } from '@sinclair/typebox'
 
 const app: FastifyInstance = fastify();
 app.register(wsPlugin);
@@ -105,3 +107,83 @@ app.route<{ Params: { foo: string }, Body: { bar: string }, Querystring: { searc
     expectType<IncomingMessage['headers'] & { auth: string }>(request.headers);
   },
 });
+
+const schema = {
+  params: Type.Object({
+    foo: Type.String()
+  }),
+  querystring: Type.Object({
+    search: Type.String()
+  }),
+  body: Type.Object({
+    bar: Type.String()
+  }),
+  headers: Type.Object({
+    auth: Type.String()
+  })
+};
+const server = app.withTypeProvider<TypeBoxTypeProvider>();
+
+server.route({
+  method: 'GET',
+  url: '/longhand-type-inference',
+  schema,
+  handler: (request, _reply) => {
+    expectType<{ foo: string }>(request.params);
+    expectType<{ bar: string }>(request.body);
+    expectType<{ search: string }>(request.query);
+    expectType<IncomingMessage['headers'] & { auth: string }>(request.headers);
+  },
+  wsHandler: (connection, request) => {
+    expectType<SocketStream>(connection);
+    expectType<{ foo: string }>(request.params);
+    expectType<{ bar: string }>(request.body);
+    expectType<{ search: string }>(request.query);
+    expectType<IncomingMessage['headers'] & { auth: string }>(request.headers);
+  },
+});
+
+server.get('/websockets-type-inference',
+  {
+    websocket: true,
+    schema
+  },
+  async function (connection, request) {
+    expectType<FastifyInstance>(this);
+    expectType<SocketStream>(connection);
+    expectType<Server>(app.websocketServer);
+    expectType<FastifyRequest<RequestGenericInterface>>(request)
+    expectType<boolean>(request.ws);
+    expectType<{ foo: string }>(request.params);
+    expectType<{ bar: string }>(request.body);
+    expectType<{ search: string }>(request.query);
+    expectType<IncomingMessage['headers'] & { auth: string }>(request.headers);
+  });
+
+server.get('/not-websockets-type-inference',
+  {
+    websocket: false,
+    schema
+  },
+  async (request, reply) => {
+    expectType<FastifyRequest>(request);
+    expectType<FastifyReply>(reply);
+    expectType<{ foo: string }>(request.params);
+    expectType<{ bar: string }>(request.body);
+    expectType<{ search: string }>(request.query);
+    expectType<IncomingMessage['headers'] & { auth: string }>(request.headers);
+  });
+
+server.get('/websockets-no-type-inference',
+  { websocket: true },
+  async function (connection, request) {
+    expectType<FastifyInstance>(this);
+    expectType<SocketStream>(connection);
+    expectType<Server>(app.websocketServer);
+    expectType<FastifyRequest<RequestGenericInterface>>(request)
+    expectType<boolean>(request.ws);
+    expectType<unknown>(request.params);
+    expectType<unknown>(request.body);
+    expectType<unknown>(request.query);
+    expectType<unknown>(request.headers);
+  });

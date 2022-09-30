@@ -42,7 +42,7 @@ declare module 'fastify' {
   > {
     <RequestGeneric extends RequestGenericInterface = RequestGenericInterface, ContextConfig = ContextConfigDefault, SchemaCompiler extends FastifySchema = FastifySchema, Logger extends FastifyBaseLogger = FastifyBaseLogger>(
       path: string,
-      opts: RouteShorthandOptions<RawServer, RawRequest, RawReply, RequestGeneric, ContextConfig> & { websocket: true }, // this creates an overload that only applies these different types if the handler is for websockets
+      opts: RouteShorthandOptions<RawServer, RawRequest, RawReply, RequestGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger> & { websocket: true }, // this creates an overload that only applies these different types if the handler is for websockets
       handler?: WebsocketHandler<RawServer, RawRequest, RequestGeneric, SchemaCompiler, TypeProvider, Logger>
     ): FastifyInstance<RawServer, RawRequest, RawReply, Logger, TypeProvider>;
   }
