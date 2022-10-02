@@ -1,11 +1,12 @@
 import wsPlugin, { WebsocketHandler, SocketStream } from '../..';
-import type {IncomingMessage} from "http";
-import fastify, { RouteOptions, FastifyRequest, FastifyInstance, FastifyReply, RequestGenericInterface } from 'fastify';
+import type { IncomingMessage } from "http";
+import fastify, { RouteOptions, FastifyRequest, FastifyInstance, FastifyReply, RequestGenericInterface, FastifyBaseLogger, RawServerDefault, FastifySchema, RawRequestDefaultExpression, RawServerBase, ContextConfigDefault, RawReplyDefaultExpression } from 'fastify';
 import { expectType } from 'tsd';
 import { Server } from 'ws';
 import { RouteGenericInterface } from 'fastify/types/route';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import { Type } from '@sinclair/typebox'
+import { Static, Type } from '@sinclair/typebox'
+import { ResolveFastifyRequestType } from 'fastify/types/type-provider';
 
 const app: FastifyInstance = fastify();
 app.register(wsPlugin);
@@ -108,6 +109,7 @@ app.route<{ Params: { foo: string }, Body: { bar: string }, Querystring: { searc
   },
 });
 
+
 const schema = {
   params: Type.Object({
     foo: Type.String()
@@ -122,6 +124,13 @@ const schema = {
     auth: Type.String()
   })
 };
+type SchemaType = {
+  params: Static<typeof schema.params>;
+  querystring: Static<typeof schema.querystring>;
+  body: Static<typeof schema.body>;
+  headers: Static<typeof schema.headers>;
+};
+
 const server = app.withTypeProvider<TypeBoxTypeProvider>();
 
 server.route({
@@ -152,7 +161,7 @@ server.get('/websockets-type-inference',
     expectType<FastifyInstance>(this);
     expectType<SocketStream>(connection);
     expectType<Server>(app.websocketServer);
-    expectType<FastifyRequest<RequestGenericInterface>>(request)
+    expectType<FastifyRequest<RequestGenericInterface, RawServerDefault, IncomingMessage, SchemaType, TypeBoxTypeProvider, unknown, FastifyBaseLogger>>(request);
     expectType<boolean>(request.ws);
     expectType<{ foo: string }>(request.params);
     expectType<{ bar: string }>(request.body);
@@ -166,8 +175,8 @@ server.get('/not-websockets-type-inference',
     schema
   },
   async (request, reply) => {
-    expectType<FastifyRequest>(request);
-    expectType<FastifyReply>(reply);
+    expectType<FastifyRequest<RouteGenericInterface, RawServerDefault, IncomingMessage, SchemaType, TypeBoxTypeProvider, unknown, FastifyBaseLogger, ResolveFastifyRequestType<TypeBoxTypeProvider, FastifySchema, RouteGenericInterface>>>(request);
+    expectType<FastifyReply<RawServerDefault, RawRequestDefaultExpression, RawReplyDefaultExpression, RouteGenericInterface, ContextConfigDefault, SchemaType, TypeBoxTypeProvider>>(reply);
     expectType<{ foo: string }>(request.params);
     expectType<{ bar: string }>(request.body);
     expectType<{ search: string }>(request.query);
@@ -180,10 +189,10 @@ server.get('/websockets-no-type-inference',
     expectType<FastifyInstance>(this);
     expectType<SocketStream>(connection);
     expectType<Server>(app.websocketServer);
-    expectType<FastifyRequest<RequestGenericInterface>>(request)
+    expectType<FastifyRequest<RequestGenericInterface, RawServerDefault, RawRequestDefaultExpression, FastifySchema, TypeBoxTypeProvider, unknown, FastifyBaseLogger>>(request);
     expectType<boolean>(request.ws);
     expectType<unknown>(request.params);
     expectType<unknown>(request.body);
     expectType<unknown>(request.query);
-    expectType<unknown>(request.headers);
+    expectType<IncomingMessage['headers']>(request.headers);
   });
