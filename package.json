@@ -30,6 +30,8 @@
   "homepage": "https://github.com/fastify/fastify-websocket#readme",
   "devDependencies": {
     "@fastify/pre-commit": "^2.0.2",
+    "@fastify/type-provider-typebox": "^2.3.0",
+    "@sinclair/typebox": "^0.24.44",
     "@types/ws": "^8.2.2",
     "fastify": "^4.0.0-rc.2",
     "snazzy": "^9.0.0",
