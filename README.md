@@ -129,9 +129,10 @@ This plugin uses the same router as the `fastify` instance, this has a few impli
 
 ```js
 import Fastify from 'fastify'
+import websocket from '@fastify/websocket'
 
 const fastify = Fastify()
-await fastify.register(require('@fastify/websocket'))
+await fastify.register(websocket)
 
 fastify.get('/', { websocket: true }, function wsHandler (connection, req) {
   // bound to fastify server
