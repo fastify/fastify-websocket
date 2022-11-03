@@ -7,6 +7,7 @@ const test = require('tap').test
 const Fastify = require('fastify')
 const fastifyWebsocket = require('..')
 const WebSocket = require('ws')
+const { once } = require('events')
 
 test('Should expose a websocket', (t) => {
   t.plan(3)
@@ -593,4 +594,26 @@ test('Should preserve the prefix in non-websocket routes', (t) => {
   fastify.inject('/hello', function (err) {
     t.error(err)
   })
+})
+
+test('Should Handle WebSocket errors to avoid Node.js crashes', async t => {
+  t.plan(1)
+
+  const fastify = Fastify()
+  await fastify.register(fastifyWebsocket)
+
+  fastify.get('/', { websocket: true }, ({ socket }) => {
+    socket.on('error', err => {
+      t.equal(err.code, 'WS_ERR_UNEXPECTED_RSV_2_3')
+    })
+  })
+
+  await fastify.listen({ port: 0 })
+
+  const client = new WebSocket('ws://localhost:' + fastify.server.address().port)
+  await once(client, 'open')
+
+  client._socket.write(Buffer.from([0xa2, 0x00]))
+
+  await fastify.close()
 })

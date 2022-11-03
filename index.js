@@ -61,6 +61,10 @@ function fastifyWebsocket (fastify, opts, next) {
       const connection = WebSocket.createWebSocketStream(socket, opts.connectionOptions)
       connection.socket = socket
 
+      connection.on('error', (error) => {
+        fastify.log.error(error)
+      })
+
       connection.socket.on('newListener', event => {
         if (event === 'message') {
           connection.resume()
