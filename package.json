@@ -1,6 +1,6 @@
 {
   "name": "@fastify/websocket",
-  "version": "7.1.0",
+  "version": "7.1.1",
   "description": "basic websocket support for fastify",
   "main": "index.js",
   "types": "index.d.ts",
