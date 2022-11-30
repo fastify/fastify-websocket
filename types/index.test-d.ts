@@ -1,4 +1,4 @@
-import wsPlugin, { WebsocketHandler, SocketStream } from '../..';
+import wsPlugin, { WebsocketHandler, SocketStream } from '..';
 import type { IncomingMessage } from "http";
 import fastify, { RouteOptions, FastifyRequest, FastifyInstance, FastifyReply, RequestGenericInterface, FastifyBaseLogger, RawServerDefault, FastifySchema, RawRequestDefaultExpression, RawServerBase, ContextConfigDefault, RawReplyDefaultExpression } from 'fastify';
 import { expectType } from 'tsd';

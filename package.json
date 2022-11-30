@@ -3,16 +3,12 @@
   "version": "7.1.1",
   "description": "basic websocket support for fastify",
   "main": "index.js",
-  "types": "index.d.ts",
-  "tsd": {
-    "directory": "./test/types"
-  },
+  "types": "types/index.d.ts",
   "scripts": {
-    "lint": "standard | snazzy",
-    "unit": "tap --100 \"test/*.js\"",
-    "test:js": "npm run lint && npm run unit",
-    "test:ts": "tsd",
-    "test": "npm run lint && npm run test:js && npm run test:ts"
+    "lint": "standard",
+    "test": "npm run test:unit && npm run test:typescript",
+    "test:unit": "tap",
+    "test:typescript": "tsd"
   },
   "repository": {
     "type": "git",
@@ -34,7 +30,6 @@
     "@sinclair/typebox": "^0.25.10",
     "@types/ws": "^8.2.2",
     "fastify": "^4.0.0-rc.2",
-    "snazzy": "^9.0.0",
     "split2": "^4.1.0",
     "standard": "^17.0.0",
     "tap": "^16.0.0",
@@ -46,5 +41,9 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "pre-commit": [
+    "lint",
+    "test"
+  ]
 }
