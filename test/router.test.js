@@ -457,7 +457,7 @@ test('Should open on registered path', t => {
 
   fastify.listen({ port: 0 }, err => {
     t.error(err)
-    const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/echo/')
+    const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/echo')
     ws.on('open', () => {
       t.pass()
       client.end()

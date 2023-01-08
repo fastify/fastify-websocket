@@ -182,17 +182,6 @@ function fastifyWebsocket (fastify, opts, next) {
     conn.destroy(error)
   }
 
-  const oldDefaultRoute = fastify.getDefaultRoute()
-  fastify.setDefaultRoute(function (req, res) {
-    if (req[kWs]) {
-      handleUpgrade(req, (connection) => {
-        noHandle.call(fastify, connection, req)
-      })
-    } else {
-      return oldDefaultRoute(req, res)
-    }
-  })
-
   next()
 }
 
