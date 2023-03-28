@@ -194,3 +194,5 @@ module.exports = fp(fastifyWebsocket, {
   fastify: '>= 4.0.0',
   name: '@fastify/websocket'
 })
+module.exports.default = fastifyWebsocket
+module.exports.fastifyWebsocket = fastifyWebsocket

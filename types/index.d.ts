@@ -16,7 +16,7 @@ interface WebsocketRouteOptions<
   TypeProvider extends FastifyTypeProvider = FastifyTypeProviderDefault,
   Logger extends FastifyBaseLogger = FastifyBaseLogger
 > {
-  wsHandler?: WebsocketHandler<RawServer, RawRequest, RequestGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger>;
+  wsHandler?: fastifyWebsocket.WebsocketHandler<RawServer, RawRequest, RequestGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger>;
 }
 
 declare module 'fastify' {
@@ -44,7 +44,7 @@ declare module 'fastify' {
     <RequestGeneric extends RequestGenericInterface = RequestGenericInterface, ContextConfig = ContextConfigDefault, SchemaCompiler extends FastifySchema = FastifySchema, Logger extends FastifyBaseLogger = FastifyBaseLogger>(
       path: string,
       opts: RouteShorthandOptions<RawServer, RawRequest, RawReply, RequestGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger> & { websocket: true }, // this creates an overload that only applies these different types if the handler is for websockets
-      handler?: WebsocketHandler<RawServer, RawRequest, RequestGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger>
+      handler?: fastifyWebsocket.WebsocketHandler<RawServer, RawRequest, RequestGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger>
     ): FastifyInstance<RawServer, RawRequest, RawReply, Logger, TypeProvider>;
   }
 
@@ -60,43 +60,50 @@ declare module 'fastify' {
   > extends WebsocketRouteOptions<RawServer, RawRequest, RouteGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger> { }
 }
 
-declare const websocketPlugin: FastifyPluginCallback<WebsocketPluginOptions>;
+type FastifyWebsocket = FastifyPluginCallback<fastifyWebsocket.WebsocketPluginOptions>;
 
-interface WebSocketServerOptions extends Omit<WebSocket.ServerOptions, "path"> { }
+declare namespace fastifyWebsocket {
 
-export type WebsocketHandler<
-  RawServer extends RawServerBase = RawServerDefault,
-  RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>,
-  RequestGeneric extends RequestGenericInterface = RequestGenericInterface,
-  ContextConfig = ContextConfigDefault,
-  SchemaCompiler extends FastifySchema = FastifySchema,
-  TypeProvider extends FastifyTypeProvider = FastifyTypeProviderDefault,
-  Logger extends FastifyBaseLogger = FastifyBaseLogger
-> = (
-  this: FastifyInstance<Server, IncomingMessage, ServerResponse>,
-  connection: SocketStream,
-  request: FastifyRequest<RequestGeneric, RawServer, RawRequest, SchemaCompiler, TypeProvider, ContextConfig, Logger>
-) => void | Promise<any>;
+  interface WebSocketServerOptions extends Omit<WebSocket.ServerOptions, "path"> { }
+  
+  export type WebsocketHandler<
+    RawServer extends RawServerBase = RawServerDefault,
+    RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>,
+    RequestGeneric extends RequestGenericInterface = RequestGenericInterface,
+    ContextConfig = ContextConfigDefault,
+    SchemaCompiler extends FastifySchema = FastifySchema,
+    TypeProvider extends FastifyTypeProvider = FastifyTypeProviderDefault,
+    Logger extends FastifyBaseLogger = FastifyBaseLogger
+  > = (
+    this: FastifyInstance<Server, IncomingMessage, ServerResponse>,
+    connection: SocketStream,
+    request: FastifyRequest<RequestGeneric, RawServer, RawRequest, SchemaCompiler, TypeProvider, ContextConfig, Logger>
+  ) => void | Promise<any>;
+  
+  export interface SocketStream extends Duplex {
+    socket: WebSocket;
+  }
+  
+  export interface WebsocketPluginOptions {
+    errorHandler?: (this: FastifyInstance, error: Error, connection: SocketStream, request: FastifyRequest, reply: FastifyReply) => void;
+    options?: WebSocketServerOptions;
+    connectionOptions?: DuplexOptions;
+  }
 
-export interface SocketStream extends Duplex {
-  socket: WebSocket;
+  export interface RouteOptions<
+    RawServer extends RawServerBase = RawServerDefault,
+    RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>,
+    RawReply extends RawReplyDefaultExpression<RawServer> = RawReplyDefaultExpression<RawServer>,
+    RouteGeneric extends RouteGenericInterface = RouteGenericInterface,
+    ContextConfig = ContextConfigDefault,
+    SchemaCompiler extends fastify.FastifySchema = fastify.FastifySchema,
+    TypeProvider extends FastifyTypeProvider = FastifyTypeProviderDefault,
+    Logger extends FastifyBaseLogger = FastifyBaseLogger
+  > extends fastify.RouteOptions<RawServer, RawRequest, RawReply, RouteGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger>, WebsocketRouteOptions<RawServer, RawRequest, RouteGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger> { }
+
+  export const websocketPlugin: FastifyWebsocket
+  export { websocketPlugin as default }
 }
 
-export interface WebsocketPluginOptions {
-  errorHandler?: (this: FastifyInstance, error: Error, connection: SocketStream, request: FastifyRequest, reply: FastifyReply) => void;
-  options?: WebSocketServerOptions;
-  connectionOptions?: DuplexOptions;
-}
-
-export interface RouteOptions<
-  RawServer extends RawServerBase = RawServerDefault,
-  RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>,
-  RawReply extends RawReplyDefaultExpression<RawServer> = RawReplyDefaultExpression<RawServer>,
-  RouteGeneric extends RouteGenericInterface = RouteGenericInterface,
-  ContextConfig = ContextConfigDefault,
-  SchemaCompiler extends fastify.FastifySchema = fastify.FastifySchema,
-  TypeProvider extends FastifyTypeProvider = FastifyTypeProviderDefault,
-  Logger extends FastifyBaseLogger = FastifyBaseLogger
-> extends fastify.RouteOptions<RawServer, RawRequest, RawReply, RouteGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger>, WebsocketRouteOptions<RawServer, RawRequest, RouteGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger> { }
-
-export default websocketPlugin;
+declare function fastifyWebsocket(...params: Parameters<FastifyWebsocket>): ReturnType<FastifyWebsocket>
+export = fastifyWebsocket
