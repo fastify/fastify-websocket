@@ -38,6 +38,7 @@ function fastifyWebsocket (fastify, opts, next) {
   const wss = new WebSocket.Server(wssOptions)
   fastify.decorate('websocketServer', wss)
 
+  websocketListenServer.removeAllListeners('upgrade')
   websocketListenServer.on('upgrade', (rawRequest, socket, head) => {
     // Save a reference to the socket and then dispatch the request through the normal fastify router so that it will invoke hooks and then eventually a route handler that might upgrade the socket.
     rawRequest[kWs] = socket
