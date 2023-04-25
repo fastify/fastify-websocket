@@ -276,7 +276,7 @@ test('Should not hijack reply for a normal http request in the internal onError 
     const httpClient = net.createConnection({ port }, () => {
       t.teardown(httpClient.destroy.bind(httpClient))
 
-      httpClient.write('GET / HTTP/1.1\r\n\r\n')
+      httpClient.write('GET / HTTP/1.1\r\nHOST: localhost\r\n\r\n')
       httpClient.once('data', data => {
         t.match(data.toString(), /Fail/i)
       })
@@ -352,7 +352,7 @@ test('Should not hijack reply for an normal request to a websocket route that is
 
     const httpClient = net.createConnection({ port }, () => {
       t.teardown(httpClient.destroy.bind(httpClient))
-      httpClient.write('GET /echo HTTP/1.1\r\n\r\n')
+      httpClient.write('GET /echo HTTP/1.1\r\nHOST: localhost\r\n\r\n')
       httpClient.once('data', data => {
         t.match(data.toString(), /not found/i)
       })
