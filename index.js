@@ -43,8 +43,12 @@ function fastifyWebsocket (fastify, opts, next) {
     rawRequest[kWs] = socket
     rawRequest[kWsHead] = head
     const rawResponse = new ServerResponse(rawRequest)
-    rawResponse.assignSocket(socket)
-    fastify.routing(rawRequest, rawResponse)
+    try {
+      rawResponse.assignSocket(socket)
+      fastify.routing(rawRequest, rawResponse)
+    } catch (err) {
+      fastify.log.warn({ err }, 'websocket upgrade failed')
+    }
   }
   websocketListenServer.on('upgrade', onUpgrade)
 
