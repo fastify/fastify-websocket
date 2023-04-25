@@ -38,22 +38,15 @@ function fastifyWebsocket (fastify, opts, next) {
   const wss = new WebSocket.Server(wssOptions)
   fastify.decorate('websocketServer', wss)
 
-  websocketListenServer.removeAllListeners('upgrade')
-  websocketListenServer.on('upgrade', (rawRequest, socket, head) => {
+  function onUpgrade (rawRequest, socket, head) {
     // Save a reference to the socket and then dispatch the request through the normal fastify router so that it will invoke hooks and then eventually a route handler that might upgrade the socket.
     rawRequest[kWs] = socket
     rawRequest[kWsHead] = head
-
-    if (closing) {
-      handleUpgrade(rawRequest, (connection) => {
-        connection.socket.close(1001)
-      })
-    } else {
-      const rawResponse = new ServerResponse(rawRequest)
-      rawResponse.assignSocket(socket)
-      fastify.routing(rawRequest, rawResponse)
-    }
-  })
+    const rawResponse = new ServerResponse(rawRequest)
+    rawResponse.assignSocket(socket)
+    fastify.routing(rawRequest, rawResponse)
+  }
+  websocketListenServer.on('upgrade', onUpgrade)
 
   const handleUpgrade = (rawRequest, callback) => {
     wss.handleUpgrade(rawRequest, rawRequest[kWs], rawRequest[kWsHead], (socket) => {
@@ -148,24 +141,23 @@ function fastifyWebsocket (fastify, opts, next) {
 
   fastify.addHook('onClose', close)
 
-  let closing = false
-
   // Fastify is missing a pre-close event, or the ability to
   // add a hook before the server.close call. We need to resort
   // to monkeypatching for now.
-  const oldClose = fastify.server.close
-  fastify.server.close = function (cb) {
-    closing = true
-
-    // Call oldClose first so that we stop listening. This ensures the
-    // server.clients list will be up to date when we start closing below.
-    oldClose.call(this, cb)
-
-    const server = fastify.websocketServer
-    if (!server.clients) return
-    for (const client of server.clients) {
-      client.close()
+  fastify.addHook('preClose', function (done) {
+    const server = this.websocketServer
+    if (server.clients) {
+      for (const client of server.clients) {
+        client.close()
+      }
     }
+    fastify.server.removeListener('upgrade', onUpgrade)
+    done()
+  })
+
+  function close (fastify, done) {
+    const server = fastify.websocketServer
+    server.close(done)
   }
 
   function noHandle (connection, rawRequest) {
@@ -186,13 +178,8 @@ function fastifyWebsocket (fastify, opts, next) {
   next()
 }
 
-function close (fastify, done) {
-  const server = fastify.websocketServer
-  server.close(done)
-}
-
 module.exports = fp(fastifyWebsocket, {
-  fastify: '>= 4.0.0',
+  fastify: '^4.16.0',
   name: '@fastify/websocket'
 })
 module.exports.default = fastifyWebsocket
