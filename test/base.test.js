@@ -408,7 +408,7 @@ test('Should gracefully close when clients attempt to connect after calling clos
 
   fastify.get('/', { websocket: true }, (connection) => {
     t.pass('received client connection')
-    t.teardown(() => connection.destroy())
+    connection.destroy()
     // this connection stays alive until we close the server
   })
 
