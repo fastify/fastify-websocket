@@ -306,7 +306,7 @@ test('Should invoke the correct handler depending on the headers', t => {
     const port = fastify.server.address().port
 
     const httpClient = net.createConnection({ port }, () => {
-      httpClient.write('GET / HTTP/1.1\r\n\r\n')
+      httpClient.write('GET / HTTP/1.1\r\nHOST: localhost\r\n\r\n')
       httpClient.once('data', data => {
         t.match(data.toString(), /hi from handler/i)
         httpClient.end()
