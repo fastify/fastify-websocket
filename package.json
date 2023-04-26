@@ -30,7 +30,7 @@
     "@sinclair/typebox": "^0.25.10",
     "@types/node": "^18.15.0",
     "@types/ws": "^8.2.2",
-    "fastify": "^4.0.0",
+    "fastify": "^4.16.0",
     "split2": "^4.1.0",
     "standard": "^17.0.0",
     "tap": "^16.0.0",

@@ -398,11 +398,8 @@ test('Should gracefully close when clients attempt to connect after calling clos
   fastify.server.close = function (cb) {
     const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
 
-    p = once(ws, 'close').then(() => {
-      t.pass('client 2 closed')
-    })
-
-    ws.on('open', () => {
+    p = once(ws, 'close').catch((err) => {
+      t.equal(err.message, 'Unexpected server response: 503')
       oldClose.call(this, cb)
     })
   }
@@ -411,7 +408,7 @@ test('Should gracefully close when clients attempt to connect after calling clos
 
   fastify.get('/', { websocket: true }, (connection) => {
     t.pass('received client connection')
-    t.teardown(() => connection.destroy())
+    connection.destroy()
     // this connection stays alive until we close the server
   })
 
@@ -585,4 +582,39 @@ test('Should Handle WebSocket errors to avoid Node.js crashes', async t => {
   client._socket.write(Buffer.from([0xa2, 0x00]))
 
   await fastify.close()
+})
+
+test('remove all others websocket handlers on close', async (t) => {
+  const fastify = Fastify()
+
+  await fastify.register(fastifyWebsocket)
+
+  await fastify.listen({ port: 0 })
+
+  await fastify.close()
+
+  t.equal(fastify.server.listeners('upgrade').length, 0)
+})
+
+test('clashing upgrade handler', async (t) => {
+  const fastify = Fastify()
+  t.teardown(() => fastify.close())
+
+  fastify.server.on('upgrade', (req, socket, head) => {
+    const res = new http.ServerResponse(req)
+    res.assignSocket(socket)
+    res.end()
+    socket.destroy()
+  })
+
+  await fastify.register(fastifyWebsocket)
+
+  fastify.get('/', { websocket: true }, (connection) => {
+    t.fail('this should never be invoked')
+  })
+
+  await fastify.listen({ port: 0 })
+
+  const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
+  await once(ws, 'error')
 })
