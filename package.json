@@ -28,7 +28,7 @@
     "@fastify/pre-commit": "^2.0.2",
     "@fastify/type-provider-typebox": "^2.3.0",
     "@sinclair/typebox": "^0.25.10",
-    "@types/node": "^18.15.0",
+    "@types/node": "^20.1.0",
     "@types/ws": "^8.2.2",
     "fastify": "^4.16.0",
     "split2": "^4.1.0",
