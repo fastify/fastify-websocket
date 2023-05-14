@@ -27,7 +27,6 @@
   "devDependencies": {
     "@fastify/pre-commit": "^2.0.2",
     "@fastify/type-provider-typebox": "^3.2.0",
-    "@sinclair/typebox": "^0.25.10",
     "@types/node": "^20.1.0",
     "@types/ws": "^8.2.2",
     "fastify": "^4.16.0",
