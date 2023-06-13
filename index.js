@@ -20,12 +20,12 @@ function fastifyWebsocket (fastify, opts, next) {
   }
 
   let preClose = defaultPreClose
-  if (opts.options && opts.options.preClose) {
-    if (typeof opts.options.preClose !== 'function') {
+  if (opts && opts.preClose) {
+    if (typeof opts.preClose !== 'function') {
       return next(new Error('invalid preClose function'))
     }
 
-    preClose = opts.options.preClose
+    preClose = opts.preClose
   }
 
   if (opts.options && opts.options.noServer) {

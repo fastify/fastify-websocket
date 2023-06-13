@@ -356,18 +356,16 @@ test('Should be able to pass preClose option to override default', async (t) => 
 
   const fastify = Fastify()
 
-  const options = {
-    preClose: (done) => {
-      t.pass('Custom preclose successfully called')
+  const preClose = (done) => {
+    t.pass('Custom preclose successfully called')
 
-      for (const connection of fastify.websocketServer.clients) {
-        connection.close()
-      }
-      done()
+    for (const connection of fastify.websocketServer.clients) {
+      connection.close()
     }
+    done()
   }
 
-  await fastify.register(fastifyWebsocket, { options })
+  await fastify.register(fastifyWebsocket, { preClose })
 
   fastify.get('/', { websocket: true }, (connection) => {
     connection.setEncoding('utf8')
@@ -402,12 +400,10 @@ test('Should fail if custom preClose is not a function', async (t) => {
   const fastify = Fastify()
   t.teardown(() => fastify.close())
 
-  const options = {
-    preClose: 'Not a function'
-  }
+  const preClose = 'Not a function'
 
   try {
-    await fastify.register(fastifyWebsocket, { options })
+    await fastify.register(fastifyWebsocket, { preClose })
   } catch (err) {
     t.equal(err.message, 'invalid preClose function')
   }
