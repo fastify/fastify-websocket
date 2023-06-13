@@ -157,11 +157,6 @@ function fastifyWebsocket (fastify, opts, next) {
   // to monkeypatching for now.
   fastify.addHook('preClose', preClose)
 
-  function noHandle (connection, rawRequest) {
-    this.log.info({ path: rawRequest.url }, 'closed incoming websocket connection for path with no websocket handler')
-    connection.socket.close()
-  }
-
   function defaultPreClose (done) {
     const server = this.websocketServer
     if (server.clients) {
@@ -174,6 +169,11 @@ function fastifyWebsocket (fastify, opts, next) {
     server.close(done)
 
     done()
+  }
+
+  function noHandle (connection, rawRequest) {
+    this.log.info({ path: rawRequest.url }, 'closed incoming websocket connection for path with no websocket handler')
+    connection.socket.close()
   }
 
   function defaultErrorHandler (error, conn, request) {
