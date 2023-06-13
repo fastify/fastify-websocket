@@ -152,18 +152,10 @@ function fastifyWebsocket (fastify, opts, next) {
     }
   })
 
-  fastify.addHook('onClose', close)
-
   // Fastify is missing a pre-close event, or the ability to
   // add a hook before the server.close call. We need to resort
   // to monkeypatching for now.
-
   fastify.addHook('preClose', preClose)
-
-  function close (fastify, done) {
-    const server = fastify.websocketServer
-    server.close(done)
-  }
 
   function noHandle (connection, rawRequest) {
     this.log.info({ path: rawRequest.url }, 'closed incoming websocket connection for path with no websocket handler')
@@ -178,6 +170,9 @@ function fastifyWebsocket (fastify, opts, next) {
       }
     }
     fastify.server.removeListener('upgrade', onUpgrade)
+
+    server.close(done)
+
     done()
   }
 
