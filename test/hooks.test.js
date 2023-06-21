@@ -362,7 +362,7 @@ test('Should not hijack reply for an normal request to a websocket route that is
 })
 
 test('Should not hijack reply for an WS request to a WS route that gets sent a normal HTTP response in a hook', t => {
-  t.plan(5)
+  t.plan(6)
   const stream = split(JSON.parse)
   const fastify = Fastify({ logger: { stream } })
 
