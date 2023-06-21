@@ -5,6 +5,7 @@ import * as fastify from 'fastify';
 import WebSocket from 'ws';
 import { Duplex, DuplexOptions } from 'stream';
 import { FastifyReply } from 'fastify/types/reply';
+import { preCloseHookHandler, preCloseAsyncHookHandler } from 'fastify/types/hooks';
 import { RouteGenericInterface } from 'fastify/types/route';
 
 interface WebsocketRouteOptions<
@@ -88,6 +89,7 @@ declare namespace fastifyWebsocket {
     errorHandler?: (this: FastifyInstance, error: Error, connection: SocketStream, request: FastifyRequest, reply: FastifyReply) => void;
     options?: WebSocketServerOptions;
     connectionOptions?: DuplexOptions;
+    preClose?: preCloseHookHandler | preCloseAsyncHookHandler;
   }
 
   export interface RouteOptions<
