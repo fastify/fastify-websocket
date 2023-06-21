@@ -244,7 +244,7 @@ Note that `preClose` is responsible for closing all connections and closing the 
 const fastify = require('fastify')()
 
 fastify.register(require('@fastify/websocket'), {
-  preClose: (done) => {
+  preClose: (done) => { // Note: can also use async style, without done-callback
     const server = this.websocketServer
 
     for (const connection of server.clients) {
