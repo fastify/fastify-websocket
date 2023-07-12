@@ -351,6 +351,74 @@ test('Should be able to pass custom connectionOptions to createWebSocketStream',
   await p
 })
 
+test('Should be able to pass preClose option to override default', async (t) => {
+  t.plan(3)
+
+  const fastify = Fastify()
+
+  const preClose = (done) => {
+    t.pass('Custom preclose successfully called')
+
+    for (const connection of fastify.websocketServer.clients) {
+      connection.close()
+    }
+    done()
+  }
+
+  await fastify.register(fastifyWebsocket, { preClose })
+
+  fastify.get('/', { websocket: true }, (connection) => {
+    connection.setEncoding('utf8')
+    t.teardown(() => connection.destroy())
+
+    connection.once('data', (chunk) => {
+      t.equal(chunk, 'hello server')
+      connection.write('hello client')
+      connection.end()
+    })
+  })
+
+  await fastify.listen({ port: 0 })
+
+  const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
+  const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+  t.teardown(() => client.destroy())
+
+  client.setEncoding('utf8')
+  client.write('hello server')
+
+  const [chunk] = await once(client, 'data')
+  t.equal(chunk, 'hello client')
+  client.end()
+
+  await fastify.close()
+})
+
+test('Should fail if custom preClose is not a function', async (t) => {
+  t.plan(2)
+
+  const fastify = Fastify()
+  t.teardown(() => fastify.close())
+
+  const preClose = 'Not a function'
+
+  try {
+    await fastify.register(fastifyWebsocket, { preClose })
+  } catch (err) {
+    t.equal(err.message, 'invalid preClose function')
+  }
+
+  fastify.get('/', { websocket: true }, (connection) => {
+    t.teardown(() => connection.destroy())
+  })
+
+  try {
+    await fastify.listen({ port: 0 })
+  } catch (err) {
+    t.equal(err.message, 'invalid preClose function')
+  }
+})
+
 test('Should gracefully close with a connected client', async (t) => {
   t.plan(2)
 

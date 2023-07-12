@@ -19,6 +19,15 @@ function fastifyWebsocket (fastify, opts, next) {
     errorHandler = opts.errorHandler
   }
 
+  let preClose = defaultPreClose
+  if (opts && opts.preClose) {
+    if (typeof opts.preClose !== 'function') {
+      return next(new Error('invalid preClose function'))
+    }
+
+    preClose = opts.preClose
+  }
+
   if (opts.options && opts.options.noServer) {
     return next(new Error("fastify-websocket doesn't support the ws noServer option. If you want to create a websocket server detatched from fastify, use the ws library directly."))
   }
@@ -143,12 +152,12 @@ function fastifyWebsocket (fastify, opts, next) {
     }
   })
 
-  fastify.addHook('onClose', close)
-
   // Fastify is missing a pre-close event, or the ability to
   // add a hook before the server.close call. We need to resort
   // to monkeypatching for now.
-  fastify.addHook('preClose', function (done) {
+  fastify.addHook('preClose', preClose)
+
+  function defaultPreClose (done) {
     const server = this.websocketServer
     if (server.clients) {
       for (const client of server.clients) {
@@ -156,12 +165,10 @@ function fastifyWebsocket (fastify, opts, next) {
       }
     }
     fastify.server.removeListener('upgrade', onUpgrade)
-    done()
-  })
 
-  function close (fastify, done) {
-    const server = fastify.websocketServer
     server.close(done)
+
+    done()
   }
 
   function noHandle (connection, rawRequest) {

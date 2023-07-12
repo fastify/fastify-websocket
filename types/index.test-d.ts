@@ -22,6 +22,8 @@ app.register(wsPlugin, {
   }
 });
 app.register(wsPlugin, { options: { perMessageDeflate: true } });
+app.register(wsPlugin, { preClose: function syncPreclose() {} });
+app.register(wsPlugin, { preClose: async function asyncPreclose(){} });
 
 app.get('/websockets-via-inferrence', { websocket: true }, async function (connection, request) {
   expectType<FastifyInstance>(this);

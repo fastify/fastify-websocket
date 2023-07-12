@@ -233,6 +233,29 @@ fastify.listen({ port: 3000 }, err => {
 ```
 
 Note: Fastify's `onError` and error handlers registered by `setErrorHandler` will still be called for errors encountered *before* the websocket connection is established. This means errors thrown by `onRequest` hooks, `preValidation` handlers, and hooks registered by plugins will use the normal error handling mechanisms in Fastify. Once the websocket is established and your websocket route handler is called, `fastify-websocket`'s `errorHandler` takes over.
+
+### Custom preClose hook:
+
+By default, all ws connections are closed when the server closes. If you wish to modify this behaviour, you can pass your own `preClose` function.
+
+Note that `preClose` is responsible for closing all connections and closing the websocket server.
+
+```js
+const fastify = require('fastify')()
+
+fastify.register(require('@fastify/websocket'), {
+  preClose: (done) => { // Note: can also use async style, without done-callback
+    const server = this.websocketServer
+
+    for (const connection of server.clients) {
+      connection.close(1001, 'WS server is going offline in custom manner, sending a code + message')
+    }
+
+    server.close(done)
+  }
+})
+```
+
 ## Options
 
 `@fastify/websocket` accept these options for [`ws`](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback) :
