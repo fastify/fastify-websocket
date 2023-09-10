@@ -1,6 +1,6 @@
 'use strict'
 
-const { ServerResponse } = require('http')
+const { ServerResponse } = require('node:http')
 const fp = require('fastify-plugin')
 const WebSocket = require('ws')
 

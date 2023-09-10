@@ -1,7 +1,7 @@
 'use strict'
 
 const test = require('tap').test
-const net = require('net')
+const net = require('node:net')
 const Fastify = require('fastify')
 const fastifyWebsocket = require('..')
 const WebSocket = require('ws')
