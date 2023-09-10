@@ -1,17 +1,17 @@
 'use strict'
 
-const http = require('http')
-const util = require('util')
+const http = require('node:http')
+const util = require('node:util')
 const split = require('split2')
 const test = require('tap').test
 const Fastify = require('fastify')
 const fastifyWebsocket = require('..')
 const WebSocket = require('ws')
-const { once, on } = require('events')
+const { once, on } = require('node:events')
 let timersPromises
 
 try {
-  timersPromises = require('timers/promises')
+  timersPromises = require('node:timers/promises')
 } catch {}
 
 test('Should expose a websocket', async (t) => {

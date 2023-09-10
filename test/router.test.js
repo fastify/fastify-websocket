@@ -1,11 +1,11 @@
 'use strict'
 
-const net = require('net')
+const net = require('node:net')
 const test = require('tap').test
 const Fastify = require('fastify')
 const fastifyWebsocket = require('..')
 const WebSocket = require('ws')
-const get = require('http').get
+const get = require('node:http').get
 
 test('Should expose a websocket on prefixed route', t => {
   t.plan(4)
