@@ -1,4 +1,4 @@
-import wsPlugin, { WebsocketHandler, SocketStream } from '..';
+import fastifyWebsocket, { WebsocketHandler, SocketStream, fastifyWebsocket as namedFastifyWebsocket, default as defaultFastifyWebsocket } from '..';
 import type { IncomingMessage } from "http";
 import fastify, { RouteOptions, FastifyRequest, FastifyInstance, FastifyReply, RequestGenericInterface, FastifyBaseLogger, RawServerDefault, FastifySchema, RawRequestDefaultExpression, RawServerBase, ContextConfigDefault, RawReplyDefaultExpression } from 'fastify';
 import { expectType } from 'tsd';
@@ -9,10 +9,10 @@ import { Static, Type } from '@sinclair/typebox'
 import { ResolveFastifyRequestType } from 'fastify/types/type-provider';
 
 const app: FastifyInstance = fastify();
-app.register(wsPlugin);
-app.register(wsPlugin, {});
-app.register(wsPlugin, { options: { maxPayload: 123 } });
-app.register(wsPlugin, {
+app.register(fastifyWebsocket);
+app.register(fastifyWebsocket, {});
+app.register(fastifyWebsocket, { options: { maxPayload: 123 } });
+app.register(fastifyWebsocket, {
   errorHandler: function errorHandler(error: Error, connection: SocketStream, request: FastifyRequest, reply: FastifyReply): void {
     expectType<FastifyInstance>(this);
     expectType<Error>(error)
@@ -21,9 +21,9 @@ app.register(wsPlugin, {
     expectType<FastifyReply>(reply)
   }
 });
-app.register(wsPlugin, { options: { perMessageDeflate: true } });
-app.register(wsPlugin, { preClose: function syncPreclose() {} });
-app.register(wsPlugin, { preClose: async function asyncPreclose(){} });
+app.register(fastifyWebsocket, { options: { perMessageDeflate: true } });
+app.register(fastifyWebsocket, { preClose: function syncPreclose() {} });
+app.register(fastifyWebsocket, { preClose: async function asyncPreclose(){} });
 
 app.get('/websockets-via-inferrence', { websocket: true }, async function (connection, request) {
   expectType<FastifyInstance>(this);
@@ -198,3 +198,7 @@ server.get('/websockets-no-type-inference',
     expectType<unknown>(request.query);
     expectType<IncomingMessage['headers']>(request.headers);
   });
+
+  expectType<typeof fastifyWebsocket>(namedFastifyWebsocket);
+  expectType<typeof fastifyWebsocket>(defaultFastifyWebsocket);
+  
