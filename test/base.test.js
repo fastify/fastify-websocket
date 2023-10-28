@@ -326,7 +326,7 @@ test('Should be able to pass custom connectionOptions to createWebSocketStream',
   fastify.get('/', { websocket: true }, (connection) => {
     // readableObjectMode was added in Node v12.3.0 so for earlier versions
     // we check the encapsulated readable state directly
-    const mode = (typeof connection.readableObjectMode === 'undefined')
+    const mode = (connection.readableObjectMode === undefined)
       ? connection._readableState.objectMode
       : connection.readableObjectMode
     t.equal(mode, true)
