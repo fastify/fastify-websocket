@@ -3,9 +3,11 @@
 const { ServerResponse } = require('node:http')
 const fp = require('fastify-plugin')
 const WebSocket = require('ws')
-
+const Duplexify = require('duplexify')
 const kWs = Symbol('ws-socket')
 const kWsHead = Symbol('ws-head')
+const { PassThrough } = require('node:stream')
+const { randomBytes } = require('node:crypto')
 
 function fastifyWebsocket (fastify, opts, next) {
   fastify.decorateRequest('ws', null)
@@ -46,6 +48,55 @@ function fastifyWebsocket (fastify, opts, next) {
 
   const wss = new WebSocket.Server(wssOptions)
   fastify.decorate('websocketServer', wss)
+
+  async function injectWS (path = '/') {
+    const server2Client = new PassThrough()
+    const client2Server = new PassThrough()
+
+    const serverStream = new Duplexify(server2Client, client2Server)
+    const clientStream = new Duplexify(client2Server, server2Client)
+
+    const ws = new WebSocket(null)
+    const head = Buffer.from([])
+
+    let resolve
+    const promise = new Promise(_resolve => { resolve = _resolve })
+
+    ws.on('open', () => {
+      clientStream.removeListener('data', onData)
+      resolve(ws)
+    })
+
+    const onData = (chunk) => {
+      // Assign the socket only if the upgrade was successful and the socket is open
+      if (chunk.toString().includes('HTTP/1.1 101 Switching Protocols')) {
+        ws._isServer = false
+        ws.setSocket(clientStream, head, { maxPayload: 0, skipUTF8Validation: true })
+      }
+    }
+
+    clientStream.on('data', onData)
+
+    const req = {
+      method: 'GET',
+      headers: {
+        connection: 'upgrade',
+        upgrade: 'websocket',
+        'sec-websocket-version': 13,
+        'sec-websocket-key': randomBytes(16).toString('base64')
+      },
+      httpVersion: '1.1',
+      url: path,
+      [kWs]: serverStream,
+      [kWsHead]: head
+    }
+
+    websocketListenServer.emit('upgrade', req, req[kWs], req[kWsHead])
+
+    return promise
+  }
+
+  fastify.decorate('injectWS', injectWS)
 
   function onUpgrade (rawRequest, socket, head) {
     // Save a reference to the socket and then dispatch the request through the normal fastify router so that it will invoke hooks and then eventually a route handler that might upgrade the socket.
@@ -181,7 +232,7 @@ function fastifyWebsocket (fastify, opts, next) {
     // Since we already handled the error, adding this listener prevents the ws
     // library from emitting the error and causing an uncaughtException
     // Reference: https://github.com/websockets/ws/blob/master/lib/stream.js#L35
-    conn.on('error', _ => {})
+    conn.on('error', _ => { })
     request.log.error(error)
     conn.destroy(error)
   }
