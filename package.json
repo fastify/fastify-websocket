@@ -39,7 +39,6 @@
   "dependencies": {
     "duplexify": "^4.1.2",
     "fastify-plugin": "^4.0.0",
-    "why-is-node-running": "^2.2.2",
     "ws": "^8.0.0"
   },
   "publishConfig": {

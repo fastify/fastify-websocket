@@ -11,6 +11,7 @@ const { randomBytes } = require('node:crypto')
 
 function fastifyWebsocket (fastify, opts, next) {
   fastify.decorateRequest('ws', null)
+  const injectedWs = []
 
   let errorHandler = defaultErrorHandler
   if (opts.errorHandler) {
@@ -56,7 +57,7 @@ function fastifyWebsocket (fastify, opts, next) {
     const serverStream = new Duplexify(server2Client, client2Server)
     const clientStream = new Duplexify(client2Server, server2Client)
 
-    const ws = new WebSocket(null)
+    const ws = new WebSocket(null, { isServer: false })
     const head = Buffer.from([])
 
     let resolve
@@ -69,9 +70,11 @@ function fastifyWebsocket (fastify, opts, next) {
 
     const onData = (chunk) => {
       // Assign the socket only if the upgrade was successful and the socket is open
+      // istanbul ignore next
       if (chunk.toString().includes('HTTP/1.1 101 Switching Protocols')) {
         ws._isServer = false
-        ws.setSocket(clientStream, head, { maxPayload: 0, skipUTF8Validation: true })
+        ws.setSocket(clientStream, head, { maxPayload: 0 })
+        injectedWs.push(ws)
       }
     }
 
@@ -215,6 +218,15 @@ function fastifyWebsocket (fastify, opts, next) {
         client.close()
       }
     }
+
+    // Close all the mocked socket used by injectWS
+    // This is needed to avoid test hanging
+    if (injectedWs.length) {
+      for (const ws of injectedWs) {
+        ws.terminate()
+      }
+    }
+
     fastify.server.removeListener('upgrade', onUpgrade)
 
     server.close(done)

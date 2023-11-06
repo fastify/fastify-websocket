@@ -12,30 +12,74 @@ function buildFastify (t) {
 }
 
 test('routes correctly the message', async (t) => {
-  t.plan(1)
-
   const fastify = buildFastify(t)
   const message = 'hi from client'
 
-  let resolve
-  const promise = new Promise(_resolve => {
-    resolve = _resolve
-  })
+  let _resolve
+  const promise = new Promise((resolve) => { _resolve = resolve })
+
   fastify.register(
-    function (instance, opts, done) {
+    async function (instance) {
       instance.get('/ws', { websocket: true }, function (conn) {
         conn.once('data', chunk => {
-          resolve(chunk.toString())
+          _resolve(chunk.toString())
         })
       })
-
-      done()
     })
 
   await fastify.ready()
   const ws = await fastify.injectWS('/ws')
   ws.send(message)
-
   t.same(await promise, message)
-  t.end()
+})
+
+test('redirect on / if no path specified', async (t) => {
+  const fastify = buildFastify(t)
+  const message = 'hi from client'
+
+  let _resolve
+  const promise = new Promise((resolve) => { _resolve = resolve })
+
+  fastify.register(
+    async function (instance) {
+      instance.get('/', { websocket: true }, function (conn) {
+        conn.once('data', chunk => {
+          _resolve(chunk.toString())
+        })
+      })
+    })
+
+  await fastify.ready()
+  const ws = await fastify.injectWS()
+  ws.send(message)
+  t.same(await promise, message)
+})
+
+test('routes correctly the message between two routes', async (t) => {
+  const fastify = buildFastify(t)
+  const message = 'hi from client'
+
+  let _resolve
+  let _reject
+  const promise = new Promise((resolve, reject) => { _resolve = resolve; _reject = reject })
+
+  fastify.register(
+    async function (instance) {
+      instance.get('/ws', { websocket: true }, function (conn) {
+        conn.once('data', () => {
+          _reject('wrong-route')
+        })
+      })
+
+      instance.get('/ws-2', { websocket: true }, function (conn) {
+        conn.once('data', chunk => {
+          _resolve(chunk.toString())
+        })
+      })
+    })
+
+  await fastify.ready()
+  const ws = await fastify.injectWS('/ws-2')
+  ws.send(message)
+  t.same(await promise, message)
 })
