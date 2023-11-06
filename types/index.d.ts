@@ -30,6 +30,7 @@ declare module 'fastify' {
   interface FastifyInstance<RawServer, RawRequest, RawReply, Logger, TypeProvider> {
     get: RouteShorthandMethod<RawServer, RawRequest, RawReply, TypeProvider>,
     websocketServer: WebSocket.Server,
+    injectWS: (path?: string) => Promise<WebSocket>
   }
 
   interface FastifyRequest {
@@ -66,7 +67,6 @@ type FastifyWebsocket = FastifyPluginCallback<fastifyWebsocket.WebsocketPluginOp
 declare namespace fastifyWebsocket {
 
   interface WebSocketServerOptions extends Omit<WebSocket.ServerOptions, "path"> { }
-  
   export type WebsocketHandler<
     RawServer extends RawServerBase = RawServerDefault,
     RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>,
@@ -80,18 +80,15 @@ declare namespace fastifyWebsocket {
     connection: SocketStream,
     request: FastifyRequest<RequestGeneric, RawServer, RawRequest, SchemaCompiler, TypeProvider, ContextConfig, Logger>
   ) => void | Promise<any>;
-  
   export interface SocketStream extends Duplex {
     socket: WebSocket;
   }
-  
   export interface WebsocketPluginOptions {
     errorHandler?: (this: FastifyInstance, error: Error, connection: SocketStream, request: FastifyRequest, reply: FastifyReply) => void;
     options?: WebSocketServerOptions;
     connectionOptions?: DuplexOptions;
     preClose?: preCloseHookHandler | preCloseAsyncHookHandler;
   }
-
   export interface RouteOptions<
     RawServer extends RawServerBase = RawServerDefault,
     RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>,

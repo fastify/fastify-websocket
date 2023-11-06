@@ -37,6 +37,7 @@
     "tsd": "^0.29.0"
   },
   "dependencies": {
+    "duplexify": "^4.1.2",
     "fastify-plugin": "^4.0.0",
     "ws": "^8.0.0"
   },
