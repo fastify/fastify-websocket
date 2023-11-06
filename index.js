@@ -1,13 +1,14 @@
 'use strict'
 
 const { ServerResponse } = require('node:http')
+const { PassThrough } = require('node:stream')
+const { randomBytes } = require('node:crypto')
 const fp = require('fastify-plugin')
 const WebSocket = require('ws')
 const Duplexify = require('duplexify')
+
 const kWs = Symbol('ws-socket')
 const kWsHead = Symbol('ws-head')
-const { PassThrough } = require('node:stream')
-const { randomBytes } = require('node:crypto')
 
 function fastifyWebsocket (fastify, opts, next) {
   fastify.decorateRequest('ws', null)
