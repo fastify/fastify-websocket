@@ -27,10 +27,13 @@ declare module 'fastify' {
     websocket?: boolean;
   }
 
+  type InjectWSFn<RawRequest> =
+    ((path?: string, upgradeContext?: Partial<RawRequest>) => Promise<WebSocket>)
+
   interface FastifyInstance<RawServer, RawRequest, RawReply, Logger, TypeProvider> {
     get: RouteShorthandMethod<RawServer, RawRequest, RawReply, TypeProvider>,
     websocketServer: WebSocket.Server,
-    injectWS: (path?: string) => Promise<WebSocket>
+    injectWS: InjectWSFn<RawRequest>
   }
 
   interface FastifyRequest {

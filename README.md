@@ -261,6 +261,8 @@ fastify.register(require('@fastify/websocket'), {
 Testing the ws handler can be quite tricky, luckily `fastify-websocket` decorates fastify instance with `injectWS`.
 It allows to test easily a websocket endpoint.
 
+The signature of injectWS is the following: `([path], [upgradeContext])`.
+
 #### App.js
 
 ```js
@@ -272,7 +274,14 @@ const FastifyWebSocket = require('@fastify/websocket')
 const App = Fastify()
 
 App.register(FastifyWebSocket);
+
 App.register(async function(fastify) {
+  fastify.addHook('preValidation', async (request, reply) => {
+    if (request.headers['api-key'] !== 'some-random-key') {
+      return reply.code(401).send()
+    }
+  })
+
   fastify.get('/', { websocket: true }, (connection) => {
     connection.socket.on('message', message => {
       connection.socket.send('hi from server')
@@ -299,7 +308,7 @@ test('connect to /', async (t) => {
   fastify.register(App)
   t.teardown(fastify.close.bind(fastify))
 
-  const ws = await fastify.injectWS('/')
+  const ws = await fastify.injectWS('/', {headers: { "api-key" : "some-random-key" }})
   let resolve;
   const promise = new Promise(r => { resolve = r })
 
@@ -318,7 +327,7 @@ test('connect to /', async (t) => {
 - Websocket need to be closed manually at the end of each test.
 - `fastify.ready()` needs to be awaited to ensure that fastify has been decorated.
 - You need to register the event listener before sending the message if you need to process server response.
-
+- It's possible to use 
 ## Options
 
 `@fastify/websocket` accept these options for [`ws`](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback) :

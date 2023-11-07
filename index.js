@@ -50,7 +50,7 @@ function fastifyWebsocket (fastify, opts, next) {
   const wss = new WebSocket.Server(wssOptions)
   fastify.decorate('websocketServer', wss)
 
-  async function injectWS (path = '/') {
+  async function injectWS (path = '/', upgradeContext = {}) {
     const server2Client = new PassThrough()
     const client2Server = new PassThrough()
 
@@ -80,8 +80,10 @@ function fastifyWebsocket (fastify, opts, next) {
     clientStream.on('data', onData)
 
     const req = {
+      ...upgradeContext,
       method: 'GET',
       headers: {
+        ...upgradeContext.headers,
         connection: 'upgrade',
         upgrade: 'websocket',
         'sec-websocket-version': 13,

@@ -1,7 +1,7 @@
 import fastifyWebsocket, { WebsocketHandler, SocketStream, fastifyWebsocket as namedFastifyWebsocket, default as defaultFastifyWebsocket } from '..';
 import type { IncomingMessage } from "http";
 import fastify, { RouteOptions, FastifyRequest, FastifyInstance, FastifyReply, RequestGenericInterface, FastifyBaseLogger, RawServerDefault, FastifySchema, RawRequestDefaultExpression, RawServerBase, ContextConfigDefault, RawReplyDefaultExpression } from 'fastify';
-import { expectAssignable, expectType } from 'tsd';
+import { expectAssignable, expectError, expectType } from 'tsd';
 import { Server } from 'ws';
 import { RouteGenericInterface } from 'fastify/types/route';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
@@ -22,10 +22,15 @@ app.register(fastifyWebsocket, {
   }
 });
 app.register(fastifyWebsocket, { options: { perMessageDeflate: true } });
-app.register(fastifyWebsocket, { preClose: function syncPreclose() {} });
-app.register(fastifyWebsocket, { preClose: async function asyncPreclose(){} });
+app.register(fastifyWebsocket, { preClose: function syncPreclose() { } });
+app.register(fastifyWebsocket, { preClose: async function asyncPreclose() { } });
 
-app.get('/websockets-via-inferrence', { websocket: true }, async function (connection, request) {
+app.injectWS()
+app.injectWS('/test')
+app.injectWS('/test', { headers: { 'test': 'test' } })
+expectError(app.injectWS({ headers: { 'test': "test" } }))
+
+app.get('/websockets-via-inferrence', { websocket: true }, async function(connection, request) {
   expectType<FastifyInstance>(this);
   expectType<SocketStream>(connection);
   expectType<Server>(app.websocketServer);
@@ -89,7 +94,7 @@ app.get<{ Params: { foo: string }, Body: { bar: string }, Querystring: { search:
   expectType<{ foo: string }>(request.params);
   expectType<{ bar: string }>(request.body);
   expectType<{ search: string }>(request.query);
-  expectType< IncomingMessage['headers'] & { auth: string }>(request.headers);
+  expectType<IncomingMessage['headers'] & { auth: string }>(request.headers);
 });
 
 
@@ -100,7 +105,7 @@ app.route<{ Params: { foo: string }, Body: { bar: string }, Querystring: { searc
     expectType<{ foo: string }>(request.params);
     expectType<{ bar: string }>(request.body);
     expectType<{ search: string }>(request.query);
-    expectType<IncomingMessage['headers'] & {  auth: string }>(request.headers);
+    expectType<IncomingMessage['headers'] & { auth: string }>(request.headers);
   },
   wsHandler: (connection, request) => {
     expectType<SocketStream>(connection);
@@ -187,7 +192,7 @@ server.route({
 
 server.get('/websockets-no-type-inference',
   { websocket: true },
-  async function (connection, request) {
+  async function(connection, request) {
     expectType<FastifyInstance>(this);
     expectType<SocketStream>(connection);
     expectType<Server>(app.websocketServer);
@@ -199,6 +204,6 @@ server.get('/websockets-no-type-inference',
     expectType<IncomingMessage['headers']>(request.headers);
   });
 
-  expectType<typeof fastifyWebsocket>(namedFastifyWebsocket);
-  expectType<typeof fastifyWebsocket>(defaultFastifyWebsocket);
-  
+expectType<typeof fastifyWebsocket>(namedFastifyWebsocket);
+expectType<typeof fastifyWebsocket>(defaultFastifyWebsocket);
+
