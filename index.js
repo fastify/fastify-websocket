@@ -12,7 +12,6 @@ const kWsHead = Symbol('ws-head')
 
 function fastifyWebsocket (fastify, opts, next) {
   fastify.decorateRequest('ws', null)
-  const injectedWs = []
 
   let errorHandler = defaultErrorHandler
   if (opts.errorHandler) {
@@ -75,7 +74,6 @@ function fastifyWebsocket (fastify, opts, next) {
       if (chunk.toString().includes('HTTP/1.1 101 Switching Protocols')) {
         ws._isServer = false
         ws.setSocket(clientStream, head, { maxPayload: 0 })
-        injectedWs.push(ws)
       }
     }
 
@@ -217,14 +215,6 @@ function fastifyWebsocket (fastify, opts, next) {
     if (server.clients) {
       for (const client of server.clients) {
         client.close()
-      }
-    }
-
-    // Close all the mocked socket used by injectWS
-    // This is needed to avoid test hanging
-    if (injectedWs.length) {
-      for (const ws of injectedWs) {
-        ws.terminate()
       }
     }
 

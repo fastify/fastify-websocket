@@ -31,6 +31,7 @@ test('routes correctly the message', async (t) => {
   const ws = await fastify.injectWS('/ws')
   ws.send(message)
   t.same(await promise, message)
+  ws.terminate()
 })
 
 test('redirect on / if no path specified', async (t) => {
@@ -53,6 +54,7 @@ test('redirect on / if no path specified', async (t) => {
   const ws = await fastify.injectWS()
   ws.send(message)
   t.same(await promise, message)
+  ws.terminate()
 })
 
 test('routes correctly the message between two routes', async (t) => {
@@ -82,4 +84,5 @@ test('routes correctly the message between two routes', async (t) => {
   const ws = await fastify.injectWS('/ws-2')
   ws.send(message)
   t.same(await promise, message)
+  ws.terminate()
 })
