@@ -327,7 +327,7 @@ test('connect to /', async (t) => {
 - Websocket need to be closed manually at the end of each test.
 - `fastify.ready()` needs to be awaited to ensure that fastify has been decorated.
 - You need to register the event listener before sending the message if you need to process server response.
-- It's possible to use 
+
 ## Options
 
 `@fastify/websocket` accept these options for [`ws`](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback) :
