@@ -60,8 +60,8 @@ function fastifyWebsocket (fastify, opts, next) {
     const ws = new WebSocket(null, { isServer: false })
     const head = Buffer.from([])
 
-    let resolve
-    const promise = new Promise(_resolve => { resolve = _resolve })
+    let resolve, reject
+    const promise = new Promise((_resolve, _reject) => { resolve = _resolve; reject = _reject })
 
     ws.on('open', () => {
       clientStream.removeListener('data', onData)
@@ -69,11 +69,13 @@ function fastifyWebsocket (fastify, opts, next) {
     })
 
     const onData = (chunk) => {
-      // Assign the socket only if the upgrade was successful and the socket is open
-      // istanbul ignore next
       if (chunk.toString().includes('HTTP/1.1 101 Switching Protocols')) {
         ws._isServer = false
         ws.setSocket(clientStream, head, { maxPayload: 0 })
+      } else {
+        clientStream.removeListener('data', onData)
+
+        reject(new Error('Websocket injection failed'))
       }
     }
 

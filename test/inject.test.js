@@ -115,3 +115,20 @@ test('use the upgrade context to upgrade if there is some hook', async (t) => {
   t.same(await promise, message)
   ws.terminate()
 })
+
+test('rejects if the websocket is not upgraded', async (t) => {
+  const fastify = buildFastify(t)
+
+  fastify.register(
+    async function (instance) {
+      instance.addHook('preValidation', async (request, reply) => {
+        return reply.code(401).send()
+      })
+
+      instance.get('/', { websocket: true }, function (conn) {
+      })
+    })
+
+  await fastify.ready()
+  t.rejects(fastify.injectWS('/'), 'Websocket injection failed')
+})
