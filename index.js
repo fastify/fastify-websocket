@@ -74,8 +74,8 @@ function fastifyWebsocket (fastify, opts, next) {
         ws.setSocket(clientStream, head, { maxPayload: 0 })
       } else {
         clientStream.removeListener('data', onData)
-
-        reject(new Error('Websocket injection failed'))
+        const statusCode = Number(chunk.toString().match(/HTTP\/1.1 (\d+)/)[1])
+        reject(new Error('Unexpected server response: ' + statusCode))
       }
     }
 

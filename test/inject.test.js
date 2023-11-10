@@ -130,5 +130,5 @@ test('rejects if the websocket is not upgraded', async (t) => {
     })
 
   await fastify.ready()
-  t.rejects(fastify.injectWS('/'), 'Websocket injection failed')
+  t.rejects(fastify.injectWS('/'), 'Unexpected server response: 401')
 })
