@@ -28,7 +28,7 @@ declare module 'fastify' {
   }
 
   interface FastifyInstance<RawServer, RawRequest, RawReply, Logger, TypeProvider> {
-    get: RouteShorthandMethod<RawServer, RawRequest, RawReply, TypeProvider>,
+    get: RouteShorthandMethod<RawServer, RawRequest, RawReply, TypeProvider, Logger>,
     websocketServer: WebSocket.Server,
   }
 
