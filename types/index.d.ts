@@ -41,12 +41,13 @@ declare module 'fastify' {
     RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>,
     RawReply extends RawReplyDefaultExpression<RawServer> = RawReplyDefaultExpression<RawServer>,
     TypeProvider extends FastifyTypeProvider = FastifyTypeProviderDefault,
+    Logger extends FastifyBaseLogger = FastifyBaseLogger,
   > {
-    <RequestGeneric extends RequestGenericInterface = RequestGenericInterface, ContextConfig = ContextConfigDefault, SchemaCompiler extends FastifySchema = FastifySchema, Logger extends FastifyBaseLogger = FastifyBaseLogger>(
+    <RequestGeneric extends RequestGenericInterface = RequestGenericInterface, ContextConfig = ContextConfigDefault, SchemaCompiler extends FastifySchema = FastifySchema, InnerLogger extends Logger = Logger>(
       path: string,
-      opts: RouteShorthandOptions<RawServer, RawRequest, RawReply, RequestGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger> & { websocket: true }, // this creates an overload that only applies these different types if the handler is for websockets
-      handler?: fastifyWebsocket.WebsocketHandler<RawServer, RawRequest, RequestGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger>
-    ): FastifyInstance<RawServer, RawRequest, RawReply, Logger, TypeProvider>;
+      opts: RouteShorthandOptions<RawServer, RawRequest, RawReply, RequestGeneric, ContextConfig, SchemaCompiler, TypeProvider, InnerLogger> & { websocket: true }, // this creates an overload that only applies these different types if the handler is for websockets
+      handler?: fastifyWebsocket.WebsocketHandler<RawServer, RawRequest, RequestGeneric, ContextConfig, SchemaCompiler, TypeProvider, InnerLogger>
+    ): FastifyInstance<RawServer, RawRequest, RawReply, InnerLogger, TypeProvider>;
   }
 
   interface RouteOptions<
