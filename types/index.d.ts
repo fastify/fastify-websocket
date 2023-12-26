@@ -2,7 +2,7 @@
 import { IncomingMessage, ServerResponse, Server } from 'http';
 import { FastifyRequest, FastifyPluginCallback, RawServerBase, RawServerDefault, RawRequestDefaultExpression, RawReplyDefaultExpression, RequestGenericInterface, ContextConfigDefault, FastifyInstance, FastifySchema, FastifyTypeProvider, FastifyTypeProviderDefault, FastifyBaseLogger } from 'fastify';
 import * as fastify from 'fastify';
-import WebSocket from 'ws';
+import * as WebSocket from 'ws';
 import { Duplex, DuplexOptions } from 'stream';
 import { FastifyReply } from 'fastify/types/reply';
 import { preCloseHookHandler, preCloseAsyncHookHandler } from 'fastify/types/hooks';
