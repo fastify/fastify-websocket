@@ -30,6 +30,7 @@ app.get('/websockets-via-inferrence', { websocket: true }, async function (conne
   expectType<Server>(app.websocketServer);
   expectType<FastifyRequest<RequestGenericInterface>>(request)
   expectType<boolean>(request.ws);
+  expectType<FastifyBaseLogger>(request.log);
 });
 
 const handler: WebsocketHandler = async (connection, request) => {
