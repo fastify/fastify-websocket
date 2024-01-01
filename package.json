@@ -27,7 +27,7 @@
   "homepage": "https://github.com/fastify/fastify-websocket#readme",
   "devDependencies": {
     "@fastify/pre-commit": "^2.0.2",
-    "@fastify/type-provider-typebox": "^3.2.0",
+    "@fastify/type-provider-typebox": "^4.0.0",
     "@types/node": "^20.1.0",
     "@types/ws": "^8.2.2",
     "fastify": "^4.25.0",
