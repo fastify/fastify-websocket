@@ -57,7 +57,7 @@ function fastifyWebsocket (fastify, opts, next) {
     const serverStream = new Duplexify(server2Client, client2Server)
     const clientStream = new Duplexify(client2Server, server2Client)
 
-    const ws = new WebSocket(null, { isServer: false })
+    const ws = new WebSocket(null, undefined, { isServer: false })
     const head = Buffer.from([])
 
     let resolve, reject
