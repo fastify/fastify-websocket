@@ -20,8 +20,8 @@ test('routes correctly the message', async (t) => {
 
   fastify.register(
     async function (instance) {
-      instance.get('/ws', { websocket: true }, function (conn) {
-        conn.once('data', chunk => {
+      instance.get('/ws', { websocket: true }, function (socket) {
+        socket.once('message', chunk => {
           _resolve(chunk.toString())
         })
       })
@@ -43,8 +43,8 @@ test('redirect on / if no path specified', async (t) => {
 
   fastify.register(
     async function (instance) {
-      instance.get('/', { websocket: true }, function (conn) {
-        conn.once('data', chunk => {
+      instance.get('/', { websocket: true }, function (socket) {
+        socket.once('message', chunk => {
           _resolve(chunk.toString())
         })
       })
@@ -67,14 +67,14 @@ test('routes correctly the message between two routes', async (t) => {
 
   fastify.register(
     async function (instance) {
-      instance.get('/ws', { websocket: true }, function (conn) {
-        conn.once('data', () => {
+      instance.get('/ws', { websocket: true }, function (socket) {
+        socket.once('message', chunk => {
           _reject('wrong-route')
         })
       })
 
-      instance.get('/ws-2', { websocket: true }, function (conn) {
-        conn.once('data', chunk => {
+      instance.get('/ws-2', { websocket: true }, function (socket) {
+        socket.once('message', chunk => {
           _resolve(chunk.toString())
         })
       })
@@ -102,8 +102,8 @@ test('use the upgrade context to upgrade if there is some hook', async (t) => {
         }
       })
 
-      instance.get('/', { websocket: true }, function (conn) {
-        conn.once('data', chunk => {
+      instance.get('/', { websocket: true }, function (socket) {
+        socket.once('message', chunk => {
           _resolve(chunk.toString())
         })
       })
