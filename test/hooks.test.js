@@ -23,7 +23,7 @@ test('Should run onRequest, preValidation, preHandler hooks', t => {
 
     fastify.get('/echo', { websocket: true }, (socket, request) => {
       socket.send('hello client')
-      t.teardown(() => socket.close())
+      t.teardown(() => socket.terminate())
 
       socket.once('message', (chunk) => {
         t.equal(chunk.toString(), 'hello server')
@@ -61,7 +61,7 @@ test('Should not run onTimeout hook', t => {
     fastify.get('/echo', { websocket: true }, (socket, request) => {
       socket.send('hello client')
       request.raw.setTimeout(50)
-      t.teardown(() => socket.close())
+      t.teardown(() => socket.terminate())
     })
   })
 
@@ -204,7 +204,7 @@ test('Should not run onError hook if reply was already hijacked (error thrown in
     fastify.addHook('onError', async (request, reply) => t.fail('called', 'onError'))
 
     fastify.get('/echo', { websocket: true }, async (socket, request) => {
-      t.teardown(() => socket.close())
+      t.teardown(() => socket.terminate())
       throw new Error('Fail')
     })
   })
@@ -232,7 +232,7 @@ test('Should not run preSerialization/onSend hooks', t => {
 
     fastify.get('/echo', { websocket: true }, async (socket, request) => {
       socket.send('hello client')
-      t.teardown(() => socket.close())
+      t.teardown(() => socket.terminate())
     })
   })
 
@@ -296,7 +296,7 @@ test('Should run async hooks and still deliver quickly sent messages', (t) => {
 
     fastify.get('/echo', { websocket: true }, (socket, request) => {
       socket.send('hello client')
-      t.teardown(() => socket.close())
+      t.teardown(() => socket.terminate())
 
       socket.on('message', (message) => {
         t.equal(message.toString('utf-8'), 'hello server')

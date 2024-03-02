@@ -33,10 +33,10 @@ After registering this plugin, you can choose on which routes the WS server will
 const fastify = require('fastify')()
 fastify.register(require('@fastify/websocket'))
 fastify.register(async function (fastify) {
-  fastify.get('/', { websocket: true }, (connection /* SocketStream */, req /* FastifyRequest */) => {
-    connection.socket.on('message', message => {
+  fastify.get('/', { websocket: true }, (socket /* WebSocket */, req /* FastifyRequest */) => {
+    socket.on('message', message => {
       // message.toString() === 'hi from client'
-      connection.socket.send('hi from server')
+      socket.send('hi from server')
     })
   })
 })
@@ -63,17 +63,17 @@ fastify.register(require('@fastify/websocket'), {
 })
 
 fastify.register(async function (fastify) {
-  fastify.get('/*', { websocket: true }, (connection /* SocketStream */, req /* FastifyRequest */) => {
-    connection.socket.on('message', message => {
+  fastify.get('/*', { websocket: true }, (socket /* WebSocket */, req /* FastifyRequest */) => {
+    socket.on('message', message => {
       // message.toString() === 'hi from client'
-      connection.socket.send('hi from wildcard route')
+      socket.send('hi from wildcard route')
     })
   })
 
-  fastify.get('/', { websocket: true }, (connection /* SocketStream */, req /* FastifyRequest */) => {
-    connection.socket.on('message', message => {
+  fastify.get('/', { websocket: true }, (socket /* WebSocket */, req /* FastifyRequest */) => {
+    socket.on('message', message => {
       // message.toString() === 'hi from client'
-      connection.socket.send('hi from server')
+      socket.send('hi from server')
     })
   })
 })
@@ -93,10 +93,10 @@ It is important that websocket route handlers attach event handlers synchronousl
 Here is an example of how to attach message handlers synchronously while still accessing asynchronous resources. We store a promise for the async thing in a local variable, attach the message handler synchronously, and then make the message handler itself asynchronous to grab the async data and do some processing:
 
 ```javascript
-fastify.get('/*', { websocket: true }, (connection, request) => {
+fastify.get('/*', { websocket: true }, (socket, request) => {
   const sessionPromise = request.getSession() // example async session getter, called synchronously to return a promise
 
-  connection.socket.on('message', async (message) => {
+  socket.on('message', async (message) => {
     const session = await sessionPromise()
     // do something with the message and session
   })
@@ -113,9 +113,9 @@ fastify.addHook('preValidation', async (request, reply) => {
     await reply.code(401).send("not authenticated");
   }
 })
-fastify.get('/', { websocket: true }, (connection, req) => {
+fastify.get('/', { websocket: true }, (socket, req) => {
   // the connection will only be opened for authenticated incoming requests
-  connection.socket.on('message', message => {
+  socket.on('message', message => {
     // ...
   })
 })
@@ -134,13 +134,13 @@ import websocket from '@fastify/websocket'
 const fastify = Fastify()
 await fastify.register(websocket)
 
-fastify.get('/', { websocket: true }, function wsHandler (connection, req) {
+fastify.get('/', { websocket: true }, function wsHandler (socket, req) {
   // bound to fastify server
   this.myDecoration.someFunc()
 
-  connection.socket.on('message', message => {
+  socket.on('message', message => {
     // message.toString() === 'hi from client'
-    connection.socket.send('hi from server')
+    socket.send('hi from server')
   })
 })
 
@@ -154,8 +154,8 @@ If you need to handle both HTTP requests and incoming socket connections on the 
 
 const fastify = require('fastify')()
 
-function handle (conn, req) {
-  conn.pipe(conn) // creates an echo server
+function handle (socket, req) {
+  socket.on('message', (data) => socket.send(data)) // creates an echo server
 }
 
 fastify.register(require('@fastify/websocket'), {
@@ -171,13 +171,12 @@ fastify.register(async function () {
       // this will handle http requests
       reply.send({ hello: 'world' })
     },
-    wsHandler: (conn, req) => {
+    wsHandler: (socket, req) => {
       // this will handle websockets connections
-      conn.setEncoding('utf8')
-      conn.write('hello client')
+      socket.send('hello client')
 
-      conn.once('data', chunk => {
-        conn.end()
+      socket.once('message', chunk => {
+        socket.close()
       })
     }
   })
@@ -201,10 +200,10 @@ Neither the `errorHandler` passed to this plugin or fastify's `onError` hook wil
 const fastify = require('fastify')()
 
 fastify.register(require('@fastify/websocket'), {
-  errorHandler: function (error, conn /* SocketStream */, req /* FastifyRequest */, reply /* FastifyReply */) {
+  errorHandler: function (error, socket /* WebSocket */, req /* FastifyRequest */, reply /* FastifyReply */) {
     // Do stuff
     // destroy/close connection
-    conn.destroy(error)
+    socket.terminate()
   },
   options: {
     maxPayload: 1048576, // we set the maximum allowed messages size to 1 MiB (1024 bytes * 1024 bytes)
@@ -217,10 +216,10 @@ fastify.register(require('@fastify/websocket'), {
   }
 })
 
-fastify.get('/', { websocket: true }, (connection /* SocketStream */, req /* FastifyRequest */) => {
-  connection.socket.on('message', message => {
+fastify.get('/', { websocket: true }, (socket /* WebSocket */, req /* FastifyRequest */) => {
+  socket.on('message', message => {
     // message.toString() === 'hi from client'
-    connection.socket.send('hi from server')
+    socket.send('hi from server')
   })
 })
 
@@ -247,8 +246,8 @@ fastify.register(require('@fastify/websocket'), {
   preClose: (done) => { // Note: can also use async style, without done-callback
     const server = this.websocketServer
 
-    for (const connection of server.clients) {
-      connection.close(1001, 'WS server is going offline in custom manner, sending a code + message')
+    for (const socket of server.clients) {
+      socket.close(1001, 'WS server is going offline in custom manner, sending a code + message')
     }
 
     server.close(done)
@@ -282,9 +281,9 @@ App.register(async function(fastify) {
     }
   })
 
-  fastify.get('/', { websocket: true }, (connection) => {
-    connection.socket.on('message', message => {
-      connection.socket.send('hi from server')
+  fastify.get('/', { websocket: true }, (socket) => {
+    socket.on('message', message => {
+      socket.send('hi from server')
     })
   })
 })
@@ -349,15 +348,6 @@ _**NB** By default if you do not provide a `server` option `@fastify/websocket` 
 _**NB** The `path` option from `ws` should not be provided since the routing is handled by fastify itself_
 
 _**NB** The `noServer` option from `ws` should not be provided since the point of @fastify/websocket is to listen on the fastify server. If you want a custom server, you can use the `server` option, and if you want more control, you can use the `ws` library directly_
-
-You can also pass the following as `connectionOptions` for [createWebSocketStream](https://github.com/websockets/ws/blob/master/doc/ws.md#createwebsocketstreamwebsocket-options).
-
-- `allowHalfOpen` <boolean> If set to false, then the stream will automatically end the writable side when the readable side ends. Default: true.
-- `readable` <boolean> Sets whether the Duplex should be readable. Default: true.
-- `writable` <boolean> Sets whether the Duplex should be writable. Default: true.
-- `readableObjectMode` <boolean> Sets objectMode for readable side of the stream. Has no effect if objectMode is true. Default: false.
-- `readableHighWaterMark` <number> Sets highWaterMark for the readable side of the stream.
-- `writableHighWaterMark` <number> Sets highWaterMark for the writable side of the stream.
 
 [ws](https://github.com/websockets/ws) does not allow you to set `objectMode` or `writableObjectMode` to true
 ## Acknowledgements

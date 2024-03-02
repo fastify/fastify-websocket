@@ -22,7 +22,7 @@ test('Should expose a websocket', async (t) => {
   await fastify.register(fastifyWebsocket)
 
   fastify.get('/', { websocket: true }, (socket) => {
-    t.teardown(() => socket.close())
+    t.teardown(() => socket.terminate())
 
     socket.once('message', (chunk) => {
       t.equal(chunk.toString(), 'hello server')
@@ -57,7 +57,7 @@ test('Should fail if custom errorHandler is not a function', async (t) => {
   }
 
   fastify.get('/', { websocket: true }, (socket) => {
-    t.teardown(() => socket.close())
+    t.teardown(() => socket.terminate())
   })
 
   try {
@@ -87,7 +87,7 @@ test('Should run custom errorHandler on wildcard route handler error', async (t)
 
   fastify.get('/*', { websocket: true }, (socket) => {
     socket.on('message', (data) => socket.send(data))
-    t.teardown(() => socket.close())
+    t.teardown(() => socket.terminate())
     return Promise.reject(new Error('Fail'))
   })
 
@@ -119,7 +119,7 @@ test('Should run custom errorHandler on error inside websocket handler', async (
 
   fastify.get('/', { websocket: true }, function wsHandler (socket) {
     socket.on('message', (data) => socket.send(data))
-    t.teardown(() => socket.close())
+    t.teardown(() => socket.terminate())
     throw new Error('Fail')
   })
 
@@ -150,7 +150,7 @@ test('Should run custom errorHandler on error inside async websocket handler', a
 
   fastify.get('/', { websocket: true }, async function wsHandler (socket) {
     socket.on('message', (data) => socket.send(data))
-    t.teardown(() => socket.close())
+    t.teardown(() => socket.terminate())
     throw new Error('Fail')
   })
 
@@ -179,7 +179,7 @@ test('Should be able to pass custom options to ws', async (t) => {
 
   fastify.get('/*', { websocket: true }, (socket) => {
     socket.on('message', (data) => socket.send(data))
-    t.teardown(() => socket.close())
+    t.teardown(() => socket.terminate())
   })
 
   await fastify.listen({ port: 0 })
@@ -219,7 +219,7 @@ test('Should warn if path option is provided to ws', async (t) => {
 
   fastify.get('/*', { websocket: true }, (socket) => {
     socket.on('message', (data) => socket.send(data))
-    t.teardown(() => socket.close())
+    t.teardown(() => socket.terminate())
   })
 
   await fastify.listen({ port: 0 })
@@ -261,7 +261,7 @@ test('Should be able to pass a custom server option to ws', async (t) => {
 
   fastify.get('/', { websocket: true }, (socket) => {
     socket.on('message', (data) => socket.send(data))
-    t.teardown(() => socket.close())
+    t.teardown(() => socket.terminate())
   })
 
   await fastify.ready()
@@ -319,7 +319,7 @@ test('Should be able to pass preClose option to override default', async (t) => 
   await fastify.register(fastifyWebsocket, { preClose })
 
   fastify.get('/', { websocket: true }, (socket) => {
-    t.teardown(() => socket.close())
+    t.teardown(() => socket.terminate())
 
     socket.once('message', (chunk) => {
       t.equal(chunk.toString(), 'hello server')
@@ -358,7 +358,7 @@ test('Should fail if custom preClose is not a function', async (t) => {
   }
 
   fastify.get('/', { websocket: true }, (socket) => {
-    t.teardown(() => socket.close())
+    t.teardown(() => socket.terminate())
   })
 
   try {
