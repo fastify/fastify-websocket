@@ -262,6 +262,32 @@ It allows to test easily a websocket endpoint.
 
 The signature of injectWS is the following: `([path], [upgradeContext])`.
 
+
+### Creating a stream from the WebSocket
+
+```js
+const Fastify = require('fastify')
+const FastifyWebSocket = require('@fastify/websocket')
+const ws = require('ws')
+
+const fastify = Fastify()
+await fastify.register(websocket)
+
+fastify.get('/', { websocket: true }, (socket, req) => {
+  const stream = ws.createWebSocketStream(socket, { /* options */ })
+  stream.setEncoding('utf8')
+  stream.write('hello client')
+  
+  stream.on('data', function (data) {
+    // Make sure to set up a data handler or read all the incoming
+    // data in another way, otherwise stream backpressure will cause
+    // the underlying WebSocket object to get paused.
+  })
+})
+
+await fastify.listen({ port: 3000 })
+```
+
 #### App.js
 
 ```js
