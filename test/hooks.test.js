@@ -21,14 +21,12 @@ test('Should run onRequest, preValidation, preHandler hooks', t => {
     fastify.addHook('preValidation', async (request, reply) => t.ok('called', 'preValidation'))
     fastify.addHook('preHandler', async (request, reply) => t.ok('called', 'preHandler'))
 
-    fastify.get('/echo', { websocket: true }, (conn, request) => {
-      conn.setEncoding('utf8')
-      conn.write('hello client')
-      t.teardown(conn.destroy.bind(conn))
+    fastify.get('/echo', { websocket: true }, (socket, request) => {
+      socket.send('hello client')
+      t.teardown(() => socket.terminate())
 
-      conn.once('data', chunk => {
-        t.equal(chunk, 'hello server')
-        conn.end()
+      socket.once('message', (chunk) => {
+        t.equal(chunk.toString(), 'hello server')
       })
     })
   })
@@ -60,11 +58,10 @@ test('Should not run onTimeout hook', t => {
   fastify.register(async function () {
     fastify.addHook('onTimeout', async (request, reply) => t.fail('called', 'onTimeout'))
 
-    fastify.get('/echo', { websocket: true }, (conn, request) => {
-      conn.setEncoding('utf8')
-      conn.write('hello client')
+    fastify.get('/echo', { websocket: true }, (socket, request) => {
+      socket.send('hello client')
       request.raw.setTimeout(50)
-      t.teardown(conn.destroy.bind(conn))
+      t.teardown(() => socket.terminate())
     })
   })
 
@@ -206,8 +203,8 @@ test('Should not run onError hook if reply was already hijacked (error thrown in
   fastify.register(async function (fastify) {
     fastify.addHook('onError', async (request, reply) => t.fail('called', 'onError'))
 
-    fastify.get('/echo', { websocket: true }, async (conn, request) => {
-      t.teardown(conn.destroy.bind(conn))
+    fastify.get('/echo', { websocket: true }, async (socket, request) => {
+      t.teardown(() => socket.terminate())
       throw new Error('Fail')
     })
   })
@@ -233,11 +230,9 @@ test('Should not run preSerialization/onSend hooks', t => {
     fastify.addHook('onSend', async (request, reply) => t.fail('called', 'onSend'))
     fastify.addHook('preSerialization', async (request, reply) => t.fail('called', 'preSerialization'))
 
-    fastify.get('/echo', { websocket: true }, async (conn, request) => {
-      conn.setEncoding('utf8')
-      conn.write('hello client')
-      t.teardown(conn.destroy.bind(conn))
-      conn.end()
+    fastify.get('/echo', { websocket: true }, async (socket, request) => {
+      socket.send('hello client')
+      t.teardown(() => socket.terminate())
     })
   })
 
@@ -299,14 +294,12 @@ test('Should run async hooks and still deliver quickly sent messages', (t) => {
       async () => await new Promise((resolve) => setTimeout(resolve, 25))
     )
 
-    fastify.get('/echo', { websocket: true }, (conn, request) => {
-      conn.setEncoding('utf8')
-      conn.write('hello client')
-      t.teardown(conn.destroy.bind(conn))
+    fastify.get('/echo', { websocket: true }, (socket, request) => {
+      socket.send('hello client')
+      t.teardown(() => socket.terminate())
 
-      conn.socket.on('message', (message) => {
+      socket.on('message', (message) => {
         t.equal(message.toString('utf-8'), 'hello server')
-        conn.end()
       })
     })
   })
@@ -362,7 +355,7 @@ test('Should not hijack reply for an normal request to a websocket route that is
 })
 
 test('Should not hijack reply for an WS request to a WS route that gets sent a normal HTTP response in a hook', t => {
-  t.plan(6)
+  t.plan(2)
   const stream = split(JSON.parse)
   const fastify = Fastify({ logger: { stream } })
 
@@ -377,7 +370,9 @@ test('Should not hijack reply for an WS request to a WS route that gets sent a n
   })
 
   stream.on('data', (chunk) => {
-    t.ok(chunk.level < 50)
+    if (chunk.level >= 50) {
+      t.fail()
+    }
   })
 
   fastify.listen({ port: 0 }, err => {
