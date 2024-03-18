@@ -1,8 +1,0 @@
-ts: false
-jsx: false
-flow: false
-coverage: true
-jobs: 1
-
-files:
-  - test/**/*.test.js
