@@ -143,7 +143,9 @@ test('Should run custom errorHandler on error inside async websocket handler', a
   t.teardown(() => fastify.close())
 
   let _resolve
-  const promise = new Promise((resolve) => { _resolve = resolve })
+  const p = new Promise((resolve) => {
+    _resolve = resolve
+  })
 
   const options = {
     errorHandler: function (error) {
@@ -164,7 +166,7 @@ test('Should run custom errorHandler on error inside async websocket handler', a
   const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
   const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
 
-  await promise
+  await p
 
   t.teardown(() => client.destroy())
 })
