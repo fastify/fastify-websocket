@@ -90,7 +90,6 @@ test('Should run custom errorHandler on wildcard route handler error', async (t)
 
   fastify.get('/*', { websocket: true }, (conn) => {
     conn.pipe(conn)
-    t.teardown(() => conn.destroy())
     return Promise.reject(new Error('Fail'))
   })
 
@@ -98,11 +97,14 @@ test('Should run custom errorHandler on wildcard route handler error', async (t)
 
   const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
   const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-  t.teardown(() => client.destroy())
   await p
+
+  t.teardown(() => client.destroy())
 })
 
 test('Should run custom errorHandler on error inside websocket handler', async (t) => {
+  t.plan(1)
+
   const fastify = Fastify()
   t.teardown(() => fastify.close())
 
@@ -122,29 +124,30 @@ test('Should run custom errorHandler on error inside websocket handler', async (
 
   fastify.get('/', { websocket: true }, function wsHandler (conn) {
     conn.pipe(conn)
-    t.teardown(() => conn.destroy())
     throw new Error('Fail')
   })
 
   await fastify.listen({ port: 0 })
   const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
   const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
-  t.teardown(() => client.destroy())
 
   await p
+
+  t.teardown(() => client.destroy())
 })
 
 test('Should run custom errorHandler on error inside async websocket handler', async (t) => {
+  t.plan(1)
+
   const fastify = Fastify()
   t.teardown(() => fastify.close())
 
   let _resolve
-  const p = new Promise((resolve) => {
-    _resolve = resolve
-  })
+  const promise = new Promise((resolve) => { _resolve = resolve })
 
   const options = {
     errorHandler: function (error) {
+      console.log('Error received')
       t.equal(error.message, 'Fail')
       _resolve()
     }
@@ -154,15 +157,16 @@ test('Should run custom errorHandler on error inside async websocket handler', a
 
   fastify.get('/', { websocket: true }, async function wsHandler (conn) {
     conn.pipe(conn)
-    t.teardown(() => conn.destroy())
     throw new Error('Fail')
   })
 
   await fastify.listen({ port: 0 })
   const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
   const client = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' })
+
+  await promise
+
   t.teardown(() => client.destroy())
-  await p
 })
 
 test('Should be able to pass custom options to websocket-stream', async (t) => {
