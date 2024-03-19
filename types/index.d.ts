@@ -98,6 +98,8 @@ declare namespace fastifyWebsocket {
     Logger extends FastifyBaseLogger = FastifyBaseLogger
   > extends fastify.RouteOptions<RawServer, RawRequest, RawReply, RouteGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger>, WebsocketRouteOptions<RawServer, RawRequest, RouteGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger> { }
 
+  export type WebSocket = WebSocket.WebSocket;
+
   export const fastifyWebsocket: FastifyWebsocket
   export { fastifyWebsocket as default }
 }

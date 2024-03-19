@@ -1,8 +1,8 @@
-import fastifyWebsocket, { WebsocketHandler, fastifyWebsocket as namedFastifyWebsocket, default as defaultFastifyWebsocket } from '..';
+import fastifyWebsocket, { WebsocketHandler, fastifyWebsocket as namedFastifyWebsocket, default as defaultFastifyWebsocket, WebSocket } from '..';
 import type { IncomingMessage } from "http";
 import fastify, { RouteOptions, FastifyRequest, FastifyInstance, FastifyReply, RequestGenericInterface, FastifyBaseLogger, RawServerDefault, FastifySchema, RawRequestDefaultExpression } from 'fastify';
 import { expectType } from 'tsd';
-import { Server, WebSocket } from 'ws';
+import { Server } from 'ws';
 import { RouteGenericInterface } from 'fastify/types/route';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { Type } from '@sinclair/typebox'
