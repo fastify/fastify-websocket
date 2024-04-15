@@ -3,7 +3,6 @@ import { IncomingMessage, ServerResponse, Server } from 'http';
 import { FastifyRequest, FastifyPluginCallback, RawServerBase, RawServerDefault, RawRequestDefaultExpression, RawReplyDefaultExpression, RequestGenericInterface, ContextConfigDefault, FastifyInstance, FastifySchema, FastifyTypeProvider, FastifyTypeProviderDefault, FastifyBaseLogger } from 'fastify';
 import * as fastify from 'fastify';
 import * as WebSocket from 'ws';
-import { Duplex, DuplexOptions } from 'stream';
 import { FastifyReply } from 'fastify/types/reply';
 import { preCloseHookHandler, preCloseAsyncHookHandler } from 'fastify/types/hooks';
 import { RouteGenericInterface } from 'fastify/types/route';
@@ -80,16 +79,12 @@ declare namespace fastifyWebsocket {
     Logger extends FastifyBaseLogger = FastifyBaseLogger
   > = (
     this: FastifyInstance<Server, IncomingMessage, ServerResponse>,
-    connection: SocketStream,
+    socket: WebSocket.WebSocket,
     request: FastifyRequest<RequestGeneric, RawServer, RawRequest, SchemaCompiler, TypeProvider, ContextConfig, Logger>
   ) => void | Promise<any>;
-  export interface SocketStream extends Duplex {
-    socket: WebSocket;
-  }
   export interface WebsocketPluginOptions {
-    errorHandler?: (this: FastifyInstance, error: Error, connection: SocketStream, request: FastifyRequest, reply: FastifyReply) => void;
+    errorHandler?: (this: FastifyInstance, error: Error, socket: WebSocket.WebSocket, request: FastifyRequest, reply: FastifyReply) => void;
     options?: WebSocketServerOptions;
-    connectionOptions?: DuplexOptions;
     preClose?: preCloseHookHandler | preCloseAsyncHookHandler;
   }
   export interface RouteOptions<
@@ -102,6 +97,8 @@ declare namespace fastifyWebsocket {
     TypeProvider extends FastifyTypeProvider = FastifyTypeProviderDefault,
     Logger extends FastifyBaseLogger = FastifyBaseLogger
   > extends fastify.RouteOptions<RawServer, RawRequest, RawReply, RouteGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger>, WebsocketRouteOptions<RawServer, RawRequest, RouteGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger> { }
+
+  export type WebSocket = WebSocket.WebSocket;
 
   export const fastifyWebsocket: FastifyWebsocket
   export { fastifyWebsocket as default }
