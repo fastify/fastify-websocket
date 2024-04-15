@@ -48,9 +48,5 @@
   "pre-commit": [
     "lint",
     "test"
-  ],
-  "tap": {
-    "jobs": 1,
-    "files": ["test/**/*.test.js"]
-  }
+  ]
 }
