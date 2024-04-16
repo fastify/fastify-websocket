@@ -146,7 +146,6 @@ test('Should run custom errorHandler on error inside async websocket handler', a
 
   const options = {
     errorHandler: function (error) {
-      console.log('Error received')
       t.equal(error.message, 'Fail')
       _resolve()
     }
