@@ -33,7 +33,11 @@ test('Should expose a websocket', async (t) => {
   await fastify.listen({ port: 0 })
 
   const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
-  t.teardown(() => ws.close())
+  t.teardown(() => {
+    if (ws.readyState) {
+      ws.close()
+    }
+  })
 
   const chunkPromise = once(ws, 'message')
   await once(ws, 'open')
@@ -94,7 +98,11 @@ test('Should run custom errorHandler on wildcard route handler error', async (t)
   await fastify.listen({ port: 0 })
 
   const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
-  t.teardown(() => ws.close())
+  t.teardown(() => {
+    if (ws.readyState) {
+      ws.close()
+    }
+  })
 
   await p
 })
@@ -128,7 +136,11 @@ test('Should run custom errorHandler on error inside websocket handler', async (
   await fastify.listen({ port: 0 })
   const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
 
-  t.teardown(() => ws.close())
+  t.teardown(() => {
+    if (ws.readyState) {
+      ws.close()
+    }
+  })
 
   await p
 })
@@ -161,7 +173,11 @@ test('Should run custom errorHandler on error inside async websocket handler', a
 
   await fastify.listen({ port: 0 })
   const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
-  t.teardown(() => ws.close())
+  t.teardown(() => {
+    if (ws.readyState) {
+      ws.close()
+    }
+  })
 
   await p
 })
@@ -193,7 +209,11 @@ test('Should be able to pass custom options to ws', async (t) => {
   const ws = new WebSocket('ws://localhost:' + fastify.server.address().port, clientOptions)
   const chunkPromise = once(ws, 'message')
   await once(ws, 'open')
-  t.teardown(() => ws.close())
+  t.teardown(() => {
+    if (ws.readyState) {
+      ws.close()
+    }
+  })
 
   ws.send('hello')
 
@@ -233,7 +253,11 @@ test('Should warn if path option is provided to ws', async (t) => {
   const ws = new WebSocket('ws://localhost:' + fastify.server.address().port, clientOptions)
   const chunkPromise = once(ws, 'message')
   await once(ws, 'open')
-  t.teardown(() => ws.close())
+  t.teardown(() => {
+    if (ws.readyState) {
+      ws.close()
+    }
+  })
 
   ws.send('hello')
 
@@ -274,7 +298,11 @@ test('Should be able to pass a custom server option to ws', async (t) => {
   const ws = new WebSocket('ws://localhost:' + externalServerPort)
   const chunkPromise = once(ws, 'message')
   await once(ws, 'open')
-  t.teardown(() => ws.close())
+  t.teardown(() => {
+    if (ws.readyState) {
+      ws.close()
+    }
+  })
 
   ws.send('hello')
 
@@ -335,7 +363,11 @@ test('Should be able to pass preClose option to override default', async (t) => 
   await fastify.listen({ port: 0 })
 
   const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
-  t.teardown(() => ws.close())
+  t.teardown(() => {
+    if (ws.readyState) {
+      ws.close()
+    }
+  })
 
   const chunkPromise = once(ws, 'message')
   await once(ws, 'open')
