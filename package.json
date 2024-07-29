@@ -28,7 +28,7 @@
   "devDependencies": {
     "@fastify/pre-commit": "^2.1.0",
     "@fastify/type-provider-typebox": "^4.0.0",
-    "@types/node": "^20.11.28",
+    "@types/node": "^22.0.0",
     "@types/ws": "^8.5.10",
     "fastify": "^4.26.2",
     "fastify-tsconfig": "^2.0.0",
