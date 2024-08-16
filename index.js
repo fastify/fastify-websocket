@@ -234,7 +234,7 @@ function fastifyWebsocket (fastify, opts, next) {
 }
 
 module.exports = fp(fastifyWebsocket, {
-  fastify: '^4.16.0',
+  fastify: '5.x',
   name: '@fastify/websocket'
 })
 module.exports.default = fastifyWebsocket
