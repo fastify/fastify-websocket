@@ -1,6 +1,6 @@
 {
   "name": "@fastify/websocket",
-  "version": "11.0.0-pre.fv5.1",
+  "version": "11.0.0-pre.fv5.2",
   "description": "basic websocket support for fastify",
   "main": "index.js",
   "type": "commonjs",
