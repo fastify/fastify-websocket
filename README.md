@@ -271,7 +271,7 @@ const FastifyWebSocket = require('@fastify/websocket')
 const ws = require('ws')
 
 const fastify = Fastify()
-await fastify.register(websocket)
+await fastify.register(FastifyWebSocket)
 
 fastify.get('/', { websocket: true }, (socket, req) => {
   const stream = ws.createWebSocketStream(socket, { /* options */ })
@@ -332,6 +332,7 @@ test('connect to /', async (t) => {
   const fastify = Fastify()
   fastify.register(App)
   t.teardown(fastify.close.bind(fastify))
+  await fastify.ready()
 
   const ws = await fastify.injectWS('/', {headers: { "api-key" : "some-random-key" }})
   let resolve;
