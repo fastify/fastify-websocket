@@ -11,7 +11,7 @@ Built upon [ws@8](https://www.npmjs.com/package/ws).
 
 ```shell
 npm i @fastify/websocket
-# or 
+# or
 yarn add @fastify/websocket
 ```
 
@@ -277,7 +277,7 @@ fastify.get('/', { websocket: true }, (socket, req) => {
   const stream = ws.createWebSocketStream(socket, { /* options */ })
   stream.setEncoding('utf8')
   stream.write('hello client')
-  
+
   stream.on('data', function (data) {
     // Make sure to set up a data handler or read all the incoming
     // data in another way, otherwise stream backpressure will cause
@@ -314,7 +314,7 @@ App.register(async function(fastify) {
   })
 })
 
-module.exports = App 
+module.exports = App
 ```
 
 #### App.test.js
