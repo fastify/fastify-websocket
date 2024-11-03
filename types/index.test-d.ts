@@ -164,4 +164,4 @@ server.get('/websockets-no-type-inference',
 
   expectType<typeof fastifyWebsocket>(namedFastifyWebsocket);
   expectType<typeof fastifyWebsocket>(defaultFastifyWebsocket);
-  
+
