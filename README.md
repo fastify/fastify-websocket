@@ -23,6 +23,15 @@ npm i @types/ws -D
 yarn add -D @types/ws
 ```
 
+If you use TypeScript and Yarn 2, you'll need to add a `packageExtension` to your `.yarnrc.yml` file:
+
+```yaml
+packageExtensions:
+  "@fastify/websocket@*":
+    peerDependencies:
+      fastify: "*"
+```
+
 ## Usage
 
 After registering this plugin, you can choose on which routes the WS server will respond. This can be achieved by adding `websocket: true` property to `routeOptions` on a fastify's `.get` route. In this case two arguments will be passed to the handler, the socket connection, and the `fastify` request object:
