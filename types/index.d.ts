@@ -43,7 +43,7 @@ declare module 'fastify' {
     RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>,
     RawReply extends RawReplyDefaultExpression<RawServer> = RawReplyDefaultExpression<RawServer>,
     TypeProvider extends FastifyTypeProvider = FastifyTypeProviderDefault,
-    Logger extends FastifyBaseLogger = FastifyBaseLogger,
+    Logger extends FastifyBaseLogger = FastifyBaseLogger
   > {
     <RequestGeneric extends RequestGenericInterface = RequestGenericInterface, ContextConfig = ContextConfigDefault, SchemaCompiler extends FastifySchema = FastifySchema, InnerLogger extends Logger = Logger>(
       path: string,
@@ -64,11 +64,11 @@ declare module 'fastify' {
   > extends WebsocketRouteOptions<RawServer, RawRequest, RouteGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger> { }
 }
 
-type FastifyWebsocket = FastifyPluginCallback<fastifyWebsocket.WebsocketPluginOptions>;
+type FastifyWebsocket = FastifyPluginCallback<fastifyWebsocket.WebsocketPluginOptions>
 
 declare namespace fastifyWebsocket {
 
-  interface WebSocketServerOptions extends Omit<WebSocket.ServerOptions, "path"> { }
+  interface WebSocketServerOptions extends Omit<WebSocket.ServerOptions, 'path'> { }
   export type WebsocketHandler<
     RawServer extends RawServerBase = RawServerDefault,
     RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>,
@@ -81,7 +81,7 @@ declare namespace fastifyWebsocket {
     this: FastifyInstance<Server, IncomingMessage, ServerResponse>,
     socket: WebSocket.WebSocket,
     request: FastifyRequest<RequestGeneric, RawServer, RawRequest, SchemaCompiler, TypeProvider, ContextConfig, Logger>
-  ) => void | Promise<any>;
+  ) => void | Promise<any>
   export interface WebsocketPluginOptions {
     errorHandler?: (this: FastifyInstance, error: Error, socket: WebSocket.WebSocket, request: FastifyRequest, reply: FastifyReply) => void;
     options?: WebSocketServerOptions;
@@ -98,11 +98,11 @@ declare namespace fastifyWebsocket {
     Logger extends FastifyBaseLogger = FastifyBaseLogger
   > extends fastify.RouteOptions<RawServer, RawRequest, RawReply, RouteGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger>, WebsocketRouteOptions<RawServer, RawRequest, RouteGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger> { }
 
-  export type WebSocket = WebSocket.WebSocket;
+  export type WebSocket = WebSocket.WebSocket
 
   export const fastifyWebsocket: FastifyWebsocket
   export { fastifyWebsocket as default }
 }
 
-declare function fastifyWebsocket(...params: Parameters<FastifyWebsocket>): ReturnType<FastifyWebsocket>
+declare function fastifyWebsocket (...params: Parameters<FastifyWebsocket>): ReturnType<FastifyWebsocket>
 export = fastifyWebsocket
