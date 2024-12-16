@@ -1,11 +1,11 @@
 /// <reference types="node" />
-import { IncomingMessage, ServerResponse, Server } from 'node:http';
-import { FastifyRequest, FastifyPluginCallback, RawServerBase, RawServerDefault, RawRequestDefaultExpression, RawReplyDefaultExpression, RequestGenericInterface, ContextConfigDefault, FastifyInstance, FastifySchema, FastifyTypeProvider, FastifyTypeProviderDefault, FastifyBaseLogger } from 'fastify';
-import * as fastify from 'fastify';
-import * as WebSocket from 'ws';
-import { FastifyReply } from 'fastify/types/reply';
-import { preCloseHookHandler, preCloseAsyncHookHandler } from 'fastify/types/hooks';
-import { RouteGenericInterface } from 'fastify/types/route';
+import { IncomingMessage, ServerResponse, Server } from 'node:http'
+import { FastifyRequest, FastifyPluginCallback, RawServerBase, RawServerDefault, RawRequestDefaultExpression, RawReplyDefaultExpression, RequestGenericInterface, ContextConfigDefault, FastifyInstance, FastifySchema, FastifyTypeProvider, FastifyTypeProviderDefault, FastifyBaseLogger } from 'fastify'
+import * as fastify from 'fastify'
+import * as WebSocket from 'ws'
+import { FastifyReply } from 'fastify/types/reply'
+import { preCloseHookHandler, preCloseAsyncHookHandler } from 'fastify/types/hooks'
+import { RouteGenericInterface } from 'fastify/types/route'
 
 interface WebsocketRouteOptions<
   RawServer extends RawServerBase = RawServerDefault,
