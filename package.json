@@ -20,11 +20,40 @@
     "websocket"
   ],
   "author": "Matteo Collina <hello@matteocollina.com>",
+  "contributors": [
+    {
+      "name": "Harry Brundage",
+      "email": "harry.brundage@gmail.com"
+    },
+    {
+      "name": "Manuel Spigolon",
+      "email": "behemoth89@gmail.com"
+    },
+    {
+      "name": "Aras Abbasi",
+      "email": "aras.abbasi@gmail.com"
+    },
+    {
+      "name": "Frazer Smith",
+      "email": "frazer.dev@icloud.com",
+      "url": "https://github.com/fdawgs"
+    }
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/fastify/fastify-websocket/issues"
   },
   "homepage": "https://github.com/fastify/fastify-websocket#readme",
+  "funding": [
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/fastify"
+    },
+    {
+      "type": "opencollective",
+      "url": "https://opencollective.com/fastify"
+    }
+  ],
   "devDependencies": {
     "@fastify/pre-commit": "^2.1.0",
     "@fastify/type-provider-typebox": "^5.0.0",
