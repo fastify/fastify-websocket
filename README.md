@@ -244,7 +244,7 @@ Note: Fastify's `onError` and error handlers registered by `setErrorHandler` wil
 
 ### Custom preClose hook:
 
-By default, all ws connections are closed when the server closes. If you wish to modify this behaviour, you can pass your own `preClose` function.
+By default, all ws connections are closed when the server closes. If you wish to modify this behavior, you can pass your own `preClose` function.
 
 Note that `preClose` is responsible for closing all connections and closing the websocket server.
 
