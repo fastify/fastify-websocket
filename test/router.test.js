@@ -15,8 +15,8 @@ test('Should expose a websocket on prefixed route', t => {
 
   fastify.register(fastifyWebsocket)
   fastify.register(
-    function (instance, opts, next) {
-      instance.get('/echo', { websocket: true }, function (socket, request) {
+    function (instance, _opts, next) {
+      instance.get('/echo', { websocket: true }, function (socket) {
         t.equal(this.prefix, '/baz')
         socket.send('hello client')
         t.teardown(() => socket.terminate())
@@ -54,8 +54,8 @@ test('Should expose a websocket on prefixed route with /', t => {
 
   fastify.register(fastifyWebsocket)
   fastify.register(
-    function (instance, opts, next) {
-      instance.get('/', { websocket: true }, (socket, req) => {
+    function (instance, _opts, next) {
+      instance.get('/', { websocket: true }, (socket) => {
         socket.send('hello client')
         t.teardown(() => socket.terminate())
 
@@ -92,14 +92,14 @@ test('Should expose websocket and http route', t => {
 
   fastify.register(fastifyWebsocket)
   fastify.register(
-    function (instance, opts, next) {
+    function (instance, _opts, next) {
       instance.route({
         method: 'GET',
         url: '/echo',
-        handler: (request, reply) => {
+        handler: (_request, reply) => {
           reply.send({ hello: 'world' })
         },
-        wsHandler: (socket, req) => {
+        wsHandler: (socket) => {
           socket.send('hello client')
           t.teardown(() => socket.terminate())
 
@@ -152,11 +152,11 @@ test('Should close on unregistered path (with no wildcard route websocket handle
   fastify
     .register(fastifyWebsocket)
     .register(async function () {
-      fastify.get('/*', (request, reply) => {
+      fastify.get('/*', (_request, reply) => {
         reply.send('hello world')
       })
 
-      fastify.get('/echo', { websocket: true }, (socket, request) => {
+      fastify.get('/echo', { websocket: true }, (socket) => {
         socket.on('message', message => {
           try {
             socket.send(message)
@@ -199,7 +199,7 @@ test('Should use wildcard websocket route when (with a normal http wildcard rout
           socket.send('hello client')
           t.teardown(() => socket.terminate())
 
-          socket.once('message', (chunk) => {
+          socket.once('message', () => {
             socket.close()
           })
         }
@@ -284,10 +284,10 @@ test('Should invoke the correct handler depending on the headers', t => {
     fastify.route({
       method: 'GET',
       url: '/',
-      handler: (request, reply) => {
+      handler: (_request, reply) => {
         reply.send('hi from handler')
       },
-      wsHandler: (socket, request) => {
+      wsHandler: (socket) => {
         socket.send('hi from wsHandler')
         t.teardown(() => socket.terminate())
       }
@@ -324,13 +324,13 @@ test('Should call the wildcard handler if a no other non-websocket route with pa
   fastify.register(fastifyWebsocket)
 
   fastify.register(async function (fastify) {
-    fastify.get('/*', { websocket: true }, (socket, request) => {
+    fastify.get('/*', { websocket: true }, (socket) => {
       t.ok('called', 'wildcard handler')
       socket.close()
       t.teardown(() => socket.terminate())
     })
 
-    fastify.get('/http', (request, reply) => {
+    fastify.get('/http', (_request, reply) => {
       t.fail('Should not call http handler')
       reply.send('http route')
     })
@@ -354,12 +354,12 @@ test('Should close the connection if a non-websocket route with path exists', t 
 
   fastify.register(fastifyWebsocket)
   fastify.register(async function (fastify) {
-    fastify.get('/*', { websocket: true }, (socket, request) => {
+    fastify.get('/*', { websocket: true }, (socket) => {
       t.fail('called', 'wildcard handler')
       t.teardown(() => socket.terminate())
     })
 
-    fastify.get('/http', (request, reply) => {
+    fastify.get('/http', (_request, reply) => {
       t.fail('Should not call /http handler')
       reply.send('http route')
     })
@@ -383,7 +383,7 @@ test('Should throw on wrong HTTP method', t => {
 
   fastify.register(fastifyWebsocket)
   fastify.register(async function (fastify) {
-    fastify.post('/echo', { websocket: true }, (socket, request) => {
+    fastify.post('/echo', { websocket: true }, (socket) => {
       socket.on('message', message => {
         try {
           socket.send(message)
@@ -394,7 +394,7 @@ test('Should throw on wrong HTTP method', t => {
       t.teardown(() => socket.terminate())
     })
 
-    fastify.get('/http', (request, reply) => {
+    fastify.get('/http', (_request, reply) => {
       t.fail('Should not call /http handler')
       reply.send('http route')
     })
@@ -436,7 +436,7 @@ test('Should open on registered path', t => {
   fastify.register(fastifyWebsocket)
 
   fastify.register(async function (fastify) {
-    fastify.get('/echo', { websocket: true }, (socket, request) => {
+    fastify.get('/echo', { websocket: true }, (socket) => {
       socket.on('message', message => {
         try {
           socket.send(message)
@@ -471,7 +471,7 @@ test('Should send message and close', t => {
   fastify.register(fastifyWebsocket)
 
   fastify.register(async function (fastify) {
-    fastify.get('/', { websocket: true }, (socket, request) => {
+    fastify.get('/', { websocket: true }, (socket) => {
       socket.on('message', message => {
         t.equal(message.toString(), 'hi from client')
         socket.send('hi from server')
@@ -513,7 +513,7 @@ test('Should return 404 on http request', t => {
 
   fastify.register(fastifyWebsocket)
   fastify.register(async function (fastify) {
-    fastify.get('/', { websocket: true }, (socket, request) => {
+    fastify.get('/', { websocket: true }, (socket) => {
       socket.on('message', message => {
         t.equal(message.toString(), 'hi from client')
         socket.send('hi from server')
@@ -596,8 +596,8 @@ test('Should not throw error when register empty get with prefix', t => {
   fastify.register(fastifyWebsocket)
 
   fastify.register(
-    function (instance, opts, next) {
-      instance.get('/', { websocket: true }, (socket, request) => {
+    function (instance, _opts, next) {
+      instance.get('/', { websocket: true }, (socket) => {
         socket.on('message', message => {
           t.equal(message.toString(), 'hi from client')
           socket.send('hi from server')
@@ -692,7 +692,7 @@ test('should call `destroy` when exception is thrown inside async handler', t =>
 
   fastify.register(fastifyWebsocket)
   fastify.register(async function (fastify) {
-    fastify.get('/ws', { websocket: true }, async function wsHandler (socket, request) {
+    fastify.get('/ws', { websocket: true }, async function wsHandler (socket) {
       socket.on('close', code => {
         t.equal(code, 1006)
         t.end()
@@ -721,7 +721,7 @@ test('should call default non websocket fastify route when no match is found', t
 
   fastify.register(fastifyWebsocket)
   fastify.register(async function (fastify) {
-    fastify.get('/ws', function handler (request, reply) {
+    fastify.get('/ws', function handler (_request, reply) {
       reply.send({ hello: 'world' })
     })
   })
@@ -743,7 +743,7 @@ test('register a non websocket route', t => {
 
   fastify.register(fastifyWebsocket)
   fastify.register(async function (fastify) {
-    fastify.get('/ws', function handler (request, reply) {
+    fastify.get('/ws', function handler (_request, reply) {
       reply.send({ hello: 'world' })
     })
   })

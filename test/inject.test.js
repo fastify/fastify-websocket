@@ -68,7 +68,7 @@ test('routes correctly the message between two routes', async (t) => {
   fastify.register(
     async function (instance) {
       instance.get('/ws', { websocket: true }, function (socket) {
-        socket.once('message', chunk => {
+        socket.once('message', () => {
           _reject('wrong-route')
         })
       })
@@ -121,11 +121,11 @@ test('rejects if the websocket is not upgraded', async (t) => {
 
   fastify.register(
     async function (instance) {
-      instance.addHook('preValidation', async (request, reply) => {
+      instance.addHook('preValidation', async (_request, reply) => {
         return reply.code(401).send()
       })
 
-      instance.get('/', { websocket: true }, function (conn) {
+      instance.get('/', { websocket: true }, function () {
       })
     })
 

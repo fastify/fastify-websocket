@@ -16,12 +16,12 @@ test('Should run onRequest, preValidation, preHandler hooks', t => {
   fastify.register(fastifyWebsocket)
 
   fastify.register(async function (fastify) {
-    fastify.addHook('onRequest', async (request, reply) => t.ok('called', 'onRequest'))
-    fastify.addHook('preParsing', async (request, reply, payload) => t.ok('called', 'preParsing'))
-    fastify.addHook('preValidation', async (request, reply) => t.ok('called', 'preValidation'))
-    fastify.addHook('preHandler', async (request, reply) => t.ok('called', 'preHandler'))
+    fastify.addHook('onRequest', async () => t.ok('called', 'onRequest'))
+    fastify.addHook('preParsing', async () => t.ok('called', 'preParsing'))
+    fastify.addHook('preValidation', async () => t.ok('called', 'preValidation'))
+    fastify.addHook('preHandler', async () => t.ok('called', 'preHandler'))
 
-    fastify.get('/echo', { websocket: true }, (socket, request) => {
+    fastify.get('/echo', { websocket: true }, (socket) => {
       socket.send('hello client')
       t.teardown(() => socket.terminate())
 
@@ -56,7 +56,7 @@ test('Should not run onTimeout hook', t => {
   fastify.register(fastifyWebsocket)
 
   fastify.register(async function () {
-    fastify.addHook('onTimeout', async (request, reply) => t.fail('called', 'onTimeout'))
+    fastify.addHook('onTimeout', async () => t.fail('called', 'onTimeout'))
 
     fastify.get('/echo', { websocket: true }, (socket, request) => {
       socket.send('hello client')
@@ -86,10 +86,10 @@ test('Should run onError hook before handler is executed (error thrown in onRequ
   fastify.register(fastifyWebsocket)
 
   fastify.register(async function (fastify) {
-    fastify.addHook('onRequest', async (request, reply) => { throw new Error('Fail') })
-    fastify.addHook('onError', async (request, reply) => t.ok('called', 'onError'))
+    fastify.addHook('onRequest', async () => { throw new Error('Fail') })
+    fastify.addHook('onError', async () => t.ok('called', 'onError'))
 
-    fastify.get('/echo', { websocket: true }, (conn, request) => {
+    fastify.get('/echo', { websocket: true }, () => {
       t.fail()
     })
   })
@@ -110,14 +110,14 @@ test('Should run onError hook before handler is executed (error thrown in preVal
   fastify.register(fastifyWebsocket)
 
   fastify.register(async function (fastify) {
-    fastify.addHook('preValidation', async (request, reply) => {
+    fastify.addHook('preValidation', async () => {
       await Promise.resolve()
       throw new Error('Fail')
     })
 
-    fastify.addHook('onError', async (request, reply) => t.ok('called', 'onError'))
+    fastify.addHook('onError', async () => t.ok('called', 'onError'))
 
-    fastify.get('/echo', { websocket: true }, (conn, request) => {
+    fastify.get('/echo', { websocket: true }, () => {
       t.fail()
     })
   })
@@ -138,17 +138,17 @@ test('onError hooks can send a reply and prevent hijacking', t => {
   fastify.register(fastifyWebsocket)
 
   fastify.register(async function (fastify) {
-    fastify.addHook('preValidation', async (request, reply) => {
+    fastify.addHook('preValidation', async () => {
       await Promise.resolve()
       throw new Error('Fail')
     })
 
-    fastify.addHook('onError', async (request, reply) => {
+    fastify.addHook('onError', async (_request, reply) => {
       t.ok('called', 'onError')
       await reply.code(501).send('there was an error')
     })
 
-    fastify.get('/echo', { websocket: true }, (conn, request) => {
+    fastify.get('/echo', { websocket: true }, () => {
       t.fail()
     })
   })
@@ -169,18 +169,18 @@ test('setErrorHandler functions can send a reply and prevent hijacking', t => {
   fastify.register(fastifyWebsocket)
 
   fastify.register(async function (fastify) {
-    fastify.addHook('preValidation', async (request, reply) => {
+    fastify.addHook('preValidation', async () => {
       await Promise.resolve()
       throw new Error('Fail')
     })
 
-    fastify.setErrorHandler(async (error, request, reply) => {
+    fastify.setErrorHandler(async (error, _request, reply) => {
       t.ok('called', 'onError')
       t.ok(error)
       await reply.code(501).send('there was an error')
     })
 
-    fastify.get('/echo', { websocket: true }, (conn, request) => {
+    fastify.get('/echo', { websocket: true }, () => {
       t.fail()
     })
   })
@@ -201,9 +201,9 @@ test('Should not run onError hook if reply was already hijacked (error thrown in
   fastify.register(fastifyWebsocket)
 
   fastify.register(async function (fastify) {
-    fastify.addHook('onError', async (request, reply) => t.fail('called', 'onError'))
+    fastify.addHook('onError', async () => t.fail('called', 'onError'))
 
-    fastify.get('/echo', { websocket: true }, async (socket, request) => {
+    fastify.get('/echo', { websocket: true }, async (socket) => {
       t.teardown(() => socket.terminate())
       throw new Error('Fail')
     })
@@ -227,10 +227,10 @@ test('Should not run preSerialization/onSend hooks', t => {
   fastify.register(fastifyWebsocket)
 
   fastify.register(async function (fastify) {
-    fastify.addHook('onSend', async (request, reply) => t.fail('called', 'onSend'))
-    fastify.addHook('preSerialization', async (request, reply) => t.fail('called', 'preSerialization'))
+    fastify.addHook('onSend', async () => t.fail('called', 'onSend'))
+    fastify.addHook('preSerialization', async () => t.fail('called', 'preSerialization'))
 
-    fastify.get('/echo', { websocket: true }, async (socket, request) => {
+    fastify.get('/echo', { websocket: true }, async (socket) => {
       socket.send('hello client')
       t.teardown(() => socket.terminate())
     })
@@ -258,7 +258,7 @@ test('Should not hijack reply for a normal http request in the internal onError 
   fastify.register(fastifyWebsocket)
 
   fastify.register(async function (fastify) {
-    fastify.get('/', async (request, reply) => {
+    fastify.get('/', async () => {
       throw new Error('Fail')
     })
   })
@@ -294,7 +294,7 @@ test('Should run async hooks and still deliver quickly sent messages', (t) => {
       async () => await new Promise((resolve) => setTimeout(resolve, 25))
     )
 
-    fastify.get('/echo', { websocket: true }, (socket, request) => {
+    fastify.get('/echo', { websocket: true }, (socket) => {
       socket.send('hello client')
       t.teardown(() => socket.terminate())
 
@@ -329,11 +329,11 @@ test('Should not hijack reply for an normal request to a websocket route that is
 
   fastify.register(fastifyWebsocket)
   fastify.register(async function (fastify) {
-    fastify.addHook('preValidation', async (request, reply) => {
+    fastify.addHook('preValidation', async (_request, reply) => {
       await Promise.resolve()
       await reply.code(404).send('not found')
     })
-    fastify.get('/echo', { websocket: true }, (conn, request) => {
+    fastify.get('/echo', { websocket: true }, () => {
       t.fail()
     })
   })
@@ -361,10 +361,10 @@ test('Should not hijack reply for an WS request to a WS route that gets sent a n
 
   fastify.register(fastifyWebsocket)
   fastify.register(async function (fastify) {
-    fastify.addHook('preValidation', async (request, reply) => {
+    fastify.addHook('preValidation', async (_request, reply) => {
       await reply.code(404).send('not found')
     })
-    fastify.get('/echo', { websocket: true }, (conn, request) => {
+    fastify.get('/echo', { websocket: true }, () => {
       t.fail()
     })
   })

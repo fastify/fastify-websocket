@@ -651,7 +651,7 @@ test('clashing upgrade handler', async (t) => {
   const fastify = Fastify()
   t.teardown(() => fastify.close())
 
-  fastify.server.on('upgrade', (req, socket, head) => {
+  fastify.server.on('upgrade', (req, socket) => {
     const res = new http.ServerResponse(req)
     res.assignSocket(socket)
     res.end()
@@ -660,7 +660,7 @@ test('clashing upgrade handler', async (t) => {
 
   await fastify.register(fastifyWebsocket)
 
-  fastify.get('/', { websocket: true }, (connection) => {
+  fastify.get('/', { websocket: true }, () => {
     t.fail('this should never be invoked')
   })
 

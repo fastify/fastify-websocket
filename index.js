@@ -130,7 +130,7 @@ function fastifyWebsocket (fastify, opts, next) {
     })
   }
 
-  fastify.addHook('onRequest', (request, reply, done) => { // this adds req.ws to the Request object
+  fastify.addHook('onRequest', (request, _reply, done) => { // this adds req.ws to the Request object
     if (request.raw[kWs]) {
       request.ws = true
     } else {
@@ -139,7 +139,7 @@ function fastifyWebsocket (fastify, opts, next) {
     done()
   })
 
-  fastify.addHook('onResponse', (request, reply, done) => {
+  fastify.addHook('onResponse', (request, _reply, done) => {
     if (request.ws) {
       request.raw[kWs].destroy()
     }
