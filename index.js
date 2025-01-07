@@ -23,7 +23,7 @@ function fastifyWebsocket (fastify, opts, next) {
   }
 
   let preClose = defaultPreClose
-  if (opts && opts.preClose) {
+  if (opts?.preClose) {
     if (typeof opts.preClose !== 'function') {
       return next(new Error('invalid preClose function'))
     }
@@ -31,7 +31,7 @@ function fastifyWebsocket (fastify, opts, next) {
     preClose = opts.preClose
   }
 
-  if (opts.options && opts.options.noServer) {
+  if (opts.options?.noServer) {
     return next(new Error("fastify-websocket doesn't support the ws noServer option. If you want to create a websocket server detatched from fastify, use the ws library directly."))
   }
 
