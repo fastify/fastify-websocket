@@ -9,6 +9,7 @@ const Duplexify = require('duplexify')
 
 const kWs = Symbol('ws-socket')
 const kWsHead = Symbol('ws-head')
+const statusCodeReg = /HTTP\/1.1 (\d+)/u
 
 function fastifyWebsocket (fastify, opts, next) {
   fastify.decorateRequest('ws', null)
@@ -74,7 +75,7 @@ function fastifyWebsocket (fastify, opts, next) {
         ws.setSocket(clientStream, head, { maxPayload: 0 })
       } else {
         clientStream.removeListener('data', onData)
-        const statusCode = Number(chunk.toString().match(/HTTP\/1.1 (\d+)/)[1])
+        const statusCode = Number(statusCodeReg.exec(chunk.toString())[1])
         reject(new Error('Unexpected server response: ' + statusCode))
       }
     }
