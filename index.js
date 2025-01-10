@@ -169,7 +169,7 @@ function fastifyWebsocket (fastify, opts, next) {
       }
 
       if (typeof wsHandler !== 'function') {
-        throw new Error('invalid wsHandler function')
+        throw new TypeError('invalid wsHandler function')
       }
     }
 
