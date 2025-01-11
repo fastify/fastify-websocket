@@ -34,7 +34,7 @@ packageExtensions:
 
 ## Usage
 
-After registering this plugin, you can choose on which routes the WS server will respond. This can be achieved by adding `websocket: true` property to `routeOptions` on a fastify's `.get` route. In this case two arguments will be passed to the handler, the socket connection, and the `fastify` request object:
+After registering this plugin, you can choose on which routes the WS server will respond. This can be achieved by adding `websocket: true` property to `routeOptions` on a fastify's `.get` route. In this case, two arguments will be passed to the handler, the socket connection, and the `fastify` request object:
 
 ```js
 'use strict'
@@ -60,7 +60,7 @@ fastify.listen({ port: 3000 }, err => {
 
 In this case, it will respond with a 404 error on every unregistered route, closing the incoming upgrade connection requests.
 
-However, you can still define a wildcard route, that will be used as default handler:
+However, you can still define a wildcard route, that will be used as the default handler:
 
 ```js
 'use strict'
@@ -96,8 +96,7 @@ fastify.listen({ port: 3000 }, err => {
 ```
 
 ### Attaching event handlers
-
-It is important that websocket route handlers attach event handlers synchronously during handler execution to avoid accidentally dropping messages. If you want to do any async work in your websocket handler, say to authenticate a user or load data from a datastore, ensure you attach any `on('message')` handlers *before* you trigger this async work. Otherwise, messages might arrive whilst this async work is underway, and if there is no handler listening for this data it will be silently dropped.
+Websocket route handlers must attach event handlers synchronously during handler execution to avoid accidentally dropping messages. If you want to do any async work in your websocket handler, say to authenticate a user or load data from a datastore, ensure you attach any `on('message')` handlers *before* you trigger this async work. Otherwise, messages might arrive whilst this async work is underway, and if there is no handler listening for this data it will be silently dropped.
 
 Here is an example of how to attach message handlers synchronously while still accessing asynchronous resources. We store a promise for the async thing in a local variable, attach the message handler synchronously, and then make the message handler itself asynchronous to grab the async data and do some processing:
 
@@ -266,8 +265,8 @@ fastify.register(require('@fastify/websocket'), {
 
 ### Testing
 
-Testing the ws handler can be quite tricky, luckily `fastify-websocket` decorates fastify instance with `injectWS`.
-It allows to test easily a websocket endpoint.
+Testing the ws handler can be quite tricky, luckily `fastify-websocket` decorates fastify instance with `injectWS`,
+which allows easy testing of a websocket endpoint.
 
 The signature of injectWS is the following: `([path], [upgradeContext])`.
 
@@ -359,9 +358,9 @@ test('connect to /', async (t) => {
 ```
 
 #### Things to know
-- Websocket need to be closed manually at the end of each test.
+- Websocket needs to be closed manually at the end of each test.
 - `fastify.ready()` needs to be awaited to ensure that fastify has been decorated.
-- You need to register the event listener before sending the message if you need to process server response.
+- You need to register the event listener before sending the message if you need to process the server response.
 
 ## Options
 
@@ -371,8 +370,8 @@ test('connect to /', async (t) => {
 - `port` - The port where to bind the server.
 - `backlog` - The maximum length of the queue of pending connections.
 - `server` - A pre-created Node.js HTTP/S server.
-- `verifyClient` - A function which can be used to validate incoming connections.
-- `handleProtocols` - A function which can be used to handle the WebSocket subprotocols.
+- `verifyClient` - A function that can be used to validate incoming connections.
+- `handleProtocols` - A function that can be used to handle the WebSocket subprotocols.
 - `clientTracking` - Specifies whether or not to track clients.
 - `perMessageDeflate` - Enable/disable permessage-deflate.
 - `maxPayload` - The maximum allowed message size in bytes.
@@ -386,7 +385,7 @@ _**NB** The `path` option from `ws` should not be provided since the routing is 
 _**NB** The `noServer` option from `ws` should not be provided since the point of @fastify/websocket is to listen on the fastify server. If you want a custom server, you can use the `server` option, and if you want more control, you can use the `ws` library directly_
 
 [ws](https://github.com/websockets/ws) does not allow you to set `objectMode` or `writableObjectMode` to true
-## Acknowledgements
+## Acknowledgments
 
 This project is kindly sponsored by [nearForm](https://nearform.com).
 
