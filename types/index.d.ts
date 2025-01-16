@@ -1,11 +1,11 @@
 /// <reference types="node" />
-import { IncomingMessage, ServerResponse, Server } from 'node:http';
-import { FastifyRequest, FastifyPluginCallback, RawServerBase, RawServerDefault, RawRequestDefaultExpression, RawReplyDefaultExpression, RequestGenericInterface, ContextConfigDefault, FastifyInstance, FastifySchema, FastifyTypeProvider, FastifyTypeProviderDefault, FastifyBaseLogger } from 'fastify';
-import * as fastify from 'fastify';
-import * as WebSocket from 'ws';
-import { FastifyReply } from 'fastify/types/reply';
-import { preCloseHookHandler, preCloseAsyncHookHandler } from 'fastify/types/hooks';
-import { RouteGenericInterface } from 'fastify/types/route';
+import { IncomingMessage, ServerResponse, Server } from 'node:http'
+import { FastifyRequest, FastifyPluginCallback, RawServerBase, RawServerDefault, RawRequestDefaultExpression, RawReplyDefaultExpression, RequestGenericInterface, ContextConfigDefault, FastifyInstance, FastifySchema, FastifyTypeProvider, FastifyTypeProviderDefault, FastifyBaseLogger } from 'fastify'
+import * as fastify from 'fastify'
+import * as WebSocket from 'ws'
+import { FastifyReply } from 'fastify/types/reply'
+import { preCloseHookHandler, preCloseAsyncHookHandler } from 'fastify/types/hooks'
+import { RouteGenericInterface } from 'fastify/types/route'
 
 interface WebsocketRouteOptions<
   RawServer extends RawServerBase = RawServerDefault,
@@ -21,6 +21,7 @@ interface WebsocketRouteOptions<
 
 declare module 'fastify' {
   interface RouteShorthandOptions<
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     RawServer extends RawServerBase = RawServerDefault
   > {
     websocket?: boolean;
@@ -29,6 +30,7 @@ declare module 'fastify' {
   type InjectWSFn<RawRequest> =
     ((path?: string, upgradeContext?: Partial<RawRequest>) => Promise<WebSocket>)
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface FastifyInstance<RawServer, RawRequest, RawReply, Logger, TypeProvider> {
     websocketServer: WebSocket.Server,
     injectWS: InjectWSFn<RawRequest>
@@ -43,7 +45,7 @@ declare module 'fastify' {
     RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>,
     RawReply extends RawReplyDefaultExpression<RawServer> = RawReplyDefaultExpression<RawServer>,
     TypeProvider extends FastifyTypeProvider = FastifyTypeProviderDefault,
-    Logger extends FastifyBaseLogger = FastifyBaseLogger,
+    Logger extends FastifyBaseLogger = FastifyBaseLogger
   > {
     <RequestGeneric extends RequestGenericInterface = RequestGenericInterface, ContextConfig = ContextConfigDefault, SchemaCompiler extends FastifySchema = FastifySchema, InnerLogger extends Logger = Logger>(
       path: string,
@@ -55,6 +57,7 @@ declare module 'fastify' {
   interface RouteOptions<
     RawServer extends RawServerBase = RawServerDefault,
     RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     RawReply extends RawReplyDefaultExpression<RawServer> = RawReplyDefaultExpression<RawServer>,
     RouteGeneric extends RouteGenericInterface = RouteGenericInterface,
     ContextConfig = ContextConfigDefault,
@@ -64,11 +67,11 @@ declare module 'fastify' {
   > extends WebsocketRouteOptions<RawServer, RawRequest, RouteGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger> { }
 }
 
-type FastifyWebsocket = FastifyPluginCallback<fastifyWebsocket.WebsocketPluginOptions>;
+type FastifyWebsocket = FastifyPluginCallback<fastifyWebsocket.WebsocketPluginOptions>
 
 declare namespace fastifyWebsocket {
 
-  interface WebSocketServerOptions extends Omit<WebSocket.ServerOptions, "path"> { }
+  interface WebSocketServerOptions extends Omit<WebSocket.ServerOptions, 'path'> { }
   export type WebsocketHandler<
     RawServer extends RawServerBase = RawServerDefault,
     RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>,
@@ -81,7 +84,7 @@ declare namespace fastifyWebsocket {
     this: FastifyInstance<Server, IncomingMessage, ServerResponse>,
     socket: WebSocket.WebSocket,
     request: FastifyRequest<RequestGeneric, RawServer, RawRequest, SchemaCompiler, TypeProvider, ContextConfig, Logger>
-  ) => void | Promise<any>;
+  ) => void | Promise<any>
   export interface WebsocketPluginOptions {
     errorHandler?: (this: FastifyInstance, error: Error, socket: WebSocket.WebSocket, request: FastifyRequest, reply: FastifyReply) => void;
     options?: WebSocketServerOptions;
@@ -98,11 +101,11 @@ declare namespace fastifyWebsocket {
     Logger extends FastifyBaseLogger = FastifyBaseLogger
   > extends fastify.RouteOptions<RawServer, RawRequest, RawReply, RouteGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger>, WebsocketRouteOptions<RawServer, RawRequest, RouteGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger> { }
 
-  export type WebSocket = WebSocket.WebSocket;
+  export type WebSocket = WebSocket.WebSocket
 
   export const fastifyWebsocket: FastifyWebsocket
   export { fastifyWebsocket as default }
 }
 
-declare function fastifyWebsocket(...params: Parameters<FastifyWebsocket>): ReturnType<FastifyWebsocket>
+declare function fastifyWebsocket (...params: Parameters<FastifyWebsocket>): ReturnType<FastifyWebsocket>
 export = fastifyWebsocket
