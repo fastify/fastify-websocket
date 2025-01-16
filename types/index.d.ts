@@ -21,6 +21,7 @@ interface WebsocketRouteOptions<
 
 declare module 'fastify' {
   interface RouteShorthandOptions<
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     RawServer extends RawServerBase = RawServerDefault
   > {
     websocket?: boolean;
@@ -29,6 +30,7 @@ declare module 'fastify' {
   type InjectWSFn<RawRequest> =
     ((path?: string, upgradeContext?: Partial<RawRequest>) => Promise<WebSocket>)
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface FastifyInstance<RawServer, RawRequest, RawReply, Logger, TypeProvider> {
     websocketServer: WebSocket.Server,
     injectWS: InjectWSFn<RawRequest>
@@ -55,6 +57,7 @@ declare module 'fastify' {
   interface RouteOptions<
     RawServer extends RawServerBase = RawServerDefault,
     RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     RawReply extends RawReplyDefaultExpression<RawServer> = RawReplyDefaultExpression<RawServer>,
     RouteGeneric extends RouteGenericInterface = RouteGenericInterface,
     ContextConfig = ContextConfigDefault,
