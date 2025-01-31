@@ -263,14 +263,6 @@ fastify.register(require('@fastify/websocket'), {
 })
 ```
 
-### Testing
-
-Testing the ws handler can be quite tricky, luckily `fastify-websocket` decorates fastify instance with `injectWS`,
-which allows easy testing of a websocket endpoint.
-
-The signature of injectWS is the following: `([path], [upgradeContext])`.
-
-
 ### Creating a stream from the WebSocket
 
 ```js
@@ -295,6 +287,13 @@ fastify.get('/', { websocket: true }, (socket, req) => {
 
 await fastify.listen({ port: 3000 })
 ```
+
+### Testing
+
+Testing the ws handler can be quite tricky, luckily `fastify-websocket` decorates fastify instance with `injectWS`,
+which allows easy testing of a websocket endpoint.
+
+The signature of injectWS is the following: `([path], [upgradeContext])`.
 
 #### App.js
 
