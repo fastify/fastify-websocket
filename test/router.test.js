@@ -319,7 +319,7 @@ test('Should invoke the correct handler depending on the headers', (t, end) => {
         t.assert.match(data.toString(), /hi from wsHandler/i)
         wsClient.end(() => {
           t.assert.ok(true)
-          end()
+          setTimeout(end, 100)
         })
       })
     })
