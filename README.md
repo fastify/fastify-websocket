@@ -339,7 +339,7 @@ test('connect to /', async (t) => {
 
   const fastify = Fastify()
   fastify.register(App)
-  t.teardown(fastify.close.bind(fastify))
+  t.after(() => fastify.close())
   await fastify.ready()
 
   const ws = await fastify.injectWS('/', {headers: { "api-key" : "some-random-key" }})
