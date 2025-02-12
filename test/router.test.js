@@ -310,7 +310,6 @@ test('Should invoke the correct handler depending on the headers', (t, end) => {
       httpClient.once('data', data => {
         t.assert.match(data.toString(), /hi from handler/i)
         httpClient.end()
-        end()
       })
     })
 
@@ -318,7 +317,10 @@ test('Should invoke the correct handler depending on the headers', (t, end) => {
       wsClient.write('GET / HTTP/1.1\r\nConnection: upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n')
       wsClient.once('data', data => {
         t.assert.match(data.toString(), /hi from wsHandler/i)
-        wsClient.end(() => { t.assert.ok(true) })
+        wsClient.end(() => {
+          t.assert.ok(true)
+          end()
+        })
       })
     })
   })
