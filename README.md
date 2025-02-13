@@ -330,7 +330,7 @@ module.exports = App
 ```js
 'use strict'
 
-const { test } = require('tap')
+const { test } = require('node:test')
 const Fastify = require('fastify')
 const App = require('./app.js')
 
@@ -351,7 +351,7 @@ test('connect to /', async (t) => {
   })
   ws.send('hi from client')
 
-  t.assert(await promise, 'hi from server')
+  t.assert.deepStrictEqual(await promise, 'hi from server')
   // Remember to close the ws at the end
   ws.terminate()
 })
