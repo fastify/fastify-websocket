@@ -7,6 +7,15 @@ const fastifyWebsocket = require('..')
 const WebSocket = require('ws')
 const get = require('node:http').get
 
+const withResolvers = function () {
+  let promiseResolve, promiseReject
+  const promise = new Promise((resolve, reject) => {
+    promiseResolve = resolve
+    promiseReject = reject
+  })
+  return { promise, resolve: promiseResolve, reject: promiseReject }
+}
+
 test('Should expose a websocket on prefixed route', (t, end) => {
   t.plan(4)
   const fastify = Fastify()
@@ -473,13 +482,16 @@ test('Should open on registered path', (t, end) => {
   })
 })
 
-test('Should send message and close', (t, end) => {
+test('Should send message and close', (t) => {
   t.plan(5)
   const fastify = Fastify()
 
   t.after(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
+
+  const { promise: clientPromise, resolve: clientResolve } = withResolvers()
+  const { promise: serverPromise, resolve: serverResolve } = withResolvers()
 
   fastify.register(async function (fastify) {
     fastify.get('/', { websocket: true }, (socket) => {
@@ -490,7 +502,7 @@ test('Should send message and close', (t, end) => {
 
       socket.on('close', () => {
         t.assert.ok(true)
-        end()
+        serverResolve()
       })
 
       t.after(() => socket.terminate())
@@ -514,8 +526,11 @@ test('Should send message and close', (t, end) => {
 
     ws.on('close', () => {
       t.assert.ok(true)
+      clientResolve()
     })
   })
+
+  return Promise.all([clientPromise, serverPromise])
 })
 
 test('Should return 404 on http request', (t, end) => {
