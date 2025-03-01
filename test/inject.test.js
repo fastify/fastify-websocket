@@ -1,12 +1,12 @@
 'use strict'
 
-const { test } = require('tap')
+const { test } = require('node:test')
 const Fastify = require('fastify')
 const fastifyWebsocket = require('..')
 
 function buildFastify (t) {
   const fastify = Fastify()
-  t.teardown(() => { fastify.close() })
+  t.after(() => { fastify.close() })
   fastify.register(fastifyWebsocket)
   return fastify
 }
@@ -30,7 +30,7 @@ test('routes correctly the message', async (t) => {
   await fastify.ready()
   const ws = await fastify.injectWS('/ws')
   ws.send(message)
-  t.same(await promise, message)
+  t.assert.deepStrictEqual(await promise, message)
   ws.terminate()
 })
 
@@ -53,7 +53,7 @@ test('redirect on / if no path specified', async (t) => {
   await fastify.ready()
   const ws = await fastify.injectWS()
   ws.send(message)
-  t.same(await promise, message)
+  t.assert.deepStrictEqual(await promise, message)
   ws.terminate()
 })
 
@@ -83,7 +83,7 @@ test('routes correctly the message between two routes', async (t) => {
   await fastify.ready()
   const ws = await fastify.injectWS('/ws-2')
   ws.send(message)
-  t.same(await promise, message)
+  t.assert.deepStrictEqual(await promise, message)
   ws.terminate()
 })
 
@@ -112,7 +112,7 @@ test('use the upgrade context to upgrade if there is some hook', async (t) => {
   await fastify.ready()
   const ws = await fastify.injectWS('/', { headers: { 'api-key': 'some-random-key' } })
   ws.send(message)
-  t.same(await promise, message)
+  t.assert.deepStrictEqual(await promise, message)
   ws.terminate()
 })
 
@@ -130,5 +130,5 @@ test('rejects if the websocket is not upgraded', async (t) => {
     })
 
   await fastify.ready()
-  t.rejects(fastify.injectWS('/'), 'Unexpected server response: 401')
+  await t.assert.rejects(fastify.injectWS('/'), new Error('Unexpected server response: 401'))
 })

@@ -2,7 +2,7 @@
 
 const http = require('node:http')
 const split = require('split2')
-const test = require('tap').test
+const { test } = require('node:test')
 const Fastify = require('fastify')
 const fastifyWebsocket = require('..')
 const WebSocket = require('ws')
@@ -17,15 +17,15 @@ test('Should expose a websocket', async (t) => {
   t.plan(2)
 
   const fastify = Fastify()
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   await fastify.register(fastifyWebsocket)
 
   fastify.get('/', { websocket: true }, (socket) => {
-    t.teardown(() => socket.terminate())
+    t.after(() => socket.terminate())
 
     socket.once('message', (chunk) => {
-      t.equal(chunk.toString(), 'hello server')
+      t.assert.deepStrictEqual(chunk.toString(), 'hello server')
       socket.send('hello client')
     })
   })
@@ -33,7 +33,7 @@ test('Should expose a websocket', async (t) => {
   await fastify.listen({ port: 0 })
 
   const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
-  t.teardown(() => {
+  t.after(() => {
     if (ws.readyState) {
       ws.close()
     }
@@ -44,7 +44,7 @@ test('Should expose a websocket', async (t) => {
   ws.send('hello server')
 
   const [chunk] = await chunkPromise
-  t.equal(chunk.toString(), 'hello client')
+  t.assert.deepStrictEqual(chunk.toString(), 'hello client')
   ws.close()
 })
 
@@ -52,22 +52,22 @@ test('Should fail if custom errorHandler is not a function', async (t) => {
   t.plan(2)
 
   const fastify = Fastify()
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   try {
     await fastify.register(fastifyWebsocket, { errorHandler: {} })
   } catch (err) {
-    t.equal(err.message, 'invalid errorHandler function')
+    t.assert.deepStrictEqual(err.message, 'invalid errorHandler function')
   }
 
   fastify.get('/', { websocket: true }, (socket) => {
-    t.teardown(() => socket.terminate())
+    t.after(() => socket.terminate())
   })
 
   try {
     await fastify.listen({ port: 0 })
   } catch (err) {
-    t.equal(err.message, 'invalid errorHandler function')
+    t.assert.deepStrictEqual(err.message, 'invalid errorHandler function')
   }
 })
 
@@ -75,7 +75,7 @@ test('Should run custom errorHandler on wildcard route handler error', async (t)
   t.plan(1)
 
   const fastify = Fastify()
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   let _resolve
   const p = new Promise((resolve) => {
@@ -84,21 +84,21 @@ test('Should run custom errorHandler on wildcard route handler error', async (t)
 
   await fastify.register(fastifyWebsocket, {
     errorHandler: function (error) {
-      t.equal(error.message, 'Fail')
+      t.assert.deepStrictEqual(error.message, 'Fail')
       _resolve()
     }
   })
 
   fastify.get('/*', { websocket: true }, (socket) => {
     socket.on('message', (data) => socket.send(data))
-    t.teardown(() => socket.terminate())
+    t.after(() => socket.terminate())
     return Promise.reject(new Error('Fail'))
   })
 
   await fastify.listen({ port: 0 })
 
   const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
-  t.teardown(() => {
+  t.after(() => {
     if (ws.readyState) {
       ws.close()
     }
@@ -111,7 +111,7 @@ test('Should run custom errorHandler on error inside websocket handler', async (
   t.plan(1)
 
   const fastify = Fastify()
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   let _resolve
   const p = new Promise((resolve) => {
@@ -120,7 +120,7 @@ test('Should run custom errorHandler on error inside websocket handler', async (
 
   const options = {
     errorHandler: function (error) {
-      t.equal(error.message, 'Fail')
+      t.assert.deepStrictEqual(error.message, 'Fail')
       _resolve()
     }
   }
@@ -129,14 +129,14 @@ test('Should run custom errorHandler on error inside websocket handler', async (
 
   fastify.get('/', { websocket: true }, function wsHandler (socket) {
     socket.on('message', (data) => socket.send(data))
-    t.teardown(() => socket.terminate())
+    t.after(() => socket.terminate())
     throw new Error('Fail')
   })
 
   await fastify.listen({ port: 0 })
   const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
 
-  t.teardown(() => {
+  t.after(() => {
     if (ws.readyState) {
       ws.close()
     }
@@ -149,7 +149,7 @@ test('Should run custom errorHandler on error inside async websocket handler', a
   t.plan(1)
 
   const fastify = Fastify()
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   let _resolve
   const p = new Promise((resolve) => {
@@ -158,7 +158,7 @@ test('Should run custom errorHandler on error inside async websocket handler', a
 
   const options = {
     errorHandler: function (error) {
-      t.equal(error.message, 'Fail')
+      t.assert.deepStrictEqual(error.message, 'Fail')
       _resolve()
     }
   }
@@ -167,13 +167,13 @@ test('Should run custom errorHandler on error inside async websocket handler', a
 
   fastify.get('/', { websocket: true }, async function wsHandler (socket) {
     socket.on('message', (data) => socket.send(data))
-    t.teardown(() => socket.terminate())
+    t.after(() => socket.terminate())
     throw new Error('Fail')
   })
 
   await fastify.listen({ port: 0 })
   const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
-  t.teardown(() => {
+  t.after(() => {
     if (ws.readyState) {
       ws.close()
     }
@@ -186,11 +186,11 @@ test('Should be able to pass custom options to ws', async (t) => {
   t.plan(2)
 
   const fastify = Fastify()
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const options = {
     verifyClient: function (info) {
-      t.equal(info.req.headers['x-custom-header'], 'fastify is awesome !')
+      t.assert.deepStrictEqual(info.req.headers['x-custom-header'], 'fastify is awesome !')
 
       return true
     }
@@ -200,7 +200,7 @@ test('Should be able to pass custom options to ws', async (t) => {
 
   fastify.get('/*', { websocket: true }, (socket) => {
     socket.on('message', (data) => socket.send(data))
-    t.teardown(() => socket.terminate())
+    t.after(() => socket.terminate())
   })
 
   await fastify.listen({ port: 0 })
@@ -209,7 +209,7 @@ test('Should be able to pass custom options to ws', async (t) => {
   const ws = new WebSocket('ws://localhost:' + fastify.server.address().port, clientOptions)
   const chunkPromise = once(ws, 'message')
   await once(ws, 'open')
-  t.teardown(() => {
+  t.after(() => {
     if (ws.readyState) {
       ws.close()
     }
@@ -218,7 +218,7 @@ test('Should be able to pass custom options to ws', async (t) => {
   ws.send('hello')
 
   const [chunk] = await chunkPromise
-  t.equal(chunk.toString(), 'hello')
+  t.assert.deepStrictEqual(chunk.toString(), 'hello')
   ws.close()
 })
 
@@ -233,18 +233,18 @@ test('Should warn if path option is provided to ws', async (t) => {
   })
 
   logStream.once('data', line => {
-    t.equal(line.msg, 'ws server path option shouldn\'t be provided, use a route instead')
-    t.equal(line.level, 40)
+    t.assert.deepStrictEqual(line.msg, 'ws server path option shouldn\'t be provided, use a route instead')
+    t.assert.deepStrictEqual(line.level, 40)
   })
 
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const options = { path: '/' }
   await fastify.register(fastifyWebsocket, { options })
 
   fastify.get('/*', { websocket: true }, (socket) => {
     socket.on('message', (data) => socket.send(data))
-    t.teardown(() => socket.terminate())
+    t.after(() => socket.terminate())
   })
 
   await fastify.listen({ port: 0 })
@@ -253,7 +253,7 @@ test('Should warn if path option is provided to ws', async (t) => {
   const ws = new WebSocket('ws://localhost:' + fastify.server.address().port, clientOptions)
   const chunkPromise = once(ws, 'message')
   await once(ws, 'open')
-  t.teardown(() => {
+  t.after(() => {
     if (ws.readyState) {
       ws.close()
     }
@@ -262,7 +262,7 @@ test('Should warn if path option is provided to ws', async (t) => {
   ws.send('hello')
 
   const [chunk] = await chunkPromise
-  t.equal(chunk.toString(), 'hello')
+  t.assert.deepStrictEqual(chunk.toString(), 'hello')
   ws.close()
 })
 
@@ -277,7 +277,7 @@ test('Should be able to pass a custom server option to ws', async (t) => {
     .listen(externalServerPort, 'localhost')
 
   const fastify = Fastify()
-  t.teardown(() => {
+  t.after(() => {
     externalServer.close()
     fastify.close()
   })
@@ -290,7 +290,7 @@ test('Should be able to pass a custom server option to ws', async (t) => {
 
   fastify.get('/', { websocket: true }, (socket) => {
     socket.on('message', (data) => socket.send(data))
-    t.teardown(() => socket.terminate())
+    t.after(() => socket.terminate())
   })
 
   await fastify.ready()
@@ -298,7 +298,7 @@ test('Should be able to pass a custom server option to ws', async (t) => {
   const ws = new WebSocket('ws://localhost:' + externalServerPort)
   const chunkPromise = once(ws, 'message')
   await once(ws, 'open')
-  t.teardown(() => {
+  t.after(() => {
     if (ws.readyState) {
       ws.close()
     }
@@ -307,13 +307,11 @@ test('Should be able to pass a custom server option to ws', async (t) => {
   ws.send('hello')
 
   const [chunk] = await chunkPromise
-  t.equal(chunk.toString(), 'hello')
+  t.assert.deepStrictEqual(chunk.toString(), 'hello')
   ws.close()
 })
 
-test('Should be able to pass clientTracking option in false to ws', (t) => {
-  t.plan(2)
-
+test('Should be able to pass clientTracking option in false to ws', async (t) => {
   const fastify = Fastify()
 
   const options = {
@@ -326,13 +324,9 @@ test('Should be able to pass clientTracking option in false to ws', (t) => {
     socket.close()
   })
 
-  fastify.listen({ port: 0 }, (err) => {
-    t.error(err)
+  await fastify.listen({ port: 0 })
 
-    fastify.close(err => {
-      t.error(err)
-    })
-  })
+  await fastify.close()
 })
 
 test('Should be able to pass preClose option to override default', async (t) => {
@@ -341,7 +335,7 @@ test('Should be able to pass preClose option to override default', async (t) => 
   const fastify = Fastify()
 
   const preClose = (done) => {
-    t.pass('Custom preclose successfully called')
+    t.assert.ok('Custom preclose successfully called')
 
     for (const connection of fastify.websocketServer.clients) {
       connection.close()
@@ -352,10 +346,10 @@ test('Should be able to pass preClose option to override default', async (t) => 
   await fastify.register(fastifyWebsocket, { preClose })
 
   fastify.get('/', { websocket: true }, (socket) => {
-    t.teardown(() => socket.terminate())
+    t.after(() => socket.terminate())
 
     socket.once('message', (chunk) => {
-      t.equal(chunk.toString(), 'hello server')
+      t.assert.deepStrictEqual(chunk.toString(), 'hello server')
       socket.send('hello client')
     })
   })
@@ -363,7 +357,7 @@ test('Should be able to pass preClose option to override default', async (t) => 
   await fastify.listen({ port: 0 })
 
   const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
-  t.teardown(() => {
+  t.after(() => {
     if (ws.readyState) {
       ws.close()
     }
@@ -374,7 +368,7 @@ test('Should be able to pass preClose option to override default', async (t) => 
   ws.send('hello server')
 
   const [chunk] = await chunkPromise
-  t.equal(chunk.toString(), 'hello client')
+  t.assert.deepStrictEqual(chunk.toString(), 'hello client')
   ws.close()
 
   await fastify.close()
@@ -384,24 +378,24 @@ test('Should fail if custom preClose is not a function', async (t) => {
   t.plan(2)
 
   const fastify = Fastify()
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   const preClose = 'Not a function'
 
   try {
     await fastify.register(fastifyWebsocket, { preClose })
   } catch (err) {
-    t.equal(err.message, 'invalid preClose function')
+    t.assert.deepStrictEqual(err.message, 'invalid preClose function')
   }
 
   fastify.get('/', { websocket: true }, (socket) => {
-    t.teardown(() => socket.terminate())
+    t.after(() => socket.terminate())
   })
 
   try {
     await fastify.listen({ port: 0 })
   } catch (err) {
-    t.equal(err.message, 'invalid preClose function')
+    t.assert.deepStrictEqual(err.message, 'invalid preClose function')
   }
 })
 
@@ -417,7 +411,7 @@ test('Should gracefully close with a connected client', async (t) => {
     socket.send('hello client')
 
     socket.once('message', (chunk) => {
-      t.equal(chunk.toString(), 'hello server')
+      t.assert.deepStrictEqual(chunk.toString(), 'hello server')
     })
 
     serverConnEnded = once(socket, 'close')
@@ -433,7 +427,7 @@ test('Should gracefully close with a connected client', async (t) => {
 
   const ended = once(ws, 'close')
   const [chunk] = await chunkPromise
-  t.equal(chunk.toString(), 'hello client')
+  t.assert.deepStrictEqual(chunk.toString(), 'hello client')
   await fastify.close()
   await ended
   await serverConnEnded
@@ -450,7 +444,7 @@ test('Should gracefully close when clients attempt to connect after calling clos
     const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
 
     p = once(ws, 'close').catch((err) => {
-      t.equal(err.message, 'Unexpected server response: 503')
+      t.assert.deepStrictEqual(err.message, 'Unexpected server response: 503')
       oldClose.call(this, cb)
     })
   }
@@ -458,7 +452,7 @@ test('Should gracefully close when clients attempt to connect after calling clos
   await fastify.register(fastifyWebsocket)
 
   fastify.get('/', { websocket: true }, (socket) => {
-    t.pass('received client connection')
+    t.assert.ok('received client connection')
     socket.close()
     // this connection stays alive until we close the server
   })
@@ -468,7 +462,7 @@ test('Should gracefully close when clients attempt to connect after calling clos
   const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
 
   ws.on('close', () => {
-    t.pass('client 1 closed')
+    t.assert.ok('client 1 closed')
   })
 
   await once(ws, 'open')
@@ -534,7 +528,7 @@ test('Should keep accepting connection', { skip: !timersPromises }, async t => {
       threshold = unhandled
     } else if (sent === 100) {
       await fastify.close()
-      t.ok(unhandled <= threshold)
+      t.assert.ok(unhandled <= threshold)
       break
     }
   }
@@ -581,7 +575,7 @@ test('Should keep processing message when many medium sized messages are sent', 
   }
 
   await fastify.close()
-  t.equal(handled, total)
+  t.assert.deepStrictEqual(handled, total)
 })
 
 test('Should error server if the noServer option is set', (t) => {
@@ -589,28 +583,26 @@ test('Should error server if the noServer option is set', (t) => {
   const fastify = Fastify()
 
   fastify.register(fastifyWebsocket, { options: { noServer: true } })
-  t.rejects(fastify.ready())
+  t.assert.rejects(fastify.ready())
 })
 
-test('Should preserve the prefix in non-websocket routes', (t) => {
-  t.plan(3)
+test('Should preserve the prefix in non-websocket routes', async (t) => {
+  t.plan(2)
 
   const fastify = Fastify()
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   fastify.register(fastifyWebsocket)
 
   fastify.register(async function (fastify) {
-    t.equal(fastify.prefix, '/hello')
+    t.assert.deepStrictEqual(fastify.prefix, '/hello')
     fastify.get('/', function (_, reply) {
-      t.equal(this.prefix, '/hello')
+      t.assert.deepStrictEqual(this.prefix, '/hello')
       reply.send('hello')
     })
   }, { prefix: '/hello' })
 
-  fastify.inject('/hello', function (err) {
-    t.error(err)
-  })
+  await fastify.inject('/hello')
 })
 
 test('Should Handle WebSocket errors to avoid Node.js crashes', async t => {
@@ -621,7 +613,7 @@ test('Should Handle WebSocket errors to avoid Node.js crashes', async t => {
 
   fastify.get('/', { websocket: true }, (socket) => {
     socket.on('error', err => {
-      t.equal(err.code, 'WS_ERR_UNEXPECTED_RSV_2_3')
+      t.assert.deepStrictEqual(err.code, 'WS_ERR_UNEXPECTED_RSV_2_3')
     })
   })
 
@@ -644,12 +636,12 @@ test('remove all others websocket handlers on close', async (t) => {
 
   await fastify.close()
 
-  t.equal(fastify.server.listeners('upgrade').length, 0)
+  t.assert.deepStrictEqual(fastify.server.listeners('upgrade').length, 0)
 })
 
 test('clashing upgrade handler', async (t) => {
   const fastify = Fastify()
-  t.teardown(() => fastify.close())
+  t.after(() => fastify.close())
 
   fastify.server.on('upgrade', (req, socket) => {
     const res = new http.ServerResponse(req)
@@ -661,7 +653,7 @@ test('clashing upgrade handler', async (t) => {
   await fastify.register(fastifyWebsocket)
 
   fastify.get('/', { websocket: true }, () => {
-    t.fail('this should never be invoked')
+    t.assert.fail('this should never be invoked')
   })
 
   await fastify.listen({ port: 0 })
