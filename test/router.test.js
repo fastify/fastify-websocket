@@ -95,11 +95,14 @@ test('Should expose a websocket on prefixed route with /', (t, end) => {
   })
 })
 
-test('Should expose websocket and http route', (t, end) => {
+test('Should expose websocket and http route', (t) => {
   t.plan(4)
   const fastify = Fastify()
 
   t.after(() => fastify.close())
+
+  const { promise: clientPromise, resolve: clientResolve } = withResolvers()
+  const { promise: serverPromise, resolve: serverResolve } = withResolvers()
 
   fastify.register(fastifyWebsocket)
   fastify.register(
@@ -116,6 +119,7 @@ test('Should expose websocket and http route', (t, end) => {
 
           socket.once('message', (chunk) => {
             t.assert.deepStrictEqual(chunk.toString(), 'hello server')
+            clientResolve()
           })
         }
       })
@@ -149,10 +153,12 @@ test('Should expose websocket and http route', (t, end) => {
       // The whole response has been received. Print out the result.
       response.on('end', () => {
         t.assert.deepStrictEqual(data, '{"hello":"world"}')
-        end()
+        serverResolve()
       })
     })
   })
+
+  return Promise.all([clientPromise, serverPromise])
 })
 
 test('Should close on unregistered path (with no wildcard route websocket handler defined)', (t, end) => {
