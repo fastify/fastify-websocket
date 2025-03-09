@@ -1,6 +1,6 @@
 // eslint-disable-next-line import-x/no-named-default -- Testing default export
 import fastifyWebsocket, { WebsocketHandler, fastifyWebsocket as namedFastifyWebsocket, default as defaultFastifyWebsocket, WebSocket } from '..'
-import type { IncomingMessage } from 'http'
+import type { IncomingMessage } from 'node:http'
 import fastify, { RouteOptions, FastifyRequest, FastifyInstance, FastifyReply, RequestGenericInterface, FastifyBaseLogger, RawServerDefault, FastifySchema, RawRequestDefaultExpression } from 'fastify'
 import { expectType } from 'tsd'
 import { Server } from 'ws'
