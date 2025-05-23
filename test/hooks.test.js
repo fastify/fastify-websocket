@@ -8,7 +8,7 @@ const WebSocket = require('ws')
 const split = require('split2')
 
 test('Should run onRequest, preValidation, preHandler hooks', (t, end) => {
-  t.plan(7)
+  t.plan(8)
   const fastify = Fastify()
 
   t.after(() => fastify.close())
@@ -16,7 +16,10 @@ test('Should run onRequest, preValidation, preHandler hooks', (t, end) => {
   fastify.register(fastifyWebsocket)
 
   fastify.register(async function (fastify) {
-    fastify.addHook('onRequest', async () => t.assert.ok('called', 'onRequest'))
+    fastify.addHook('onRequest', async (req) => {
+      t.assert.ok('called', 'onRequest')
+      t.assert.strictEqual(req.routeOptions.schema.hide, true, 'schema hide property should be set to true for websocket when route option is websocket')
+    })
     fastify.addHook('preParsing', async () => t.assert.ok('called', 'preParsing'))
     fastify.addHook('preValidation', async () => t.assert.ok('called', 'preValidation'))
     fastify.addHook('preHandler', async () => t.assert.ok('called', 'preHandler'))

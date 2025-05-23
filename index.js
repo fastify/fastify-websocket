@@ -162,6 +162,11 @@ function fastifyWebsocket (fastify, opts, next) {
       isWebsocketRoute = true
 
       if (routeOptions.websocket) {
+        if (!routeOptions.schema) {
+          routeOptions.schema = {}
+        }
+        routeOptions.schema.hide = true
+
         wsHandler = routeOptions.handler
         handler = function (_, reply) {
           reply.code(404).send()
