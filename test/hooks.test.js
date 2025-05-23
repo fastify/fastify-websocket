@@ -16,9 +16,9 @@ test('Should run onRequest, preValidation, preHandler hooks', (t, end) => {
   fastify.register(fastifyWebsocket)
 
   fastify.register(async function (fastify) {
-    fastify.addHook('onRequest', async (req) => {
+    fastify.addHook('onRequest', async ({ routeOptions: { schema: { hide } } }) => {
       t.assert.ok('called', 'onRequest')
-      t.assert.strictEqual(req.routeOptions.schema.hide, true, 'schema hide property should be set to true for websocket when route option is websocket')
+      t.assert.strictEqual(hide, true, 'schema hide property should be set to true when route option is websocket')
     })
     fastify.addHook('preParsing', async () => t.assert.ok('called', 'preParsing'))
     fastify.addHook('preValidation', async () => t.assert.ok('called', 'preValidation'))
