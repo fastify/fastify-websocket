@@ -58,7 +58,7 @@
   "devDependencies": {
     "@fastify/pre-commit": "^2.1.0",
     "@fastify/type-provider-typebox": "^5.0.0",
-    "@types/node": "^22.0.0",
+    "@types/node": "^24.0.9",
     "@types/ws": "^8.5.10",
     "c8": "^10.1.3",
     "eslint": "^9.17.0",
