@@ -132,3 +132,43 @@ test('rejects if the websocket is not upgraded', async (t) => {
   await fastify.ready()
   await t.assert.rejects(fastify.injectWS('/'), new Error('Unexpected server response: 401'))
 })
+
+test('inject hooks', async (t) => {
+  const fastify = buildFastify(t)
+  const message = 'hi from client'
+
+  let _resolve
+  const promise = new Promise((resolve) => { _resolve = resolve })
+
+  fastify.register(
+    async function (instance) {
+      instance.get('/ws', { websocket: true }, function (socket) {
+        socket.once('message', chunk => {
+          _resolve(chunk.toString())
+        })
+      })
+    })
+
+  await fastify.ready()
+
+  let order = 0
+  let initWS, openWS
+  const ws = await fastify.injectWS('/ws', {}, {
+    onInit (ws) {
+      t.assert.strictEqual(order, 0)
+      order++
+      initWS = ws
+    },
+    onOpen (ws) {
+      t.assert.strictEqual(order, 1)
+      order++
+      openWS = ws
+    }
+  })
+  ws.send(message)
+  t.assert.strictEqual(order, 2)
+  t.assert.deepStrictEqual(ws, initWS)
+  t.assert.deepStrictEqual(ws, openWS)
+  t.assert.deepStrictEqual(await promise, message)
+  ws.terminate()
+})

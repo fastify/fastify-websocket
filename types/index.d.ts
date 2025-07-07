@@ -1,11 +1,11 @@
 /// <reference types="node" />
-import { IncomingMessage, ServerResponse, Server } from 'node:http'
-import { FastifyRequest, FastifyPluginCallback, RawServerBase, RawServerDefault, RawRequestDefaultExpression, RawReplyDefaultExpression, RequestGenericInterface, ContextConfigDefault, FastifyInstance, FastifySchema, FastifyTypeProvider, FastifyTypeProviderDefault, FastifyBaseLogger } from 'fastify'
 import * as fastify from 'fastify'
-import * as WebSocket from 'ws'
+import { ContextConfigDefault, FastifyBaseLogger, FastifyInstance, FastifyPluginCallback, FastifyRequest, FastifySchema, FastifyTypeProvider, FastifyTypeProviderDefault, RawReplyDefaultExpression, RawRequestDefaultExpression, RawServerBase, RawServerDefault, RequestGenericInterface } from 'fastify'
+import { preCloseAsyncHookHandler, preCloseHookHandler } from 'fastify/types/hooks'
 import { FastifyReply } from 'fastify/types/reply'
-import { preCloseHookHandler, preCloseAsyncHookHandler } from 'fastify/types/hooks'
 import { RouteGenericInterface } from 'fastify/types/route'
+import { IncomingMessage, Server, ServerResponse } from 'node:http'
+import * as WebSocket from 'ws'
 
 interface WebsocketRouteOptions<
   RawServer extends RawServerBase = RawServerDefault,
@@ -27,8 +27,13 @@ declare module 'fastify' {
     websocket?: boolean;
   }
 
+  interface InjectWSOption {
+    onInit?: (ws: WebSocket.WebSocket) => void
+    onOpen?: (ws: WebSocket.WebSocket) => void
+  }
+
   type InjectWSFn<RawRequest> =
-    ((path?: string, upgradeContext?: Partial<RawRequest>) => Promise<WebSocket>)
+    ((path?: string, upgradeContext?: Partial<RawRequest>, options?: InjectWSOption) => Promise<WebSocket>)
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface FastifyInstance<RawServer, RawRequest, RawReply, Logger, TypeProvider> {
