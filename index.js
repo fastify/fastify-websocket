@@ -51,7 +51,8 @@ function fastifyWebsocket (fastify, opts, next) {
   const wss = new WebSocket.Server(wssOptions)
   fastify.decorate('websocketServer', wss)
 
-  async function injectWS (path = '/', upgradeContext = {}) {
+  // TODO: place upgrade context as options
+  async function injectWS (path = '/', upgradeContext = {}, options = {}) {
     const server2Client = new PassThrough()
     const client2Server = new PassThrough()
 
@@ -64,7 +65,10 @@ function fastifyWebsocket (fastify, opts, next) {
     let resolve, reject
     const promise = new Promise((_resolve, _reject) => { resolve = _resolve; reject = _reject })
 
+    typeof options.onInit === 'function' && options.onInit(ws)
+
     ws.on('open', () => {
+      typeof options.onOpen === 'function' && options.onOpen(ws)
       clientStream.removeListener('data', onData)
       resolve(ws)
     })
