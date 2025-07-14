@@ -1,12 +1,12 @@
-// eslint-disable-next-line import-x/no-named-default -- Testing default export
-import fastifyWebsocket, { WebsocketHandler, fastifyWebsocket as namedFastifyWebsocket, default as defaultFastifyWebsocket, WebSocket } from '..'
-import type { IncomingMessage } from 'node:http'
-import fastify, { RouteOptions, FastifyRequest, FastifyInstance, FastifyReply, RequestGenericInterface, FastifyBaseLogger, RawServerDefault, FastifySchema, RawRequestDefaultExpression } from 'fastify'
-import { expectType } from 'tsd'
-import { Server } from 'ws'
-import { RouteGenericInterface } from 'fastify/types/route'
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
 import { Type } from '@sinclair/typebox'
+import fastify, { FastifyBaseLogger, FastifyInstance, FastifyReply, FastifyRequest, FastifySchema, RawRequestDefaultExpression, RawServerDefault, RequestGenericInterface, RouteOptions } from 'fastify'
+import { RouteGenericInterface } from 'fastify/types/route'
+import type { IncomingMessage } from 'node:http'
+import { expectType } from 'tsd'
+import { Server } from 'ws'
+// eslint-disable-next-line import-x/no-named-default -- Test default export
+import fastifyWebsocket, { default as defaultFastifyWebsocket, fastifyWebsocket as namedFastifyWebsocket, WebSocket, WebsocketHandler } from '..'
 
 const app: FastifyInstance = fastify()
 app.register(fastifyWebsocket)
@@ -22,8 +22,8 @@ app.register(fastifyWebsocket, {
   }
 })
 app.register(fastifyWebsocket, { options: { perMessageDeflate: true } })
-app.register(fastifyWebsocket, { preClose: function syncPreclose () {} })
-app.register(fastifyWebsocket, { preClose: async function asyncPreclose () {} })
+app.register(fastifyWebsocket, { preClose: function syncPreclose () { } })
+app.register(fastifyWebsocket, { preClose: async function asyncPreclose () { } })
 
 app.get('/websockets-via-inferrence', { websocket: true }, async function (socket, request) {
   expectType<FastifyInstance>(this)
@@ -89,7 +89,7 @@ app.get<{ Params: { foo: string }, Body: { bar: string }, Querystring: { search:
   expectType<{ foo: string }>(request.params)
   expectType<{ bar: string }>(request.body)
   expectType<{ search: string }>(request.query)
-  expectType< IncomingMessage['headers'] & { auth: string }>(request.headers)
+  expectType<IncomingMessage['headers'] & { auth: string }>(request.headers)
 })
 
 app.route<{ Params: { foo: string }, Body: { bar: string }, Querystring: { search: string }, Headers: { auth: string } }>({
@@ -162,3 +162,15 @@ server.get('/websockets-no-type-inference',
 
 expectType<typeof fastifyWebsocket>(namedFastifyWebsocket)
 expectType<typeof fastifyWebsocket>(defaultFastifyWebsocket)
+
+app.injectWS('/', {}, {})
+app.injectWS('/', {}, {
+  onInit (ws) {
+    expectType<WebSocket>(ws)
+  },
+})
+app.injectWS('/', {}, {
+  onOpen (ws) {
+    expectType<WebSocket>(ws)
+  },
+})
