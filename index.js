@@ -123,7 +123,8 @@ function fastifyWebsocket (fastify, opts, next) {
   }
   websocketListenServer.on('upgrade', onUpgrade)
 
-  const handleUpgrade = (rawRequest, callback) => {
+  const defaultHandleUpgrade = (request, _reply, callback) => {
+    const rawRequest = request.raw
     wss.handleUpgrade(rawRequest, rawRequest[kWs], rawRequest[kWsHead], (socket) => {
       wss.emit('connection', socket, rawRequest)
 
@@ -155,6 +156,22 @@ function fastifyWebsocket (fastify, opts, next) {
     let isWebsocketRoute = false
     let wsHandler = routeOptions.wsHandler
     let handler = routeOptions.handler
+    const handleUpgrade = routeOptions.handleUpgradeRequest
+      ? (request, reply, callback) => {
+          const rawRequest = request.raw
+          routeOptions.handleUpgradeRequest(request, rawRequest[kWs], rawRequest[kWsHead])
+            .then(socket => {
+              process.nextTick(callback,socket)
+            })
+            .catch(error => {
+              const ended = reply.raw.writableEnded || reply.raw.socket.writableEnded
+              if (!ended) {
+                reply.raw.statusCode = error.statusCode || 500
+                reply.raw.end(error.message)
+              }
+            })
+        }
+      : defaultHandleUpgrade
 
     if (routeOptions.websocket || routeOptions.wsHandler) {
       if (routeOptions.method === 'HEAD') {
@@ -188,7 +205,7 @@ function fastifyWebsocket (fastify, opts, next) {
       // within the route handler, we check if there has been a connection upgrade by looking at request.raw[kWs]. we need to dispatch the normal HTTP handler if not, and hijack to dispatch the websocket handler if so
       if (request.raw[kWs]) {
         reply.hijack()
-        handleUpgrade(request.raw, socket => {
+        const onUpgrade = (socket) => {
           let result
           try {
             if (isWebsocketRoute) {
@@ -203,7 +220,9 @@ function fastifyWebsocket (fastify, opts, next) {
           if (result && typeof result.catch === 'function') {
             result.catch(err => errorHandler.call(this, err, socket, request, reply))
           }
-        })
+        }
+
+        handleUpgrade(request, reply, onUpgrade)
       } else {
         return handler.call(this, request, reply)
       }

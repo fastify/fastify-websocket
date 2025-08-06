@@ -5,6 +5,7 @@ import { preCloseAsyncHookHandler, preCloseHookHandler } from 'fastify/types/hoo
 import { FastifyReply } from 'fastify/types/reply'
 import { RouteGenericInterface } from 'fastify/types/route'
 import { IncomingMessage, Server, ServerResponse } from 'node:http'
+import { Duplex } from 'node:stream'
 import * as WebSocket from 'ws'
 
 interface WebsocketRouteOptions<
@@ -17,6 +18,7 @@ interface WebsocketRouteOptions<
   Logger extends FastifyBaseLogger = FastifyBaseLogger
 > {
   wsHandler?: fastifyWebsocket.WebsocketHandler<RawServer, RawRequest, RequestGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger>;
+  handleUpgradeRequest?: (request: FastifyRequest<RequestGeneric, RawServer, RawRequest, SchemaCompiler, TypeProvider, ContextConfig, Logger>, rawSocket: Duplex, socketHead: Buffer) => Promise<WebSocket.WebSocket>;
 }
 
 declare module 'fastify' {
