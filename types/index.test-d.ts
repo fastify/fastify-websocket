@@ -4,9 +4,10 @@ import fastify, { FastifyBaseLogger, FastifyInstance, FastifyReply, FastifyReque
 import { RouteGenericInterface } from 'fastify/types/route'
 import type { IncomingMessage } from 'node:http'
 import { expectType } from 'tsd'
-import { Server } from 'ws'
+import { Server, WebSocket as BaseWebSocket } from 'ws'
 // eslint-disable-next-line import-x/no-named-default -- Test default export
 import fastifyWebsocket, { default as defaultFastifyWebsocket, fastifyWebsocket as namedFastifyWebsocket, WebSocket, WebsocketHandler } from '..'
+import { Duplex } from 'node:stream'
 
 const app: FastifyInstance = fastify()
 app.register(fastifyWebsocket)
@@ -81,6 +82,27 @@ const augmentedRouteOptions: RouteOptions = {
   },
 }
 app.route(augmentedRouteOptions)
+
+const handleUpgradeRequestOptions: RouteOptions = {
+  method: 'GET',
+  url: '/route-with-handle-upgrade-request',
+  handler: (request, reply) => {
+    expectType<FastifyRequest>(request)
+    expectType<FastifyReply>(reply)
+  },
+  handleUpgradeRequest: (request, socket, head) => {
+    expectType<FastifyRequest>(request)
+    expectType<Duplex>(socket)
+    expectType<Buffer>(head)
+
+    return Promise.resolve(new BaseWebSocket('ws://localhost:8080'))
+  },
+  wsHandler: (socket, request) => {
+    expectType<WebSocket>(socket)
+    expectType<FastifyRequest<RouteGenericInterface>>(request)
+  },
+}
+app.route(handleUpgradeRequestOptions)
 
 app.get<{ Params: { foo: string }, Body: { bar: string }, Querystring: { search: string }, Headers: { auth: string } }>('/shorthand-explicit-types', {
   websocket: true
