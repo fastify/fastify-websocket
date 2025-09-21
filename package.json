@@ -56,7 +56,6 @@
     }
   ],
   "devDependencies": {
-    "@fastify/pre-commit": "^2.1.0",
     "@fastify/type-provider-typebox": "^5.0.0",
     "@types/node": "^24.0.9",
     "@types/ws": "^8.5.10",
@@ -75,9 +74,5 @@
   },
   "publishConfig": {
     "access": "public"
-  },
-  "pre-commit": [
-    "lint",
-    "test"
-  ]
+  }
 }
