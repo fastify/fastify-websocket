@@ -330,18 +330,16 @@ module.exports = App
 'use strict'
 
 const { test } = require('node:test')
-const Fastify = require('fastify')
-const App = require('./app.js')
+const fastify = require('./app.js')
 
 test('connect to /', async (t) => {
   t.plan(1)
 
-  const fastify = Fastify()
-  fastify.register(App)
   t.after(() => fastify.close())
   await fastify.ready()
 
   const ws = await fastify.injectWS('/', {headers: { "api-key" : "some-random-key" }})
+
   let resolve;
   const promise = new Promise(r => { resolve = r })
 
