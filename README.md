@@ -263,6 +263,47 @@ fastify.register(require('@fastify/websocket'), {
 })
 ```
 
+### Custom upgrade request handling
+
+By default, `@fastify/websocket` handles upgrading incoming connections to the websocket protocol before handing off the handler you have defined.
+If you wish to handle upgrade events yourself you can pass your own `handleUpgradeRequest` function:
+
+```js
+const fastify = require('fastify')()
+
+fastify.register(require('@fastify/websocket'))
+
+fastify.register(async function () {
+  fastify.route({
+    method: 'GET',
+    url: '/hello',
+    handleUpgradeRequest: (request, source, head) => {
+      // handle the FastifyRequest which has triggered an upgrade event
+      // throwing an error will abort the upgrade
+      // return a Promise for a Websocket to proceed
+      if (request.params.allow === "false") {
+        const error = new Error("Upgrade not allowed")
+        error.statusCode = 403
+        throw error
+      } else {
+        return new Promise((resolve) => {
+          fastify.websocketServer.handleUpgrade(request.raw, source, head, (ws) => {
+            resolve(ws)
+          })
+        })
+      }
+    },
+    wsHandler: (socket, req) => {
+      socket.send('hello client')
+
+      socket.once('message', chunk => {
+        socket.close()
+      })
+    }
+  })
+})
+```
+
 ### Creating a stream from the WebSocket
 
 ```js
