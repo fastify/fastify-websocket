@@ -210,9 +210,6 @@ function fastifyWebsocket (fastify, opts, next) {
     }
   })
 
-  // Fastify is missing a pre-close event, or the ability to
-  // add a hook before the server.close call. We need to resort
-  // to monkeypatching for now.
   fastify.addHook('preClose', preClose)
 
   function defaultPreClose (done) {
