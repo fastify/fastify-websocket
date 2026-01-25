@@ -1,5 +1,5 @@
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
-import { Type } from '@sinclair/typebox'
+import { Type } from 'typebox'
 import fastify, { FastifyBaseLogger, FastifyInstance, FastifyReply, FastifyRequest, FastifySchema, RawRequestDefaultExpression, RawServerDefault, RequestGenericInterface, RouteOptions } from 'fastify'
 import { RouteGenericInterface } from 'fastify/types/route'
 import type { IncomingMessage } from 'node:http'
@@ -111,18 +111,22 @@ app.route<{ Params: { foo: string }, Body: { bar: string }, Querystring: { searc
 })
 
 const schema = {
-  params: Type.Object({
-    foo: Type.String()
-  }),
-  querystring: Type.Object({
-    search: Type.String()
-  }),
-  body: Type.Object({
-    bar: Type.String()
-  }),
-  headers: Type.Object({
-    auth: Type.String()
-  })
+  params: Type.Object(
+    { foo: Type.String() },
+    { required: ['foo'] }
+  ),
+  querystring: Type.Object(
+    { search: Type.String() },
+    { required: ['search'] }
+  ),
+  body: Type.Object(
+    { bar: Type.String() },
+    { required: ['bar'] }
+  ),
+  headers: Type.Object(
+    { auth: Type.String() },
+    { required: ['auth'] }
+  )
 }
 
 const server = app.withTypeProvider<TypeBoxTypeProvider>()
