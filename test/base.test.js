@@ -661,3 +661,160 @@ test('clashing upgrade handler', async (t) => {
   const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
   await once(ws, 'error')
 })
+
+test('Should handleUpgradeRequest successfully', async (t) => {
+  t.plan(4)
+
+  const fastify = Fastify()
+  t.after(() => fastify.close())
+
+  await fastify.register(fastifyWebsocket)
+
+  let customUpgradeCalled = false
+
+  fastify.get('/', {
+    websocket: true,
+    handleUpgradeRequest: async (request, socket, head) => {
+      customUpgradeCalled = true
+      t.assert.equal(typeof socket, 'object', 'socket parameter is provided')
+      t.assert.equal(Buffer.isBuffer(head), true, 'head parameter is a buffer')
+
+      return new Promise((resolve) => {
+        fastify.websocketServer.handleUpgrade(request.raw, socket, head, (ws) => {
+          resolve(ws)
+        })
+      })
+    }
+  }, (socket) => {
+    socket.on('message', (data) => {
+      socket.send(`echo: ${data}`)
+    })
+    t.after(() => socket.terminate())
+  })
+
+  await fastify.listen({ port: 0 })
+
+  const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
+  t.after(() => ws.close())
+
+  await once(ws, 'open')
+  ws.send('hello')
+
+  const [message] = await once(ws, 'message')
+  t.assert.equal(message.toString(), 'echo: hello')
+
+  t.assert.ok(customUpgradeCalled, 'handleUpgradeRequest was called')
+})
+
+test.only('Should handle errors thrown in handleUpgradeRequest', async (t) => {
+  t.plan(1)
+
+  const fastify = Fastify()
+  t.after(() => fastify.close())
+
+  await fastify.register(fastifyWebsocket)
+
+  fastify.get('/', {
+    websocket: true,
+    handleUpgradeRequest: async () => {
+      throw new Error('Custom upgrade error')
+    }
+  }, () => {
+    t.fail('websocket handler should not be called when upgrade fails')
+  })
+
+  await fastify.listen({ port: 0 })
+
+  const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
+
+  let wsErrorResolved
+  const wsErrorPromise = new Promise((resolve) => {
+    wsErrorResolved = resolve
+  })
+
+  ws.on('error', (error) => {
+    wsErrorResolved(error)
+  })
+
+  const wsError = await wsErrorPromise
+
+  t.assert.equal(wsError.message, 'Unexpected server response: 500')
+})
+
+test('Should allow for handleUpgradeRequest to send a response to the client before throwing an error', async (t) => {
+  t.plan(1)
+
+  const fastify = Fastify()
+  t.after(() => fastify.close())
+
+  await fastify.register(fastifyWebsocket)
+
+  fastify.get('/', {
+    websocket: true,
+    handleUpgradeRequest: async () => {
+      const error = new Error('Forbidden')
+      error.statusCode = 403
+      throw error
+    }
+  }, () => {
+    t.fail('websocket handler should not be called when upgrade fails')
+  })
+
+  await fastify.listen({ port: 0 })
+
+  const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
+
+  let wsErrorResolved
+  const wsErrorPromise = new Promise((resolve) => {
+    wsErrorResolved = resolve
+  })
+
+  ws.on('error', (error) => {
+    wsErrorResolved(error)
+  })
+
+  const wsError = await wsErrorPromise
+
+  t.assert.equal(wsError.message, 'Unexpected server response: 403')
+})
+
+test('Should not send a response if handleUpgradeRequest has already ended the underlying socket and thrown an error', async (t) => {
+  t.plan(1)
+
+  const fastify = Fastify()
+  t.after(() => fastify.close())
+
+  await fastify.register(fastifyWebsocket)
+
+  fastify.get('/', {
+    websocket: true,
+    handleUpgradeRequest: async (request, socket, head) => {
+      socket.write('HTTP/1.1 400 Bad Request\r\n')
+      socket.write('Connection: closed\r\n')
+      socket.write('\r\n')
+      socket.end()
+      socket.destroy()
+
+      throw new Error('thrown after response has ended')
+    }
+  }, () => {
+    t.fail('websocket handler should not be called when upgrade fails')
+  })
+
+  await fastify.listen({ port: 0 })
+
+  const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
+
+  let wsErrorResolved
+  const wsErrorPromise = new Promise((resolve) => {
+    wsErrorResolved = resolve
+  })
+
+  ws.on('error', (error) => {
+    wsErrorResolved(error)
+  })
+
+  const wsError = await wsErrorPromise
+
+  t.assert.equal(wsError.message, 'Unexpected server response: 400')
+})
