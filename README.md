@@ -60,6 +60,30 @@ fastify.listen({ port: 3000 }, err => {
 
 In this case, it will respond with a 404 error on every unregistered route, closing the incoming upgrade connection requests.
 
+### HTTP/2 Support
+
+This plugin supports WebSocket connections over HTTP/2 using the [RFC 8441](https://datatracker.ietf.org/doc/html/rfc8441) Extended CONNECT Protocol. When using Fastify with `http2: true`, WebSocket connections are automatically handled over HTTP/2 streams.
+
+```js
+'use strict'
+
+const fastify = require('fastify')({ http2: true })
+fastify.register(require('@fastify/websocket'))
+fastify.register(async function (fastify) {
+  fastify.get('/', { websocket: true }, (socket, req) => {
+    socket.on('message', message => {
+      socket.send('hi from HTTP/2 server')
+    })
+  })
+})
+
+fastify.listen({ port: 3000 })
+```
+
+HTTP/2 WebSocket connections use the CONNECT method with the `:protocol` pseudo-header set to `websocket`. The plugin automatically enables the `enableConnectProtocol` setting on HTTP/2 servers.
+
+**Note:** HTTP/2 WebSocket support requires Node.js with HTTP/2 support and clients that implement RFC 8441.
+
 However, you can still define a wildcard route, that will be used as the default handler:
 
 ```js
