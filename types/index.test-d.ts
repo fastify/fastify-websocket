@@ -5,7 +5,6 @@ import { RouteGenericInterface } from 'fastify/types/route'
 import type { IncomingMessage } from 'node:http'
 import { expectType } from 'tsd'
 import { Server } from 'ws'
-// eslint-disable-next-line import-x/no-named-default -- Test default export
 import fastifyWebsocket, { default as defaultFastifyWebsocket, fastifyWebsocket as namedFastifyWebsocket, WebSocket, WebsocketHandler } from '..'
 
 const app: FastifyInstance = fastify()
