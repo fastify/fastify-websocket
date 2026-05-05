@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import * as fastify from 'fastify'
 import { ContextConfigDefault, FastifyBaseLogger, FastifyInstance, FastifyPluginCallback, FastifyRequest, FastifySchema, FastifyTypeProvider, FastifyTypeProviderDefault, RawReplyDefaultExpression, RawRequestDefaultExpression, RawServerBase, RawServerDefault, RequestGenericInterface } from 'fastify'
 import { preCloseAsyncHookHandler, preCloseHookHandler } from 'fastify/types/hooks'
@@ -90,11 +89,13 @@ declare namespace fastifyWebsocket {
     socket: WebSocket.WebSocket,
     request: FastifyRequest<RequestGeneric, RawServer, RawRequest, SchemaCompiler, TypeProvider, ContextConfig, Logger>
   ) => void | Promise<any>
+
   export interface WebsocketPluginOptions {
     errorHandler?: (this: FastifyInstance, error: Error, socket: WebSocket.WebSocket, request: FastifyRequest, reply: FastifyReply) => void;
     options?: WebSocketServerOptions;
     preClose?: preCloseHookHandler | preCloseAsyncHookHandler;
   }
+
   export interface RouteOptions<
     RawServer extends RawServerBase = RawServerDefault,
     RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>,
