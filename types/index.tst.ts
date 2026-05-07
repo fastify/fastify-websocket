@@ -187,8 +187,8 @@ server.get(
   }
 )
 
-expect(namedFastifyWebsocket).type.toBe<typeof fastifyWebsocket>()
-expect(fastifyWebsocket).type.toBe<typeof fastifyWebsocket>()
+expect(namedFastifyWebsocket).type.toBe(fastifyWebsocket)
+expect(defaultFastifyWebsocket).type.toBe(fastifyWebsocket)
 
 app.injectWS('/', {}, {})
 app.injectWS('/', {}, {
