@@ -330,13 +330,23 @@ test('Should invoke the correct handler depending on the headers', (t, end) => {
 
     const wsClient = net.createConnection({ port }, () => {
       wsClient.write('GET / HTTP/1.1\r\nConnection: upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n')
-      wsClient.once('data', data => {
-        t.assert.match(data.toString(), /hi from wsHandler/i)
+      // The 101 response and the first websocket frame are separate writes, so
+      // they can arrive in separate chunks; accumulate instead of asserting on
+      // the first chunk only.
+      let received = ''
+      const onData = data => {
+        received += data.toString()
+        if (!/hi from wsHandler/i.test(received)) {
+          return
+        }
+        wsClient.removeListener('data', onData)
+        t.assert.match(received, /hi from wsHandler/i)
         wsClient.end(() => {
           t.assert.ok(true)
           setTimeout(end, 100)
         })
-      })
+      }
+      wsClient.on('data', onData)
     })
   })
 })
