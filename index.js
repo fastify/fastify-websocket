@@ -9,6 +9,8 @@ const Duplexify = require('duplexify')
 
 const kWs = Symbol('ws-socket')
 const kWsHead = Symbol('ws-head')
+const kWsHttp2 = Symbol('ws-http2')
+const kWsHttp2Handled = Symbol('ws-http2-handled')
 const statusCodeReg = /HTTP\/1.1 (\d+)/u
 
 function fastifyWebsocket (fastify, opts, next) {
@@ -50,6 +52,16 @@ function fastifyWebsocket (fastify, opts, next) {
 
   const wss = new WebSocket.Server(wssOptions)
   fastify.decorate('websocketServer', wss)
+
+  // Check if this is an HTTP/2 server by checking for http2 module's server types
+  const isHttp2Server = websocketListenServer.constructor.name === 'Http2Server' ||
+    websocketListenServer.constructor.name === 'Http2SecureServer'
+
+  // For HTTP/2 servers, enable the extended CONNECT protocol (RFC 8441)
+  // This allows WebSocket connections over HTTP/2
+  if (isHttp2Server && typeof websocketListenServer.updateSettings === 'function') {
+    websocketListenServer.updateSettings({ enableConnectProtocol: true })
+  }
 
   // TODO: place upgrade context as options
   async function injectWS (path = '/', upgradeContext = {}, options = {}) {
@@ -109,6 +121,53 @@ function fastifyWebsocket (fastify, opts, next) {
 
   fastify.decorate('injectWS', injectWS)
 
+  // HTTP/2 WebSocket handler (RFC 8441 - Extended CONNECT Protocol)
+  // For HTTP/2, WebSocket connections use CONNECT method with :protocol pseudo-header
+  function onHttp2Stream (stream, headers) {
+    // Mark this stream as handled by websocket plugin
+    // This prevents Fastify's HTTP/2 compatibility layer from processing it
+    stream[kWsHttp2Handled] = true
+
+    // Get the path from :path pseudo-header
+    /* c8 ignore next */
+    const path = headers[':path'] || '/'
+
+    // Create a minimal request object that mimics an HTTP/1.1 request for routing
+    // The HTTP/2 stream will be stored in kWs and used as the WebSocket transport
+    const rawRequest = {
+      method: 'GET', // WebSocket routes are registered as GET
+      url: path,
+      headers: {
+        ...headers,
+        // Add headers that WebSocket routes might check
+        connection: 'upgrade',
+        upgrade: 'websocket'
+      },
+      httpVersion: '2.0',
+      socket: stream.session.socket,
+      [kWs]: stream,
+      [kWsHead]: Buffer.alloc(0),
+      [kWsHttp2]: true
+    }
+
+    // Create a mock response object for Fastify routing
+    // We use a PassThrough stream as a sink instead of the real HTTP/2 stream
+    // This prevents ServerResponse from interfering with the HTTP/2 stream
+    // The actual response (status 200) is sent in handleHttp2WebSocket
+    const mockSocket = new PassThrough()
+    mockSocket.remoteAddress = stream.session?.socket?.remoteAddress
+    const rawResponse = new ServerResponse(rawRequest)
+    rawResponse.assignSocket(mockSocket)
+
+    try {
+      fastify.routing(rawRequest, rawResponse)
+      /* c8 ignore next 4 */
+    } catch (err) {
+      fastify.log.warn({ err }, 'http2 websocket connection failed')
+      stream.close()
+    }
+  }
+
   function onUpgrade (rawRequest, socket, head) {
     // Save a reference to the socket and then dispatch the request through the normal fastify router so that it will invoke hooks and then eventually a route handler that might upgrade the socket.
     rawRequest[kWs] = socket
@@ -117,8 +176,39 @@ function fastifyWebsocket (fastify, opts, next) {
     try {
       rawResponse.assignSocket(socket)
       fastify.routing(rawRequest, rawResponse)
+      /* c8 ignore next 3 */
     } catch (err) {
       fastify.log.warn({ err }, 'websocket upgrade failed')
+    }
+  }
+
+  // For HTTP/1.1 servers, listen to upgrade event
+  // For HTTP/2 servers, we need to intercept the stream event and prevent Fastify's
+  // internal handler from processing WebSocket CONNECT requests
+  if (isHttp2Server) {
+    // Get Fastify's original stream handler
+    const listeners = websocketListenServer.listeners('stream')
+    const fastifyHandler = listeners.find(l => l.name === 'bound onServerStream')
+
+    if (fastifyHandler) {
+      // Remove Fastify's handler
+      websocketListenServer.removeListener('stream', fastifyHandler)
+
+      // Add a wrapper that handles WebSocket CONNECT or delegates to Fastify
+      websocketListenServer.on('stream', function onStreamWrapper (stream, headers) {
+        // Check if this is a WebSocket CONNECT request
+        if (headers[':method'] === 'CONNECT' && headers[':protocol'] === 'websocket') {
+          // Handle as WebSocket - don't let Fastify process this stream
+          onHttp2Stream(stream, headers)
+        } else {
+          // Let Fastify handle regular HTTP/2 requests
+          fastifyHandler(stream, headers)
+        }
+      })
+      /* c8 ignore next 4 */
+    } else {
+      // Fallback: if we can't find Fastify's handler, just prepend ours
+      websocketListenServer.prependListener('stream', onHttp2Stream)
     }
   }
   websocketListenServer.on('upgrade', onUpgrade)
@@ -135,6 +225,51 @@ function fastifyWebsocket (fastify, opts, next) {
     })
   }
 
+  // Handle HTTP/2 WebSocket connections (RFC 8441)
+  // For HTTP/2, we respond with status 200 and then create WebSocket over the stream
+  const handleHttp2WebSocket = (rawRequest, callback) => {
+    const stream = rawRequest[kWs]
+    const head = rawRequest[kWsHead]
+
+    // Respond to the CONNECT request - this establishes the WebSocket tunnel
+    // For HTTP/2, we respond with status 200 (not 101 like HTTP/1.1)
+    stream.respond({ ':status': 200 })
+
+    // Create a WebSocket instance and set the stream as its socket
+    const socket = new WebSocket(null, undefined, {})
+
+    // IMPORTANT: _isServer must be set explicitly before setSocket
+    // This ensures proper WebSocket frame masking (server expects masked frames from clients)
+    socket._isServer = true
+
+    // HTTP/2 streams don't have setNoDelay, so we add a no-op
+    if (!stream.setNoDelay) {
+      stream.setNoDelay = () => {}
+    }
+
+    // Set the socket using the HTTP/2 stream as the transport
+    // maxPayload from wssOptions or use a large default
+    const maxPayload = wssOptions.maxPayload || 104857600 // 100MB default
+    socket.setSocket(stream, head, { maxPayload })
+
+    // Track the client in the WebSocket server if client tracking is enabled
+    if (wss.options.clientTracking) {
+      wss.clients.add(socket)
+      socket.on('close', () => {
+        wss.clients.delete(socket)
+      })
+    }
+
+    wss.emit('connection', socket, rawRequest)
+
+    /* c8 ignore next 3 */
+    socket.on('error', (error) => {
+      fastify.log.error(error)
+    })
+
+    callback(socket)
+  }
+
   fastify.addHook('onRequest', (request, _reply, done) => { // this adds req.ws to the Request object
     if (request.raw[kWs]) {
       request.ws = true
@@ -146,7 +281,14 @@ function fastifyWebsocket (fastify, opts, next) {
 
   fastify.addHook('onResponse', (request, _reply, done) => {
     if (request.ws) {
-      request.raw[kWs].destroy()
+      const stream = request.raw[kWs]
+      // For HTTP/2 streams, use close() if destroy() is not available
+      if (typeof stream.destroy === 'function') {
+        stream.destroy()
+        /* c8 ignore next 3 */
+      } else if (typeof stream.close === 'function') {
+        stream.close()
+      }
     }
     done()
   })
@@ -188,7 +330,13 @@ function fastifyWebsocket (fastify, opts, next) {
       // within the route handler, we check if there has been a connection upgrade by looking at request.raw[kWs]. we need to dispatch the normal HTTP handler if not, and hijack to dispatch the websocket handler if so
       if (request.raw[kWs]) {
         reply.hijack()
-        handleUpgrade(request.raw, socket => {
+
+        // Use appropriate handler based on HTTP version
+        // HTTP/2 WebSocket (RFC 8441) uses handleHttp2WebSocket
+        // HTTP/1.1 WebSocket uses handleUpgrade
+        const upgradeHandler = request.raw[kWsHttp2] ? handleHttp2WebSocket : handleUpgrade
+
+        upgradeHandler(request.raw, socket => {
           let result
           try {
             if (isWebsocketRoute) {
@@ -221,6 +369,15 @@ function fastifyWebsocket (fastify, opts, next) {
     }
 
     fastify.server.removeListener('upgrade', onUpgrade)
+    if (isHttp2Server) {
+      // Remove our stream wrapper/handler
+      const listeners = fastify.server.listeners('stream')
+      /* c8 ignore next */
+      const ourHandler = listeners.find(l => l.name === 'onStreamWrapper' || l.name === 'onHttp2Stream')
+      if (ourHandler) {
+        fastify.server.removeListener('stream', ourHandler)
+      }
+    }
 
     server.close(done)
 
