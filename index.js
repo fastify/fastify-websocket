@@ -127,10 +127,6 @@ function fastifyWebsocket (fastify, opts, next) {
     wss.handleUpgrade(rawRequest, rawRequest[kWs], rawRequest[kWsHead], (socket) => {
       wss.emit('connection', socket, rawRequest)
 
-      socket.on('error', (error) => {
-        fastify.log.error(error)
-      })
-
       callback(socket)
     })
   }
@@ -189,6 +185,14 @@ function fastifyWebsocket (fastify, opts, next) {
       if (request.raw[kWs]) {
         reply.hijack()
         handleUpgrade(request.raw, socket => {
+          // Errors emitted on the established socket (e.g. an unclean client
+          // disconnect) are routed through the errorHandler so applications
+          // can classify them, and so the socket always has an 'error'
+          // listener attached.
+          socket.on('error', (error) => {
+            errorHandler.call(this, error, socket, request, reply)
+          })
+
           let result
           try {
             if (isWebsocketRoute) {

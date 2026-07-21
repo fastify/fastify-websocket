@@ -202,7 +202,7 @@ fastify.listen({ port: 3000 }, err => {
 
 ### Custom error handler:
 
-You can optionally provide a custom `errorHandler` that will be used to handle any cleaning up of established websocket connections. The `errorHandler` will be called if any errors are thrown by your websocket route handler after the connection has been established. Note that neither Fastify's `onError` hook or functions registered with `fastify.setErrorHandler` will be called for errors thrown during a websocket request handler.
+You can optionally provide a custom `errorHandler` that will be used to handle any cleaning up of established websocket connections. The `errorHandler` will be called if any errors are thrown by your websocket route handler after the connection has been established, as well as for `error` events emitted by the established websocket connection itself (for example when a client disconnects uncleanly), so applications can classify expected disconnect errors instead of having them logged unconditionally at the error level. Note that neither Fastify's `onError` hook or functions registered with `fastify.setErrorHandler` will be called for errors thrown during a websocket request handler.
 
 Neither the `errorHandler` passed to this plugin or fastify's `onError` hook will be called for errors encountered during message processing for your connection. If you want to handle unexpected errors within your `message` event handlers, you'll need to use your own `try { } catch {}` statements and decide what to send back over the websocket.
 

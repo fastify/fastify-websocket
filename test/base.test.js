@@ -182,6 +182,47 @@ test('Should run custom errorHandler on error inside async websocket handler', a
   await p
 })
 
+test('Should run custom errorHandler when the raw socket emits an error', async (t) => {
+  t.plan(2)
+
+  const fastify = Fastify()
+  t.after(() => fastify.close())
+
+  let _resolve
+  const p = new Promise((resolve) => {
+    _resolve = resolve
+  })
+
+  await fastify.register(fastifyWebsocket, {
+    errorHandler: function (error, socket, request, reply) {
+      t.assert.deepStrictEqual(error.code, 'WS_ERR_UNEXPECTED_RSV_2_3')
+      t.assert.deepStrictEqual(request.ws, true)
+      socket.terminate()
+      _resolve()
+    }
+  })
+
+  fastify.get('/', { websocket: true }, () => {})
+
+  await fastify.listen({ port: 0 })
+
+  const client = new WebSocket('ws://localhost:' + fastify.server.address().port)
+  t.after(() => {
+    if (client.readyState) {
+      client.close()
+    }
+  })
+
+  await once(client, 'open')
+
+  // Write an invalid frame directly to the underlying TCP socket so the
+  // server-side websocket emits an 'error' event after the connection is
+  // established.
+  client._socket.write(Buffer.from([0xa2, 0x00]))
+
+  await p
+})
+
 test('Should be able to pass custom options to ws', async (t) => {
   t.plan(2)
 
