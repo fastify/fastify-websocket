@@ -352,6 +352,24 @@ test('Should be able to pass a custom server option to ws', async (t) => {
   ws.close()
 })
 
+test('Should remove the upgrade listener from a custom server on close', async (t) => {
+  const externalServer = http.createServer()
+  t.after(() => externalServer.close())
+  await new Promise((resolve, reject) => {
+    externalServer.once('error', reject)
+    externalServer.listen(0, resolve)
+  })
+
+  const fastify = Fastify()
+  t.after(() => fastify.close())
+  await fastify.register(fastifyWebsocket, { options: { server: externalServer } })
+  await fastify.ready()
+
+  t.assert.strictEqual(externalServer.listenerCount('upgrade'), 1)
+  await fastify.close()
+  t.assert.strictEqual(externalServer.listenerCount('upgrade'), 0)
+})
+
 test('Should be able to pass clientTracking option in false to ws', async (t) => {
   const fastify = Fastify()
 
