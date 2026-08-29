@@ -224,7 +224,7 @@ function fastifyWebsocket (fastify, opts, next) {
       }
     }
 
-    fastify.server.removeListener('upgrade', onUpgrade)
+    websocketListenServer.removeListener('upgrade', onUpgrade)
 
     server.close(done)
 
