@@ -1,6 +1,7 @@
 'use strict'
 
 const http = require('node:http')
+const net = require('node:net')
 const split = require('split2')
 const { test } = require('node:test')
 const Fastify = require('fastify')
@@ -221,6 +222,45 @@ test('Should run custom errorHandler when the raw socket emits an error', async 
   client._socket.write(Buffer.from([0xa2, 0x00]))
 
   await p
+})
+
+test('Should handle raw socket errors while upgrade hooks are running', async (t) => {
+  const fastify = Fastify()
+  t.after(() => fastify.close())
+
+  await fastify.register(fastifyWebsocket)
+
+  let enterHook
+  const hookEntered = new Promise((resolve) => {
+    enterHook = resolve
+  })
+
+  fastify.addHook('onRequest', async () => {
+    enterHook()
+    await new Promise((resolve) => setTimeout(resolve, 100))
+  })
+
+  fastify.get('/', { websocket: true }, () => {})
+
+  await fastify.listen({ port: 0 })
+
+  const client = net.connect(fastify.server.address().port, '127.0.0.1', () => {
+    client.write(
+      'GET / HTTP/1.1\r\n' +
+      'Host: localhost\r\n' +
+      'Connection: Upgrade\r\n' +
+      'Upgrade: websocket\r\n' +
+      'Sec-WebSocket-Version: 13\r\n' +
+      'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n\r\n'
+    )
+  })
+  client.on('error', () => {})
+
+  await hookEntered
+  client.resetAndDestroy()
+  await new Promise((resolve) => setTimeout(resolve, 200))
+
+  t.assert.strictEqual(fastify.server.listening, true)
 })
 
 test('Should be able to pass custom options to ws', async (t) => {
