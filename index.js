@@ -110,6 +110,10 @@ function fastifyWebsocket (fastify, opts, next) {
   fastify.decorate('injectWS', injectWS)
 
   function onUpgrade (rawRequest, socket, head) {
+    // Node removes its socket error listener before emitting 'upgrade'. Keep
+    // the socket guarded while Fastify runs hooks and routes the request.
+    socket.on('error', onUpgradeSocketError)
+
     // Save a reference to the socket and then dispatch the request through the normal fastify router so that it will invoke hooks and then eventually a route handler that might upgrade the socket.
     rawRequest[kWs] = socket
     rawRequest[kWsHead] = head
@@ -124,11 +128,18 @@ function fastifyWebsocket (fastify, opts, next) {
   websocketListenServer.on('upgrade', onUpgrade)
 
   const handleUpgrade = (rawRequest, callback) => {
+    // `ws` installs its own socket error listener synchronously in
+    // handleUpgrade, so it is safe to hand error ownership over here.
+    rawRequest[kWs].removeListener('error', onUpgradeSocketError)
     wss.handleUpgrade(rawRequest, rawRequest[kWs], rawRequest[kWsHead], (socket) => {
       wss.emit('connection', socket, rawRequest)
 
       callback(socket)
     })
+  }
+
+  function onUpgradeSocketError () {
+    this.destroy()
   }
 
   fastify.addHook('onRequest', (request, _reply, done) => { // this adds req.ws to the Request object
