@@ -129,6 +129,48 @@ app.route<{
   }
 })
 
+app.route({
+  method: 'GET',
+  url: '/route-full-declaration-syntax-websocket',
+  websocket: true,
+  handler: async function (socket, request) {
+    expect(this).type.toBe<FastifyInstance>()
+    expect(socket).type.toBe<WebSocket>()
+    expect(request).type.toBe<FastifyRequest<RouteGenericInterface>>()
+    expect(request.ws).type.toBe<boolean>()
+  }
+})
+
+app.route({
+  method: 'GET',
+  url: '/route-full-declaration-syntax-not-websocket',
+  websocket: false,
+  handler: (request, reply) => {
+    expect(request).type.toBe<FastifyRequest>()
+    expect(reply).type.toBe<FastifyReply>()
+  }
+})
+
+app.route<{
+  Params: { foo: string };
+  Body: { bar: string };
+  Querystring: { search: string };
+  Headers: { auth: string };
+}>({
+  method: 'GET',
+  url: '/longhand-explicit-types-websocket',
+  websocket: true,
+  handler: (socket, request) => {
+    expect(socket).type.toBe<WebSocket>()
+    expect(request.params).type.toBe<{ foo: string }>()
+    expect(request.body).type.toBe<{ bar: string }>()
+    expect(request.query).type.toBe<{ search: string }>()
+    expect(request.headers).type.toBe<
+      IncomingMessage['headers'] & { auth: string }
+    >()
+  }
+})
+
 const schema = {
   params: Type.Object({ foo: Type.String() }, { required: ['foo'] }),
   querystring: Type.Object({ search: Type.String() }, { required: ['search'] }),
@@ -186,6 +228,22 @@ server.get(
     expect(request.headers).type.toBe<IncomingMessage['headers']>()
   }
 )
+
+server.route({
+  method: 'GET',
+  url: '/longhand-type-inference-websocket',
+  schema,
+  websocket: true,
+  handler: (socket, request) => {
+    expect(socket).type.toBe<WebSocket>()
+    expect(request.params).type.toBe<{ foo: string }>()
+    expect(request.body).type.toBe<{ bar: string }>()
+    expect(request.query).type.toBe<{ search: string }>()
+    expect(request.headers).type.toBe<
+      IncomingMessage['headers'] & { auth: string }
+    >()
+  }
+})
 
 expect(namedFastifyWebsocket).type.toBe(fastifyWebsocket)
 expect(fastifyWebsocket).type.toBe(fastifyWebsocket)

@@ -34,10 +34,21 @@ declare module 'fastify' {
   type InjectWSFn<RawRequest> =
     ((path?: string, upgradeContext?: Partial<RawRequest>, options?: InjectWSOption) => Promise<WebSocket>)
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface FastifyInstance<RawServer, RawRequest, RawReply, Logger, TypeProvider> {
     websocketServer: WebSocket.Server,
     injectWS: InjectWSFn<RawRequest>
+
+    // When `websocket: true` is set, `handler` is the websocket handler, so type it as such
+    route<
+      RouteGeneric extends RouteGenericInterface = RouteGenericInterface,
+      ContextConfig = ContextConfigDefault,
+      const SchemaCompiler extends FastifySchema = FastifySchema
+    >(
+      opts: Omit<RouteOptions<RawServer, RawRequest, RawReply, RouteGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger>, 'handler' | 'websocket'> & {
+        websocket: true,
+        handler: fastifyWebsocket.WebsocketHandler<RawServer, RawRequest, RouteGeneric, ContextConfig, SchemaCompiler, TypeProvider, Logger>
+      }
+    ): FastifyInstance<RawServer, RawRequest, RawReply, Logger, TypeProvider>;
   }
 
   interface FastifyRequest {
