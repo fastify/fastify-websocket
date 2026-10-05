@@ -441,6 +441,43 @@ test('Should throw on wrong HTTP method', (t, end) => {
   })
 })
 
+test('Should accept an array of GET methods', async t => {
+  for (const method of [['GET'], ['GET', 'HEAD']]) {
+    const fastify = Fastify()
+    t.after(() => fastify.close())
+
+    await fastify.register(fastifyWebsocket)
+    fastify.route({
+      method,
+      url: '/echo',
+      websocket: true,
+      handler: (socket) => {
+        socket.once('message', message => socket.send(message))
+      }
+    })
+    await fastify.ready()
+
+    const ws = await fastify.injectWS('/echo')
+    const reply = new Promise(resolve => ws.once('message', data => resolve(data.toString())))
+    ws.send('hi')
+    t.assert.strictEqual(await reply, 'hi')
+    ws.terminate()
+  }
+})
+
+test('Should throw on an array with a non-GET method', async t => {
+  const fastify = Fastify()
+  t.after(() => fastify.close())
+
+  await fastify.register(fastifyWebsocket)
+  t.assert.throws(() => fastify.route({
+    method: ['GET', 'POST'],
+    url: '/echo',
+    websocket: true,
+    handler: () => {}
+  }), { message: 'websocket handler can only be declared in GET method' })
+})
+
 test('Should throw on invalid wsHandler', async t => {
   t.plan(1)
   const fastify = Fastify()
