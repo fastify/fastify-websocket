@@ -164,9 +164,11 @@ function fastifyWebsocket (fastify, opts, next) {
     let handler = routeOptions.handler
 
     if (routeOptions.websocket || routeOptions.wsHandler) {
-      if (routeOptions.method === 'HEAD') {
+      // `method` can also be an array, e.g. ['GET', 'HEAD']
+      const methods = Array.isArray(routeOptions.method) ? routeOptions.method : [routeOptions.method]
+      if (methods.every(method => method === 'HEAD')) {
         return
-      } else if (routeOptions.method !== 'GET') {
+      } else if (methods.some(method => method !== 'GET' && method !== 'HEAD')) {
         throw new Error('websocket handler can only be declared in GET method')
       }
 
