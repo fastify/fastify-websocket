@@ -462,6 +462,11 @@ test('Should accept an array of GET methods', async t => {
     ws.send('hi')
     t.assert.strictEqual(await reply, 'hi')
     ws.terminate()
+
+    if (method.includes('HEAD')) {
+      const head = await fastify.inject({ method: 'HEAD', url: '/echo' })
+      t.assert.strictEqual(head.statusCode, 404)
+    }
   }
 })
 
