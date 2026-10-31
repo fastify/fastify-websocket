@@ -463,11 +463,50 @@ test('Should accept an array of GET methods', async t => {
     t.assert.strictEqual(await reply, 'hi')
     ws.terminate()
 
-    if (method.includes('HEAD')) {
-      const head = await fastify.inject({ method: 'HEAD', url: '/echo' })
-      t.assert.strictEqual(head.statusCode, 404)
-    }
+    const head = await fastify.inject({ method: 'HEAD', url: '/echo' })
+    t.assert.strictEqual(head.statusCode, 404)
   }
+})
+
+test('Should reply 404 to HEAD requests on a websocket route', async t => {
+  for (const method of ['GET', 'HEAD']) {
+    const fastify = Fastify()
+    t.after(() => fastify.close())
+
+    await fastify.register(fastifyWebsocket)
+    fastify.route({
+      method,
+      url: '/echo',
+      websocket: true,
+      handler: (socket) => {
+        socket.once('message', message => socket.send(message))
+      }
+    })
+
+    const head = await fastify.inject({ method: 'HEAD', url: '/echo' })
+    t.assert.strictEqual(head.statusCode, 404)
+  }
+})
+
+test('Should use the HTTP handler for HEAD requests on a route with a wsHandler', async t => {
+  const fastify = Fastify()
+  t.after(() => fastify.close())
+
+  await fastify.register(fastifyWebsocket)
+  fastify.route({
+    method: 'GET',
+    url: '/echo',
+    handler: (_, reply) => {
+      reply.header('x-handler', 'http').send('hello')
+    },
+    wsHandler: (socket) => {
+      socket.close()
+    }
+  })
+
+  const head = await fastify.inject({ method: 'HEAD', url: '/echo' })
+  t.assert.strictEqual(head.statusCode, 200)
+  t.assert.strictEqual(head.headers['x-handler'], 'http')
 })
 
 test('Should throw on an array with a non-GET method', async t => {
