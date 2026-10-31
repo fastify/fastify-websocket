@@ -167,6 +167,13 @@ function fastifyWebsocket (fastify, opts, next) {
       // `method` can also be an array, e.g. ['GET', 'HEAD']
       const methods = Array.isArray(routeOptions.method) ? routeOptions.method : [routeOptions.method]
       if (methods.every(method => method === 'HEAD')) {
+        // A HEAD request can't be upgraded. This also covers the HEAD route that fastify adds for a GET route,
+        // where `handler` is still the websocket handler.
+        if (routeOptions.websocket) {
+          routeOptions.handler = function (_, reply) {
+            reply.code(404).send()
+          }
+        }
         return
       } else if (methods.some(method => method !== 'GET' && method !== 'HEAD')) {
         throw new Error('websocket handler can only be declared in GET method')
