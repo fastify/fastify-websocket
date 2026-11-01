@@ -9,6 +9,7 @@ const Duplexify = require('duplexify')
 
 const kWs = Symbol('ws-socket')
 const kWsHead = Symbol('ws-head')
+const kWsReplyHeaders = Symbol('ws-reply-headers')
 const statusCodeReg = /HTTP\/1.1 (\d+)/u
 
 function fastifyWebsocket (fastify, opts, next) {
@@ -49,6 +50,17 @@ function fastifyWebsocket (fastify, opts, next) {
   delete wssOptions.server
 
   const wss = new WebSocket.Server(wssOptions)
+  wss.on('headers', (headers, rawRequest) => {
+    for (const [key, value] of Object.entries(rawRequest[kWsReplyHeaders])) {
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          headers.push(`${key}: ${item}`)
+        }
+      } else {
+        headers.push(`${key}: ${value}`)
+      }
+    }
+  })
   fastify.decorate('websocketServer', wss)
 
   // TODO: place upgrade context as options
@@ -127,10 +139,11 @@ function fastifyWebsocket (fastify, opts, next) {
   }
   websocketListenServer.on('upgrade', onUpgrade)
 
-  const handleUpgrade = (rawRequest, callback) => {
+  const handleUpgrade = (rawRequest, replyHeaders, callback) => {
     // `ws` installs its own socket error listener synchronously in
     // handleUpgrade, so it is safe to hand error ownership over here.
     rawRequest[kWs].removeListener('error', onUpgradeSocketError)
+    rawRequest[kWsReplyHeaders] = replyHeaders
     wss.handleUpgrade(rawRequest, rawRequest[kWs], rawRequest[kWsHead], (socket) => {
       wss.emit('connection', socket, rawRequest)
 
@@ -204,7 +217,7 @@ function fastifyWebsocket (fastify, opts, next) {
       // within the route handler, we check if there has been a connection upgrade by looking at request.raw[kWs]. we need to dispatch the normal HTTP handler if not, and hijack to dispatch the websocket handler if so
       if (request.raw[kWs]) {
         reply.hijack()
-        handleUpgrade(request.raw, socket => {
+        handleUpgrade(request.raw, reply.getHeaders(), socket => {
           // Errors emitted on the established socket (e.g. an unclean client
           // disconnect) are routed through the errorHandler so applications
           // can classify them, and so the socket always has an 'error'
