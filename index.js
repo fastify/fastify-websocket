@@ -234,6 +234,12 @@ function fastifyWebsocket (fastify, opts, next) {
     }
   })
 
+  // Always remove the upgrade listener, even with a custom preClose, as it
+  // can't be reached from outside the plugin.
+  fastify.addHook('preClose', function removeUpgradeListener (done) {
+    websocketListenServer.removeListener('upgrade', onUpgrade)
+    done()
+  })
   fastify.addHook('preClose', preClose)
 
   function defaultPreClose (done) {
@@ -243,8 +249,6 @@ function fastifyWebsocket (fastify, opts, next) {
         client.close()
       }
     }
-
-    websocketListenServer.removeListener('upgrade', onUpgrade)
 
     server.close(done)
 
