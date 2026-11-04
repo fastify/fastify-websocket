@@ -412,3 +412,40 @@ test('Should not hijack reply for an WS request to a WS route that gets sent a n
     })
   })
 })
+
+test('Should forward reply headers set in hooks to the HTTP 101 upgrade response', (t, end) => {
+  t.plan(4)
+  const fastify = Fastify()
+  t.after(() => fastify.close())
+
+  fastify.register(fastifyWebsocket)
+  fastify.register(async function (fastify) {
+    fastify.addHook('preHandler', async (_request, reply) => {
+      reply.header('x-custom-header', 'custom-value')
+      reply.header('set-cookie', ['a=1', 'b=2'])
+    })
+
+    fastify.get('/echo', { websocket: true }, (socket) => {
+      socket.send('hello client')
+      t.after(() => socket.terminate())
+    })
+  })
+
+  fastify.listen({ port: 0 }, err => {
+    t.assert.ifError(err)
+
+    const ws = new WebSocket('ws://localhost:' + (fastify.server.address()).port + '/echo')
+    t.after(() => ws.terminate())
+
+    ws.on('upgrade', (response) => {
+      t.assert.strictEqual(response.headers['x-custom-header'], 'custom-value')
+      t.assert.deepStrictEqual(response.headers['set-cookie'], ['a=1', 'b=2'])
+    })
+
+    ws.once('message', (chunk) => {
+      t.assert.strictEqual(chunk.toString(), 'hello client')
+      ws.close()
+      end()
+    })
+  })
+})
