@@ -251,8 +251,6 @@ function fastifyWebsocket (fastify, opts, next) {
     }
 
     server.close(done)
-
-    done()
   }
 
   function noHandle (socket, rawRequest) {
