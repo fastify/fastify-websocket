@@ -783,3 +783,21 @@ test('clashing upgrade handler', async (t) => {
   const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
   await once(ws, 'error')
 })
+
+test('Should properly close websocket server and drain clients before close completes', async (t) => {
+  t.plan(2)
+  const fastify = Fastify()
+  await fastify.register(fastifyWebsocket)
+
+  fastify.get('/', { websocket: true }, () => {})
+  await fastify.listen({ port: 0 })
+
+  const ws = new WebSocket('ws://localhost:' + fastify.server.address().port)
+  await once(ws, 'open')
+
+  const clientClosed = once(ws, 'close')
+  await fastify.close()
+  t.assert.strictEqual(fastify.websocketServer.clients.size, 0)
+  await clientClosed
+  t.assert.strictEqual(ws.readyState, WebSocket.CLOSED)
+})
